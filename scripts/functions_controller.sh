@@ -1,11 +1,14 @@
 checkControlPanel() {
     load_average=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}')
-    if (($(echo "$load_average < 0.5" | bc -l))); then
+    load_average=${load_average%,*}
+    load_average=$(echo "${load_average/,/.}")
+
+    if (($(echo "$load_average < 2" | bc -l))); then
         load_average="\e[32m$load_average\e[0m"
-    elif (($(echo "$load_average < 1.5" | bc -l))); then
+    elif (($(echo "$load_average < 5" | bc -l))); then
         load_average="\e[33m$load_average\e[0m"
     else
-        load_average="\e[31m$load_average\e[0m"
+        load_average="\e[31m$load_average (!)\e[0m"
     fi
 
     largest_disk=$(df -h | grep '^/dev/' | sort -k 4 -hr | head -n 1)
