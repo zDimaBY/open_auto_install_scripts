@@ -4,7 +4,7 @@
 folder_script_path="scripts"
 mkdir -p $folder_script_path
 urls=(
-    "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/0_fun_exit.sh"
+    "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/0_exit.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/1_user_domains.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/2_update_ioncube.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/3_install_composer.sh"
@@ -23,9 +23,7 @@ for file in ./$folder_script_path/*; do
         source "$file"
     fi
 done
-#  =========== наляштування для 4. DDos ============
-interface="enp0s3" # Вказуємо інтерфейс з яким будемо працювати
-duration=10        # Кількість запитів за 10 секунд
+
 #  ================= Start Script ==================
 function selectionFunctions() {
     clear
