@@ -149,6 +149,7 @@ function 4_blockIPs() {
     iptables-save >"$second_backup_file"
     echo "Створено другий бекап iptables: $second_backup_file"
 }
+
 4_blockIPsUsingIptables() {
     4_createIptablesBackup
     blocked_ips_file="blocked_IPs.log"
