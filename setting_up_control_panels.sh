@@ -9,6 +9,7 @@ urls=(
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/2_update_ioncube.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/3_install_composer.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/4_DDos.sh"
+    "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/5_VPN.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/functions_controller.sh"
 )
 echo -e "\e[92mLoading script, please wait.\e[0m"
@@ -34,6 +35,7 @@ function selectionFunctions() {
         echo "2. Встановлення/апгрейд ioncube для всіх php версії"
         echo "3. Встановлення Composer"
         echo "4. DDos"
+        echo "5. Втановлення VPN"
         echo -e "0. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант (1/2/3/4/5/6/7/8/9/0):" choice
@@ -43,6 +45,7 @@ function selectionFunctions() {
         2) 2_updateIoncube ;;
         3) 3_installComposer ;;
         4) 4_DDos ;;
+        5) 5_VPN ;;
         0) 0_funExit ;;
         *) 0_invalid ;;
         esac
