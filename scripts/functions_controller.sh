@@ -80,3 +80,89 @@ generate_random_password() {
     password=$(openssl rand -base64 12)
     echo -e "\n\nЗгенерований випадковий пароль: \e[91m$password\e[0m"
 }
+
+function check_dependency() {
+    local dependency_name=$1
+    local package_name=$2
+    local install_command=$3
+
+    # Отримання операційної системи
+    local os=""
+    if [[ -e /etc/debian_version ]]; then
+        source /etc/os-release
+        os="${ID}"
+    elif [[ -e /etc/fedora-release ]]; then
+        source /etc/os-release
+        os="${ID}"
+    elif [[ -e /etc/centos-release ]]; then
+        source /etc/os-release
+        os="centos"
+    elif [[ -e /etc/oracle-release ]]; then
+        source /etc/os-release
+        os="oracle"
+    elif [[ -e /etc/arch-release ]]; then
+        os="arch"
+    else
+        echo "Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle або Arch Linux"
+        exit 1
+    fi
+
+    # Перевірка наявності залежності
+    if ! command -v "$dependency_name" &>/dev/null; then
+        echo -e "\e[31m$dependency_name не встановлено. Встановлюємо...\e[0m"
+
+        # Перевірка чи вже було виконано оновлення системи
+        if ! "$UPDATE_DONE"; then
+            # Встановлення залежності залежно від операційної системи
+            case $os in
+                debian|ubuntu)
+                    sudo apt-get update
+                    sudo apt-get install -y "$package_name"
+                    ;;
+                fedora)
+                    sudo dnf update
+                    sudo dnf install -y "$package_name"
+                    ;;
+                centos|oracle)
+                    sudo yum update
+                    sudo yum install -y "$package_name"
+                    ;;
+                arch)
+                    sudo pacman -Sy
+                    sudo pacman -S --noconfirm "$package_name"
+                    ;;
+                *)
+                    echo -e "\e[31mНе вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.\e[0m"
+                    return 1
+                    ;;
+            esac
+
+            # Встановлено оновлення системи
+            UPDATE_DONE=true
+        else
+            # Встановлення залежності без оновлення системи
+            case $os in
+                debian|ubuntu)
+                    sudo apt-get install -y "$package_name"
+                    ;;
+                fedora)
+                    sudo dnf install -y "$package_name"
+                    ;;
+                centos|oracle)
+                    sudo yum install -y "$package_name"
+                    ;;
+                arch)
+                    sudo pacman -S --noconfirm "$package_name"
+                    ;;
+                *)
+                    echo -e "\e[31mНе вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.\e[0m"
+                    return 1
+                    ;;
+            esac
+        fi
+
+        echo -e "\e[32m$dependency_name успішно встановлено.\e[0m"
+    else
+        echo -e "\e[32m$dependency_name вже встановлено.\e[0m"
+    fi
+}

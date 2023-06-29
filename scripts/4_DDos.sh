@@ -3,12 +3,6 @@ function 4_DDos() {
     while true; do
         checkControlPanel
 
-        if ! command -v ifconfig >/dev/null; then
-            echo "Команда ifconfig недоступна. Встановлюється пакет net-tools..."
-            apt-get update
-            apt-get install net-tools
-        fi
-
         echo "Список доступних мережевих інтерфейсів та їх IP-адрес:"
         interfaces=($(ifconfig -a | grep -E '^[A-Za-z0-9]+:' | awk '{print $1}' | sed 's/://g'))
         for ((i = 0; i < ${#interfaces[@]}; i++)); do

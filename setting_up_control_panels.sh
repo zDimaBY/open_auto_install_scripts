@@ -1,6 +1,5 @@
 #!/bin/bash
 # Розгортаєм скрипт
-
 folder_script_path="scripts"
 mkdir -p $folder_script_path
 urls=(
@@ -23,6 +22,30 @@ for file in ./$folder_script_path/*; do
     if [ -f "$file" ] && [ -r "$file" ]; then
         source "$file"
     fi
+done
+
+UPDATE_DONE=false
+# Список програм для перевірки та встановлення
+dependencies=(
+    "grep grep"
+    "sh dash"
+    "awk gawk"
+    "sed sed"
+    "sort coreutils"
+    "uniq coreutils"
+    "cut coreutils"
+    "iptables iptables"
+    "timeout coreutils"
+    "bc bc"
+    "curl curl"
+    "tail coreutils"
+    "head coreutils"
+    "ifconfig net-tools"
+    "basename coreutils"
+)
+
+for dependency in "${dependencies[@]}"; do
+    check_dependency $dependency
 done
 
 #  ================= Start Script ==================
@@ -51,4 +74,5 @@ function selectionFunctions() {
         esac
     done
 }
+
 selectionFunctions

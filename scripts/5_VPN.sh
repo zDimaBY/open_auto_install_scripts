@@ -26,18 +26,16 @@ function 5_VPN() {
 check_docker() {
     if ! command -v docker &>/dev/null; then
         echo -e "\nДокер не встановлено на цій системі."
-        read -p "\nБажаєте встановити докер? (y/n): " install_docker
+        read -p "Бажаєте встановити докер? (y/n): " install_docker
         if [ "$install_docker" == "y" ]; then
             curl -sSL https://get.docker.com | sh
             sudo usermod -aG docker $(whoami)
             echo -e "\nДокер успішно встановлено."
-            exit 0
         else
             echo -e "\nВстановлення докера скасовано. Програма завершується."
             exit 1
         fi
     fi
-    echo -e "\nДокер встановлено на цій системі.\n"
 
     # Перевірка, чи демон Docker запущений
     if ! sudo service docker status | grep -q "running"; then
@@ -52,7 +50,6 @@ check_docker() {
         fi
     fi
 }
-
 
 get_server_ip() {
     echo "Визначення IP-адреси сервера"
@@ -106,7 +103,11 @@ install_wg_easy() {
         --restart unless-stopped \
         weejewel/wg-easy
 
-    echo -e "\n\e[32mWireGuard Easy успішно встановлено. Веб інтерфейс доступний за адресою $ip_address:51821\e[0m"
+    if [ $? -eq 0 ]; then
+        echo -e "\n\e[32mWireGuard Easy успішно встановлено. Веб-інтерфейс доступний за адресою \033[33m$ip_address:51821\e[0m"
+    else
+        echo -e "\n\e[31mСталася помилка під час встановлення WireGuard Easy. Перевірте налаштування і спробуйте ще раз.\e[0m"
+    fi
 }
 
 stop_wg_easy() {
