@@ -1,4 +1,14 @@
 function 1_outputOfAllDomains() {
+    if [ $# -ne 4 ]; then
+        echo "Потрібно вказати 4 аргументи: hestia_hostname, hestia_port, hestia_username, password"
+        return 1
+    fi
+
+    hestia_hostname=$1
+    hestia_port=$2
+    hestia_username=$3
+    hestia_password=$4
+
     # Prepare POST query
     postvars="user=$hestia_username&password=$hestia_password&returncode=$hestia_returncode&cmd=$hestia_command&arg1=$username&arg2=$format"
 
@@ -18,5 +28,4 @@ function 1_outputOfAllDomains() {
     # Parse JSON output "DOCUMENT_ROOT"
     document_roots=$(echo "$answer" | jq -r '.[].DOCUMENT_ROOT')
     echo "$document_roots"
-
 }

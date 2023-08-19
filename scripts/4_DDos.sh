@@ -8,7 +8,7 @@ function 4_DDos() {
         for ((i = 0; i < ${#interfaces[@]}; i++)); do
             interface_name=${interfaces[$i]}
             ip_address=$(ifconfig "$interface_name" | awk '/inet / {print $2}')
-            echo -e "$((i + 1)). Інтерфейс: \e[91m$interface_name\e[0m, IP-адреса: $ip_address"
+            echo -e "$((i + 1)). Інтерфейс: ${RED}$interface_name${RESET}, IP-адреса: $ip_address"
         done
 
         read -p "Введіть номер інтерфейсу для прослуховування: " choice
@@ -23,11 +23,11 @@ function 4_DDos() {
         read -p "Введіть тривалість таймауту tcpdump (у секундах, стандартне значення: 5): " duration
         duration=${duration:-5}
         echo -e "\nВиберіть дію:\n"
-        echo -e "1. Аналіз кількості IP-запитів на мережевому інтерфейсі протягом \e[91m$duration\e[0m секунд"
-        echo -e "2. Аналіз кількості унікальних IP-адрес на мережевому інтерфейсі протягом \e[91m$duration\e[0m секунд"
-        echo -e "3. Перехопити пакети з мережевого інтерфейсу \e[91m$interface\e[0m окрім ssh/22"
-        echo -e "4. Створити файл blocked_IPs.log на основі аналізу tcpdump протягом \e[91m$duration\e[0m секунд"
-        echo -e "5. Створити резервні копії iptables та заблокувати IP з файлу \e[91mblocked_IPs.log\e[0m"
+        echo -e "1. Аналіз кількості IP-запитів на мережевому інтерфейсі протягом ${RED}$duration${RESET} секунд"
+        echo -e "2. Аналіз кількості унікальних IP-адрес на мережевому інтерфейсі протягом ${RED}$duration${RESET} секунд"
+        echo -e "3. Перехопити пакети з мережевого інтерфейсу ${RED}$interface${RESET} окрім ssh/22"
+        echo -e "4. Створити файл blocked_IPs.log на основі аналізу tcpdump протягом ${RED}$duration${RESET} секунд"
+        echo -e "5. Створити резервні копії iptables та заблокувати IP з файлу ${RED}blocked_IPs.log${RESET}"
         echo -e "0. Повернутися до головного меню\n"
         read -p "Виберіть опцію (1/0): " choice
 
@@ -49,8 +49,8 @@ function 4_AnalysisRequestsOfNetworkInterface() {
     clear
     while true; do
         checkControlPanel
-        echo -e "\e[93mВи у пункті: "1. Аналіз IP-запитів мережевого інтерфейса за $duration/сек"\e[0m"
-        echo -e "\e[93mЩоб повернутися до попереднього меню натисніть\e[91m 0 та Enter\e[0m\n"
+        echo -e "\e[93mВи у пункті: "1. Аналіз IP-запитів мережевого інтерфейса за $duration/сек"${RESET}"
+        echo -e "\e[93mЩоб повернутися до попереднього меню натисніть${RED} 0 та Enter${RESET}\n"
         output=$(timeout $duration tcpdump -nn -i $interface)
         total_requests=$(echo "$output" | grep -c "IP ")
         echo -e "\nЗагальна кількість запитів: $total_requests"
@@ -76,8 +76,8 @@ function 4_repeatsOfNetworkInterface() {
     clear
     while true; do
         checkControlPanel
-        echo -e "\e[93mВи у пункті: "2. Аналіз IP усіх повторень мережевого інтерфейса за $duration/сек"\e[0m"
-        echo -e "\e[93mЩоб повернутися до попереднього меню натисніть\e[91m 0 та Enter\e[0m\n"
+        echo -e "\e[93mВи у пункті: "2. Аналіз IP усіх повторень мережевого інтерфейса за $duration/сек"${RESET}"
+        echo -e "\e[93mЩоб повернутися до попереднього меню натисніть${RED} 0 та Enter${RESET}\n"
         output=$(timeout $duration tcpdump -nn -i $interface)
         total_requests=$(echo "$output" | grep -c "IP ")
         echo "Загальна кількість запитів: $total_requests"
@@ -104,8 +104,8 @@ function 4_blockIPs() {
     clear
     while true; do
         checkControlPanel
-        echo -e "\e[93mВи у пункті: "2. Блокування IP-адрес з підозрілими запитами"\e[0m"
-        echo -e "\e[93mЩоб повернутися до попереднього меню натисніть\e[91m 0 та Enter\e[0m\n"
+        echo -e "\e[93mВи у пункті: "2. Блокування IP-адрес з підозрілими запитами"${RESET}"
+        echo -e "\e[93mЩоб повернутися до попереднього меню натисніть${RED} 0 та Enter${RESET}\n"
         output=$(timeout $duration tcpdump -nn -i $interface)
         ip_requests=$(echo "$output" | awk '/IP /{print $3}' | awk -F '.' '{print $1"."$2"."$3"."$4}' | sort | uniq -c)
 

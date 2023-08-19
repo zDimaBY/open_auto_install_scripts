@@ -1,6 +1,26 @@
 function 5_VPN() {
-    echo "Перевірка докера:"
     check_docker
+    while true; do
+        checkControlPanel
+        echo -e "\nВиберіть дію:\n"
+        echo "1. WireGuard Easy (WEB)"
+        echo "2. VPN server, with IPsec/L2TP, Cisco IPsec and IKEv2 (в процесі реалізації)"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант (1/2/3/4/5/6/7/8/9/0):" choice
+
+        case $choice in
+        1) menu_wg_easy ;;
+        2) menu_IPsec_L2TP_IKEv2 ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+
+menu_wg_easy() {
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
@@ -8,7 +28,8 @@ function 5_VPN() {
         echo "2. Зупинка WireGuard Easy"
         echo "3. Видалення WireGuard Easy"
         echo "4. Оновлення WireGuard Easy"
-        echo -e "0. Закінчити роботу скрипта\n"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант (1/2/3/4/5/6/7/8/9/0):" choice
 
@@ -17,77 +38,31 @@ function 5_VPN() {
         2) stop_wg_easy ;;
         3) remove_wg_easy ;;
         4) update_wg_easy ;;
-        0) 0_funExit ;;
+        0) break ;;
+        00) 0_funExit ;;
         *) 0_invalid ;;
         esac
     done
-}
-
-check_docker() {
-    if ! command -v docker &>/dev/null; then
-        echo -e "\nДокер не встановлено на цій системі."
-        read -p "Бажаєте встановити докер? (y/n): " install_docker
-        if [ "$install_docker" == "y" ]; then
-            curl -sSL https://get.docker.com | sh
-            sudo usermod -aG docker $(whoami)
-            echo -e "\nДокер успішно встановлено."
-        else
-            echo -e "\nВстановлення докера скасовано. Програма завершується."
-            exit 1
-        fi
-    fi
-
-    # Перевірка, чи демон Docker запущений
-    if ! sudo service docker status | grep -q "running"; then
-        echo -e "\nДемон Docker не запущений."
-        read -p "\nБажаєте запустити демон Docker? (y/n): " start_docker
-        if [ "$start_docker" == "y" ]; then
-            sudo service docker start
-            echo -e "\nДемон Docker успішно запущений."
-        else
-            echo -e "\nЗапуск демона Docker скасовано. Програма завершується."
-            exit 1
-        fi
-    fi
-}
-
-get_server_ip() {
-    echo "Визначення IP-адреси сервера"
-    echo "Список доступних мережевих інтерфейсів та їх IP-адрес:"
-    interfaces=($(ifconfig -a | grep -E '^[A-Za-z0-9]+:' | awk '{print $1}' | sed 's/://g'))
-
-    for ((i = 0; i < ${#interfaces[@]}; i++)); do
-        interface_name=${interfaces[$i]}
-        ip_address=$(ifconfig "$interface_name" | awk '/inet / {print $2}')
-        echo -e "$((i + 1)). Інтерфейс: \e[91m$interface_name\e[0m, IP-адреса: $ip_address"
-    done
-
-    read -p "Введіть номер інтерфейсу для використання: " choice
-    index=$((choice - 1))
-
-    if [[ $index -lt 0 || $index -ge ${#interfaces[@]} ]]; then
-        echo "Невірний вибір. Спробуйте ще раз."
-        exit 1
-    fi
-
-    interface=${interfaces[$index]}
-    ip_address=$(ifconfig "$interface" | awk '/inet / {print $2}')
-
-    if [ -z "$ip_address" ]; then
-        echo "Не вдалося отримати IP-адресу для інтерфейсу $interface."
-        exit 1
-    fi
-
-    echo "Обраний мережевий інтерфейс: $interface"
-    echo "IP-адреса: $ip_address"
-    server_ip="$ip_address"
 }
 
 install_wg_easy() {
     get_server_ip
     generate_random_password
     echo "Введіть пароль адміністратора:"
-    read -p "> " admin_password
+    read -r -s -p "> " admin_password # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
+
+    case $operating_system in
+    debian | ubuntu) ;;
+    fedora) ;;
+    centos | oracle)
+        yum install epel-release elrepo-release yum-plugin-elrepo kmod-wireguard wireguard-tools
+        ;;
+    arch) ;;
+    *)
+        echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
+        return 1
+        ;;
+    esac
 
     docker run -d \
         --name=wg-easy \
@@ -104,9 +79,9 @@ install_wg_easy() {
         weejewel/wg-easy
 
     if [ $? -eq 0 ]; then
-        echo -e "\n\e[32mWireGuard Easy успішно встановлено. Веб-інтерфейс доступний за адресою \033[33m$ip_address:51821\e[0m"
+        echo -e "\n${GREEN}WireGuard Easy успішно встановлено. Веб-інтерфейс доступний за адресою ${YELLOW}$ip_address:51821${RESET}"
     else
-        echo -e "\n\e[31mСталася помилка під час встановлення WireGuard Easy. Перевірте налаштування і спробуйте ще раз.\e[0m"
+        echo -e "\n${RED}Сталася помилка під час встановлення WireGuard Easy. Перевірте налаштування і спробуйте ще раз.${RESET}"
     fi
 }
 
@@ -126,4 +101,25 @@ update_wg_easy() {
     docker rm wg-easy
     docker pull weejewel/wg-easy
     echo "WireGuard Easy оновлено."
+}
+
+menu_IPsec_L2TP_IKEv2() {
+    while true; do
+        checkControlPanel
+        echo -e "\nВиберіть дію для налаштування контейнера IPsec/L2TP, Cisco IPsec and IKEv2:\n"
+        echo "1. Встановлення ipsec-vpn-server"
+        echo "2. Зупинка ipsec-vpn-server"
+        echo "3. Видалення ipsec-vpn-server"
+        echo "4. Оновлення ipsec-vpn-server"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант (1/2/3/4/5/6/7/8/9/0):" choice
+
+        case $choice in
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
 }

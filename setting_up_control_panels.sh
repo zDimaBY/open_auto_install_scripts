@@ -1,4 +1,16 @@
 #!/bin/bash
+# Коди кольорів
+BLACK="\e[30m"
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+BLUE="\e[34m"
+MAGENTA="\e[35m"
+CYAN="\e[36m"
+WHITE="\e[37m"
+lIGHT_GREEN="\e[92m"
+BROWN='\033[0;33m'
+RESET="\e[0m"
 # Розгортаєм скрипт
 folder_script_path="scripts"
 mkdir -p $folder_script_path
@@ -9,9 +21,10 @@ urls=(
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/3_install_composer.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/4_DDos.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/5_VPN.sh"
+    "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/6_FTP.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/functions_controller.sh"
 )
-echo -e "\e[92mLoading script, please wait.\e[0m"
+echo -e "${LIGHT_GREEN}Loading script, please wait.${RESET}"
 # Завантажуєм скрипти
 for url in "${urls[@]}"; do
     filename=$(basename "$url")
@@ -25,7 +38,7 @@ for file in ./$folder_script_path/*; do
 done
 
 UPDATE_DONE=false
-# Список програм для перевірки та встановлення
+# Список залежностей для перевірки та встановлення
 dependencies=(
     "grep grep"
     "sh dash"
@@ -42,6 +55,7 @@ dependencies=(
     "head coreutils"
     "ifconfig net-tools"
     "basename coreutils"
+    # "jq jq"
 )
 
 for dependency in "${dependencies[@]}"; do
@@ -55,10 +69,11 @@ function selectionFunctions() {
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
         echo "1. Домени користувача панелі керування"
-        echo "2. Встановлення/апгрейд ioncube для всіх php версії"
-        echo "3. Встановлення Composer"
-        echo "4. DDos"
-        echo "5. Втановлення VPN"
+        echo -e "2. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії"
+        echo -e "3. Встановлення ${BROWN}Composer${RESET}"
+        echo -e "4. DDos"
+        echo -e "5. Втановлення ${MAGENTA}VPN${RESET} та ${YELLOW}Docker${RESET}"
+        echo -e "6. Організування ${BLUE}FTP${RESET} доступу(test)"
         echo -e "0. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант (1/2/3/4/5/6/7/8/9/0):" choice
@@ -69,6 +84,7 @@ function selectionFunctions() {
         3) 3_installComposer ;;
         4) 4_DDos ;;
         5) 5_VPN ;;
+        6) 6_FTP ;;
         0) 0_funExit ;;
         *) 0_invalid ;;
         esac
