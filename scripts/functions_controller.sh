@@ -19,7 +19,7 @@ checkControlPanel() {
     server_IP=$(hostname -I | awk '{print $1}')
 
     case $operating_system in
-    "debian" | "ubuntu" | "fedora" | "centos" | "oracle" | "arch")
+    "Debian" | "ubuntu" | "fedora" | "centos" | "oracle" | "arch")
         if [ -d "/usr/local/hestia" ]; then
             hestia_info=$(/usr/local/hestia/bin/v-list-sys-info)
 
@@ -57,9 +57,12 @@ checkControlPanel() {
     esac
 }
 
-generate_random_password() {
+generate_random_password_show() {
     rand_password=$(openssl rand -base64 12)
     echo -e "\n\nЗгенерований випадковий пароль: ${RED}$rand_password${RESET}"
+}
+generate_random_password() {
+    rand_password=$(openssl rand -base64 12)
 }
 
 function check_dependency() {
@@ -67,7 +70,7 @@ function check_dependency() {
     local package_name=$2
     
     operating_system=""
-    if [[ -e /etc/debian_version ]]; then
+    if [[ -e /etc/Debian_version ]]; then
         source /etc/os-release
         operating_system="${ID}"
     elif [[ -e /etc/fedora-release ]]; then
@@ -94,7 +97,7 @@ function check_dependency() {
         if ! "$UPDATE_DONE"; then
             # Встановлення залежності залежно від операційної системи
             case $operating_system in
-            debian | ubuntu)
+            Debian | ubuntu)
                 sudo apt-get update
                 sudo apt-get install -y "$package_name"
                 ;;
@@ -121,7 +124,7 @@ function check_dependency() {
         else
             # Встановлення залежності без оновлення системи
             case $operating_system in
-            debian | ubuntu)
+            Debian | ubuntu)
                 sudo apt-get install -y "$package_name"
                 ;;
             fedora)

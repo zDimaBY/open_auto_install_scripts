@@ -29,7 +29,7 @@ install_alpine_ftp_server() {
     echo "Введіть імя користувача FTP:"
     read -r -s -p "> " ftp_user
     echo "Введіть пароль користувача FTP:"
-    generate_random_password
+    generate_random_password_show
     read -r -s -p "> " ftp_password  # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
 
     docker run -d \
