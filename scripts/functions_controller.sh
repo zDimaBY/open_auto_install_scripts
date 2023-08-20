@@ -70,24 +70,33 @@ function check_dependency() {
     local package_name=$2
     
     operating_system=""
-    if [[ -e /etc/Debian_version ]]; then
-        source /etc/os-release
-        operating_system="${ID}"
-    elif [[ -e /etc/fedora-release ]]; then
-        source /etc/os-release
-        operating_system="${ID}"
-    elif [[ -e /etc/centos-release ]]; then
-        source /etc/os-release
-        operating_system="${ID}"
-    elif [[ -e /etc/oracle-release ]]; then
-        source /etc/os-release
-        operating_system=oracle
-    elif [[ -e /etc/arch-release ]]; then
-        operating_system=arch
+if [[ -e /etc/debian_version ]]; then
+    source /etc/os-release
+    operating_system="${ID}"
+elif [[ -e /etc/fedora-release ]]; then
+    source /etc/os-release
+    operating_system="${ID}"
+elif [[ -e /etc/centos-release ]]; then
+    source /etc/os-release
+    operating_system="${ID}"
+elif [[ -e /etc/oracle-release ]]; then
+    source /etc/os-release
+    operating_system=oracle
+elif [[ -e /etc/arch-release ]]; then
+    operating_system=arch
+elif [[ -e /etc/lsb-release ]]; then
+    source /etc/lsb-release
+    if [[ "$DISTRIB_ID" == "Ubuntu" ]]; then
+        operating_system="ubuntu"
     else
-        echo "Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle або Arch Linux"
+        echo "$operating_system Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle або Arch Linux. Ваша система: $operating_system"
         exit 1
     fi
+else
+    echo "Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle або Arch Linux. Ваша система: $operating_system"
+    exit 1
+fi
+
 
     # Перевірка наявності залежності
     if ! command -v "$dependency_name" &>/dev/null; then

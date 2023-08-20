@@ -163,9 +163,18 @@ install_ipsec_vpn_server() {
             -d --privileged \
             hwdsl2/ipsec-vpn-server
 
-        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /home/
-        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /home/
-        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /home/
+        sleep 10
+        mkdir /root/VPN
+        
+        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN
+        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN
+        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN
+
+        if [ $? -eq 0 ]; then
+            echo -e "\n${GREEN}Файли для налаштуваня успішно скопійовано до /root/VPN${RESET}\n"
+        else
+            echo -e "\n${RED}Помилка під час копіювання файлів.${RESET}\n"
+        fi
 
         echo -e "\n${GREEN}Контейнер ipsec-vpn-server встановлено та налаштовано успішно.${RESET}\n"
     else
