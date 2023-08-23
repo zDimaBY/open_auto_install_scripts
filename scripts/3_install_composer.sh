@@ -1,6 +1,6 @@
 function 3_installComposer() {
     case $operating_system in
-    Debian | ubuntu)
+    debian | ubuntu)
         if ! command -v php &> /dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
             sudo apt-get install php-cli

@@ -52,7 +52,7 @@ install_wg_easy() {
     read -r -s -p "> " admin_password # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
 
     case $operating_system in
-    Debian | ubuntu) ;;
+    debian | ubuntu) ;;
     fedora) ;;
     centos | oracle)
         yum install epel-release elrepo-release yum-plugin-elrepo kmod-wireguard wireguard-tools
@@ -140,8 +140,9 @@ install_ipsec_vpn_server() {
     }
 
     if [ -f ./vpn.env ]; then
-        read -p "Файл vpn.env вже існує. Ви хочете створити новий (y/n)? " create_new_vpn_env
-        if [ "$create_new_vpn_env" != "y" ]; then
+        echo -e "${GREEN}Файл vpn.env для кнфігурації вже існує. Ви хочете створити новий чи використовувати той що є ?${RESET}"
+        read -p "(y/n): " create_new_vpn_env
+        if [[ "$create_new_vpn_env" =~ ^(y|Y|yes)$ ]]; then
             echo -e "${YELLOW}Використовуємо існуючий файл vpn.env.\n${RESET}"
         else
             echo "Вибрано створення нового vpn.env."
@@ -163,8 +164,9 @@ install_ipsec_vpn_server() {
             -d --privileged \
             hwdsl2/ipsec-vpn-server
 
-        sleep 10
-        mkdir /root/VPN
+        create_folder "/root/VPN"
+        
+        wait_for_container_docker "ipsec-vpn-server"
         
         docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN
         docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN
@@ -174,6 +176,10 @@ install_ipsec_vpn_server() {
             echo -e "\n${GREEN}Файли для налаштуваня успішно скопійовано до /root/VPN${RESET}\n"
         else
             echo -e "\n${RED}Помилка під час копіювання файлів.${RESET}\n"
+            echo -e "Спробуйте, будь ласка, виконати команди вручну:\n"
+            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN${RESET}\n"
+            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN${RESET}\n"
+            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN${RESET}\n"
         fi
 
         echo -e "\n${GREEN}Контейнер ipsec-vpn-server встановлено та налаштовано успішно.${RESET}\n"

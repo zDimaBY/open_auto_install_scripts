@@ -1,100 +1,20 @@
-checkControlPanel() {
-    load_average=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}')
-    load_average=${load_average%,*}
-    load_average=$(echo "${load_average/,/.}")
-
-    if (($(echo "$load_average < 2" | bc -l))); then
-        load_average="${GREEN}$load_average${RESET}"
-    elif (($(echo "$load_average < 5" | bc -l))); then
-        load_average="${YELLOW}$load_average${RESET}"
-    else
-        load_average="${RED}$load_average (!)${RESET}"
-    fi
-
-    largest_disk=$(df -h | grep '^/dev/' | sort -k 4 -hr | head -n 1)
-    disk_usage=$(echo "$largest_disk" | awk '{print $5}') # Використання місця на найбільшому диску
-
-    echo -e "\n\033[1mInformation:${RESET}"
-
-    server_IP=$(hostname -I | awk '{print $1}')
-
-    case $operating_system in
-    "Debian" | "ubuntu" | "fedora" | "centos" | "oracle" | "arch")
-        if [ -d "/usr/local/hestia" ]; then
-            hestia_info=$(/usr/local/hestia/bin/v-list-sys-info)
-
-            hostname=$(echo "$hestia_info" | awk 'NR==3{print $1}')
-            operating_system=$(echo "$hestia_info" | awk 'NR==3{print $2}')
-            os_version=$(echo "$hestia_info" | awk 'NR==3{print $3}')
-            hestia_version=$(echo "$hestia_info" | awk 'NR==3{print $5}')
-
-            echo -e "Hostname:${GREEN}$hostname${RESET} IP: $server_IP OS:${YELLOW}$operating_system${RESET} Ver:${BLUE}$operating_system_version${RESET} HestiaCP:\033[35m$hestia_version${RESET}"
-            echo -e "Load Average: $load_average Disk Usage: $disk_usage"
-        elif [ -d "/usr/local/vesta" ]; then
-            vesta_info=$(/usr/local/vesta/bin/v-list-sys-info)
-
-            hostname=$(echo "$vesta_info" | awk 'NR==3{print $1}')
-            operating_system=$(echo "$vesta_info" | awk 'NR==3{print $2}')
-            os_version=$(echo "$vesta_info" | awk 'NR==3{print $3}')
-            vesta_version=$(echo "$vesta_info" | awk 'NR==3{print $5}')
-
-            echo -e "Hostname:${GREEN}$hostname${RESET} IP: $server_IP OS:${YELLOW}$operating_system${RESET} Ver:${BLUE}$operating_system_version${RESET} VestiaCP:\033[35m$vesta_version${RESET}"
-            echo -e "Load Average: $load_average Disk Usage: $disk_usage"
-        elif [ -d "/usr/local/mgr5" ]; then
-            echo -e "${GREEN}ISPmanager is installed.${RESET}"
-            /usr/local/mgr5/sbin/licctl info ispmgr
-        elif [ -f "/usr/local/cpanel/cpanel" ]; then
-            echo -e "${GREEN}cPanel is installed.${RESET}"
-            /usr/local/cpanel/cpanel -V
-            cat /etc/*release
-        else
-            echo "No supported control panel found."
-        fi
-        ;;
-    *)
-        echo "No supported control panel found for the detected operating system."
-        ;;
-    esac
-}
-
-generate_random_password_show() {
-    rand_password=$(openssl rand -base64 12)
-    echo -e "\n\nЗгенерований випадковий пароль: ${RED}$rand_password${RESET}"
-}
-generate_random_password() {
-    rand_password=$(openssl rand -base64 12)
-}
-
 function check_dependency() {
     local dependency_name=$1
     local package_name=$2
     
-    operating_system=""
-if [[ -e /etc/debian_version ]]; then
+if [[ -e /etc/os-release ]]; then
     source /etc/os-release
-    operating_system="${ID}"
-elif [[ -e /etc/fedora-release ]]; then
-    source /etc/os-release
-    operating_system="${ID}"
-elif [[ -e /etc/centos-release ]]; then
-    source /etc/os-release
-    operating_system="${ID}"
-elif [[ -e /etc/oracle-release ]]; then
-    source /etc/os-release
-    operating_system=oracle
-elif [[ -e /etc/arch-release ]]; then
-    operating_system=arch
-elif [[ -e /etc/lsb-release ]]; then
-    source /etc/lsb-release
-    if [[ "$DISTRIB_ID" == "Ubuntu" ]]; then
-        operating_system="ubuntu"
-    else
-        echo "$operating_system Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle або Arch Linux. Ваша система: $operating_system"
-        exit 1
-    fi
+    case "$ID" in
+        debian|ubuntu|fedora|centos|oracle|arch)
+            operating_system="$ID"
+            ;;
+        *)
+            echo "Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle або Arch Linux. Ваша система: $ID"
+            exit 1
+            ;;
+    esac
 else
-    echo "Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle або Arch Linux. Ваша система: $operating_system"
-    exit 1
+    echo "Не вдалося визначити операційну систему."
 fi
 
 
@@ -106,9 +26,9 @@ fi
         if ! "$UPDATE_DONE"; then
             # Встановлення залежності залежно від операційної системи
             case $operating_system in
-            Debian | ubuntu)
-                sudo apt-get update
-                sudo apt-get install -y "$package_name"
+            debian | ubuntu)
+                apt-get update
+                apt-get install -y "$package_name"
                 ;;
             fedora)
                 sudo dnf update
@@ -133,7 +53,7 @@ fi
         else
             # Встановлення залежності без оновлення системи
             case $operating_system in
-            Debian | ubuntu)
+            debian | ubuntu)
                 sudo apt-get install -y "$package_name"
                 ;;
             fedora)
@@ -158,6 +78,72 @@ fi
     fi
 }
 
+checkControlPanel() {
+    echo -e "\n${YELLOW}Information: ${RED}$operating_system${RESET} ${CYAN}$VERSION${RESET}"
+    load_average=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}')
+    load_average=${load_average%,*}
+    load_average=$(echo "${load_average/,/.}")
+
+    if (($(echo "$load_average < 2" | bc -l))); then
+        load_average="${GREEN}$load_average${RESET}"
+    elif (($(echo "$load_average < 5" | bc -l))); then
+        load_average="${YELLOW}$load_average${RESET}"
+    else
+        load_average="${RED}$load_average (!)${RESET}"
+    fi
+    
+    largest_disk=$(df -h | grep '^/dev/' | sort -k 4 -hr | head -n 1)
+    disk_usage=$(echo "$largest_disk" | awk '{print $5}') # Використання місця на найбільшому диску
+    echo -e "Load Average: $load_average Disk Usage: $disk_usage"
+    
+    server_hostname=$(hostname)
+    server_IP=$(hostname -I | awk '{print $1}')
+    echo -e "Hostname:${GREEN}$server_hostname${RESET} IP: $server_IP"
+    
+    case $operating_system in
+    "debian" | "ubuntu" | "fedora" | "centos" | "oracle" | "arch")
+        if [ -d "/usr/local/hestia" ]; then
+            hestia_info=$(/usr/local/hestia/bin/v-list-sys-info)
+
+            hostname=$(echo "$hestia_info" | awk 'NR==3{print $1}')
+            operating_system_panel=$(echo "$hestia_info" | awk 'NR==3{print $2}')
+            os_version=$(echo "$hestia_info" | awk 'NR==3{print $3}')
+            hestia_version=$(echo "$hestia_info" | awk 'NR==3{print $5}')
+
+            echo -e "HestiaCP:\033[35m$hestia_version${RESET}"
+        elif [ -d "/usr/local/vesta" ]; then
+            vesta_info=$(/usr/local/vesta/bin/v-list-sys-info)
+
+            hostname=$(echo "$vesta_info" | awk 'NR==3{print $1}')
+            operating_system_panel=$(echo "$vesta_info" | awk 'NR==3{print $2}')
+            os_version=$(echo "$vesta_info" | awk 'NR==3{print $3}')
+            vesta_version=$(echo "$vesta_info" | awk 'NR==3{print $5}')
+
+            echo -e "VestiaCP:\033[35m$vesta_version${RESET}"
+        elif [ -d "/usr/local/mgr5" ]; then
+            echo -e "${GREEN}ISPmanager is installed.${RESET}"
+            /usr/local/mgr5/sbin/licctl info ispmgr
+        elif [ -f "/usr/local/cpanel/cpanel" ]; then
+            echo -e "${GREEN}cPanel is installed.${RESET}"
+            /usr/local/cpanel/cpanel -V
+            cat /etc/*release
+        else
+            echo "Панель керування сайтами не знайдено."
+        fi
+        ;;
+    *)
+        echo "Для виявленої операційної системи не знайдено підтримуваної панелі керування сайтами."
+        ;;
+    esac
+}
+
+generate_random_password_show() {
+    rand_password=$(openssl rand -base64 12)
+    echo -e "\n\nЗгенерований випадковий пароль: ${RED}$rand_password${RESET}"
+}
+generate_random_password() {
+    rand_password=$(openssl rand -base64 12)
+}
 
 get_server_ip() {
     echo "Визначення IP-адреси сервера"
@@ -230,5 +216,35 @@ check_docker() {
         else
             echo -e "\n${YELLOW}Статус демона Docker:${RESET}\n${RED}$active_status${RESET}"
         fi
+    fi
+}
+
+wait_for_container_docker() {
+    local container_name="$1"
+    local max_attempts=10
+    local wait_interval=10
+
+    for ((i=1; i<=$max_attempts; i++)); do
+        if docker ps --format '{{.Names}}' | grep -q "^$container_name$"; then
+            echo "Контейнер $container_name запущений."
+            return 0
+        else
+            echo "Очікування запуску контейнера $container_name ($i/$max_attempts)..."
+            sleep $wait_interval
+        fi
+    done
+
+    echo "Контейнер $container_name не був запущений протягом 10с."
+    return 1
+}
+
+create_folder() {
+    path="$1"
+    
+    if [ -d "$path" ]; then
+        echo -e "${YELLOW}Папка $path уже існує.${RESET}"
+    else
+        mkdir -p "$path"
+        echo -e "${GREEN}Папка $path була створена.${RESET}"
     fi
 }
