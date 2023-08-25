@@ -110,16 +110,17 @@ checkControlPanel() {
             os_version=$(echo "$hestia_info" | awk 'NR==3{print $3}')
             hestia_version=$(echo "$hestia_info" | awk 'NR==3{print $5}')
 
-            echo -e "HestiaCP:\033[35m$hestia_version${RESET}"
+            echo -e "HestiaCP:${MAGENTA}$hestia_version${RESET}"
         elif [ -d "/usr/local/vesta" ]; then
             vesta_info=$(/usr/local/vesta/bin/v-list-sys-info)
-
+            source /usr/local/vesta/conf/vesta.conf
             hostname=$(echo "$vesta_info" | awk 'NR==3{print $1}')
             operating_system_panel=$(echo "$vesta_info" | awk 'NR==3{print $2}')
             os_version=$(echo "$vesta_info" | awk 'NR==3{print $3}')
-            vesta_version=$(echo "$vesta_info" | awk 'NR==3{print $5}')
+            vesta_version=$(echo "$VERSION")
 
-            echo -e "VestiaCP:\033[35m$vesta_version${RESET}"
+            echo -e "VestiaCP:${MAGENTA}$vesta_version${RESET}"
+            source /etc/os-release
         elif [ -d "/usr/local/mgr5" ]; then
             echo -e "${GREEN}ISPmanager is installed.${RESET}"
             /usr/local/mgr5/sbin/licctl info ispmgr
