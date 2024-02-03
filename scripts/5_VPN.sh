@@ -3,24 +3,28 @@ function 5_VPN() {
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
-        echo "1. WireGuard Easy (WEB)"
-        echo "2. VPN server, with IPsec/L2TP, Cisco IPsec and IKEv2 (в процесі реалізації)"
+        echo "1. WireGuard Easy (WEB, on docker)"
+        echo "2. WireGuard script (install local)"
+        echo "3. OpenVPN (install local)"
+        echo "4. VPN server, with IPsec/L2TP, Cisco IPsec and IKEv2 (on docker) (в процесі реалізації)"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
-        read -p "Виберіть варіант (1/2/3/4/5/6/7/8/9/0):" choice
+        read -p "Виберіть варіант:" choice
 
         case $choice in
-        1) menu_wg_easy ;;
-        2) menu_IPsec_L2TP_IKEv2 ;;
+        1) menu_wireguard_easy ;;
+        2) menu_wireguard_scriptLocal ;;
+        3) menu_openVPNLocal ;;
+        4) menu_IPsec_L2TP_IKEv2 ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
         esac
     done
 }
-
-menu_wg_easy() {
+#_______________________________________________________________________________________________________________________________________
+menu_wireguard_easy() {
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
@@ -66,8 +70,8 @@ install_wg_easy() {
 
     docker run -d \
         --name=wg-easy \
-        -e WG_HOST=$ip_address \
-        -e PASSWORD=$admin_password \
+        -e WG_HOST="$ip_address" \
+        -e PASSWORD="$admin_password" \
         -v ~/.wg-easy:/etc/wireguard \
         -p 51820:51820/udp \
         -p 51821:51821/tcp \
@@ -102,7 +106,130 @@ update_wg_easy() {
     docker pull weejewel/wg-easy
     echo "WireGuard Easy оновлено."
 }
+#_______________________________________________________________________________________________________________________________________
+menu_wireguard_scriptLocal() {
+    while true; do
+        checkControlPanel
+        echo -e "\nWireGuard installer. Виберіть дію:\n"
+        echo "1. Автоматичне встановлення WireGuard"
+        echo "2. Меню керування WireGuard та ручне встановлення"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
 
+        read -p "Виберіть варіант:" choice
+
+        case $choice in
+        1) install_wireguard_scriptLocal ;;
+        2) menu_wireguard_installer ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+
+install_wireguard_scriptLocal() {
+    case $operating_system in
+    debian | ubuntu) ;;
+    fedora) ;;
+    centos | oracle) ;;
+    arch) ;;
+    *)
+        echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
+        return 1
+        ;;
+    esac
+
+    mkdir -p /root/VPN && cd /root/VPN && mkdir -p ./wireguard || {
+        echo "Failure"
+        exit 1
+    }
+
+    sed -i 's/^#\$nrconf{restart} = '\''i'\'';/$nrconf{restart} = '\''a'\'';/g' /etc/needrestart/needrestart.conf
+
+    curl -sS -o wireguard-install.sh https://raw.githubusercontent.com/angristan/wireguard-install/master/wireguard-install.sh
+    chmod +x wireguard-install.sh
+    sed -i 's|"${HOME_DIR}|"/root/VPN/wireguard|g' wireguard-install.sh
+    sed -i 's|10.66.66.1|10.0.0.1|g' wireguard-install.sh
+    sed -i 's|${RANDOM_PORT}|65530|g' wireguard-install.sh
+    sed -i 's|read -rp "IPv4 .*|echo "IPv4 or IPv6 public address $SERVER_PUB_IP"|' wireguard-install.sh
+    sed -i 's|read -rp "Publi.*|SERVER_PUB_NIC="${SERVER_NIC}"|' wireguard-install.sh
+    sed -i 's|read -rp "WireGuar.*|SERVER_WG_NIC="wg0"|' wireguard-install.sh
+    sed -i 's|read -rp "Server WireGuard IPv4: ".*|SERVER_WG_IPV4="10.0.0.1"|' wireguard-install.sh
+    sed -i 's|read -rp "Server WireGuard IPv6: ".*|SERVER_WG_IPV6="fd42:42:42::1"|' wireguard-install.sh
+    sed -i 's|read -rp "Server WireGuard port.*|SERVER_PORT="65530"|' wireguard-install.sh
+    sed -i 's|read -rp "First DNS resolv.*|CLIENT_DNS_1="1.1.1.1"|' wireguard-install.sh
+    sed -i 's|read -rp "Second DNS resolver to u|#read -rp "Second DNS resolver to u"|' wireguard-install.sh
+    sed -i 's|read -rp "Allowed IPs list fo|#read -rp "Allowed IPs list fo|' wireguard-install.sh
+    sed -i 's|read -n1 -r -p "Press any key to continue.*||' wireguard-install.sh
+    sed -i 's|read -rp "Client name:.*|CLIENT_NAME="proxy"|' wireguard-install.sh
+    sed -i 's|read -rp "Client WireGuard IPv|#read -rp "Client WireGuard IPv|' wireguard-install.sh
+    bash wireguard-install.sh
+    sed -i 's|CLIENT_NAME="proxy"|#read -rp "Client name: " -e CLIENT_NAME|' wireguard-install.sh
+    echo -e "${GREEN}__________________________________________________________________________WireGuard script done!${RESET}"
+
+    if [ $? -eq 0 ]; then
+        echo -e "\n${GREEN}WireGuard Easy успішно встановлено. Веб-інтерфейс доступний за адресою ${YELLOW}$ip_address:51821${RESET}"
+    else
+        echo -e "\n${RED}Сталася помилка під час встановлення WireGuard Easy. Перевірте налаштування і спробуйте ще раз.${RESET}"
+    fi
+}
+
+menu_wireguard_installer() {
+    bash /root/VPN/wireguard-install.sh
+}
+#_______________________________________________________________________________________________________________________________________
+menu_openVPNLocal() {
+    while true; do
+        checkControlPanel
+        echo -e "\nOpenVPN installer. Виберіть дію:\n"
+        echo "1. Автоматичне встановлення OpenVPN"
+        echo "2. Меню керування OpenVPN та ручне встановлення"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант:" choice
+
+        case $choice in
+        1) avtoInstall_openVPN ;;
+        2) menu_openVPN_installer ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+avtoInstall_openVPN() {
+    case $operating_system in
+    debian | ubuntu) ;;
+    fedora) ;;
+    centos | oracle) ;;
+    arch) ;;
+    *)
+        echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
+        return 1
+        ;;
+    esac
+
+    mkdir -p /root/VPN && cd /root/VPN && mkdir -p ./wireguard || {
+        echo "Failure"
+        exit 1
+    }
+
+    curl -sS -o openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh
+    sed -i 's|"$homeDir|"/root/VPN/openVPN|g' openvpn-install.sh
+    chmod +x openvpn-install.sh && export AUTO_INSTALL=y
+    bash openvpn-install.sh
+    echo -e "${GREEN}__________________________________________________________________________openVPN script done!${RESET}"
+}
+
+menu_openVPN_installer() {
+    curl -sS -o openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh
+    sed -i 's|"$homeDir|"/root/VPN/openVPN|g' openvpn-install.sh
+    chmod +x openvpn-install.sh
+    bash /root/VPN/openvpn-install.sh
+}
+#_______________________________________________________________________________________________________________________________________
 menu_IPsec_L2TP_IKEv2() {
     while true; do
         checkControlPanel
@@ -164,22 +291,22 @@ install_ipsec_vpn_server() {
             -d --privileged \
             hwdsl2/ipsec-vpn-server
 
-        create_folder "/root/VPN"
-        
+        create_folder "/root/VPN/IPsec_L2TP"
+
         wait_for_container_docker "ipsec-vpn-server"
-        
-        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN
-        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN
-        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN
+
+        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN/IPsec_L2TP
+        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN/IPsec_L2TP
+        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN/IPsec_L2TP
 
         if [ $? -eq 0 ]; then
-            echo -e "\n${GREEN}Файли для налаштуваня успішно скопійовано до /root/VPN${RESET}\n"
+            echo -e "\n${GREEN}Файли для налаштуваня успішно скопійовано до /root/VPN/IPsec_L2TP${RESET}"
         else
-            echo -e "\n${RED}Помилка під час копіювання файлів.${RESET}\n"
-            echo -e "Спробуйте, будь ласка, виконати команди вручну:\n"
-            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN${RESET}\n"
-            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN${RESET}\n"
-            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN${RESET}\n"
+            echo -e "\n${RED}Помилка під час копіювання файлів.${RESET}"
+            echo -e "Спробуйте, будь ласка, виконати команди вручну:"
+            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN/IPsec_L2TP${RESET}"
+            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN/IPsec_L2TP${RESET}"
+            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN/IPsec_L2TP${RESET}"
         fi
 
         echo -e "\n${GREEN}Контейнер ipsec-vpn-server встановлено та налаштовано успішно.${RESET}\n"

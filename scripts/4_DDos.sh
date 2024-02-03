@@ -49,9 +49,9 @@ function 4_AnalysisRequestsOfNetworkInterface() {
     clear
     while true; do
         checkControlPanel
-        echo -e "\e[93mВи у пункті: "1. Аналіз IP-запитів мережевого інтерфейса за $duration/сек"${RESET}"
+        echo -e "\e[93mВи у пункті: "1. Аналіз IP-запитів мережевого інтерфейса за "$duration"/сек"${RESET}"
         echo -e "\e[93mЩоб повернутися до попереднього меню натисніть${RED} 0 та Enter${RESET}\n"
-        output=$(timeout $duration tcpdump -nn -i $interface)
+        output=$(timeout "$duration" tcpdump -nn -i "$interface")
         total_requests=$(echo "$output" | grep -c "IP ")
         echo -e "\nЗагальна кількість запитів: $total_requests"
 
@@ -76,9 +76,9 @@ function 4_repeatsOfNetworkInterface() {
     clear
     while true; do
         checkControlPanel
-        echo -e "\e[93mВи у пункті: "2. Аналіз IP усіх повторень мережевого інтерфейса за $duration/сек"${RESET}"
+        echo -e "\e[93mВи у пункті: "2. Аналіз IP усіх повторень мережевого інтерфейса за "$duration"/сек"${RESET}"
         echo -e "\e[93mЩоб повернутися до попереднього меню натисніть${RED} 0 та Enter${RESET}\n"
-        output=$(timeout $duration tcpdump -nn -i $interface)
+        output=$(timeout "$duration" tcpdump -nn -i "$interface")
         total_requests=$(echo "$output" | grep -c "IP ")
         echo "Загальна кількість запитів: $total_requests"
 
@@ -106,7 +106,7 @@ function 4_blockIPs() {
         checkControlPanel
         echo -e "\e[93mВи у пункті: "2. Блокування IP-адрес з підозрілими запитами"${RESET}"
         echo -e "\e[93mЩоб повернутися до попереднього меню натисніть${RED} 0 та Enter${RESET}\n"
-        output=$(timeout $duration tcpdump -nn -i $interface)
+        output=$(timeout "$duration" tcpdump -nn -i "$interface")
         ip_requests=$(echo "$output" | awk '/IP /{print $3}' | awk -F '.' '{print $1"."$2"."$3"."$4}' | sort | uniq -c)
 
         while read -r line; do

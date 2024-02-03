@@ -60,7 +60,7 @@ dependencies=(
 )
 
 for dependency in "${dependencies[@]}"; do
-    check_dependency $dependency
+    check_dependency "$dependency"
 done
 
 #  ================= Start Script ==================
