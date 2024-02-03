@@ -176,6 +176,8 @@ install_wireguard_scriptLocal() {
 }
 
 menu_wireguard_installer() {
+    curl -sS -o wireguard-install.sh https://raw.githubusercontent.com/angristan/wireguard-install/master/wireguard-install.sh
+    chmod +x wireguard-install.sh
     bash /root/VPN/wireguard-install.sh
 }
 #_______________________________________________________________________________________________________________________________________
@@ -211,7 +213,7 @@ avtoInstall_openVPN() {
         ;;
     esac
 
-    mkdir -p /root/VPN && cd /root/VPN && mkdir -p ./wireguard || {
+    mkdir -p /root/VPN && cd /root/VPN && mkdir -p ./openVPN || {
         echo "Failure"
         exit 1
     }
@@ -226,7 +228,7 @@ avtoInstall_openVPN() {
 menu_openVPN_installer() {
     curl -sS -o openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh
     sed -i 's|"$homeDir|"/root/VPN/openVPN|g' openvpn-install.sh
-    chmod +x openvpn-install.sh
+    chmod +x openvpn-install.sh && export AUTO_INSTALL=n
     bash /root/VPN/openvpn-install.sh
 }
 #_______________________________________________________________________________________________________________________________________
