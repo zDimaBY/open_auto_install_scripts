@@ -4,7 +4,7 @@ function 4_DDos() {
         checkControlPanel
 
         echo "Список доступних мережевих інтерфейсів та їх IP-адрес:"
-        interfaces=($(ifconfig -a | grep -E '^[A-Za-z0-9]+:' | awk '{print $1}' | sed 's/://g'))
+        interfaces=($(ip -o link show | awk -F': ' '{print $2}')) #interfaces=($(ifconfig -a | grep -E '^[A-Za-z0-9]+:' | awk '{print $1}' | sed 's/://g'))
         for ((i = 0; i < ${#interfaces[@]}; i++)); do
             interface_name=${interfaces[$i]}
             ip_address=$(ifconfig "$interface_name" | awk '/inet / {print $2}')
@@ -114,7 +114,7 @@ function 4_blockIPs() {
             ip=$(echo "$line" | awk '{print $2}')
 
             # Перевірка, чи IP-адреса не належить системним або зарезервованим IP-адресам та не знаходиться в лог-файлі заблокованих IP-адрес
-            if [[ ! " ${system_IPs[@]} " =~ " ${ip} " ]] && [[ $count -gt $threshold ]] && ! grep -q "$ip" "$log_file"; then
+            if [[ ! " ${system_IPs[*]} " =~ " $ip " ]] && [[ $count -gt $threshold ]] && ! grep -q "$ip" "$log_file"; then
                 echo "Заблоковано IP: $ip"
                 echo "$ip" >>"$log_file"
             fi

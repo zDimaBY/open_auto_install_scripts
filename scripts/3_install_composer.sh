@@ -26,7 +26,7 @@ function 3_installComposer() {
         fi
         ;;
     *)
-        echo -e "${RED}Не вдалося встановити ${dependency_name}. Будь ласка, встановіть його вручну.${RESET}"
+        echo -e "${RED}Не вдалося встановити Composer. Будь ласка, встановіть його вручну.${RESET}"
         return 1
         ;;
     esac

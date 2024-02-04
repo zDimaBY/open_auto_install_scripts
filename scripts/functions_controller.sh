@@ -19,7 +19,7 @@ fi
 
 
     # Перевірка наявності залежності
-    if ! command -v "$dependency_name" &>/dev/null; then
+    if ! command -v $dependency_name &>/dev/null; then
         echo -e "${RED}$dependency_name не встановлено. Встановлюємо...${RESET}"
 
         # Перевірка чи вже було виконано оновлення системи
@@ -31,16 +31,16 @@ fi
                 apt-get install -y "$package_name"
                 ;;
             fedora)
-                sudo dnf update
-                sudo dnf install -y "$package_name"
+                dnf update
+                dnf install -y "$package_name"
                 ;;
             centos | oracle)
-                sudo yum update
-                sudo yum install -y "$package_name"
+                yum update
+                yum install -y "$package_name"
                 ;;
             arch)
-                sudo pacman -Sy
-                sudo pacman -S --noconfirm "$package_name"
+                pacman -Sy
+                pacman -S --noconfirm "$package_name"
                 ;;
             *)
                 echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
@@ -48,22 +48,20 @@ fi
                 ;;
             esac
 
-            # Встановлено оновлення системи
             UPDATE_DONE=true
         else
-            # Встановлення залежності без оновлення системи
             case $operating_system in
             debian | ubuntu)
-                sudo apt-get install -y "$package_name"
+                apt-get install -y "$package_name"
                 ;;
             fedora)
-                sudo dnf install -y "$package_name"
+                dnf install -y "$package_name"
                 ;;
             centos | oracle)
-                sudo yum install -y "$package_name"
+                yum install -y "$package_name"
                 ;;
             arch)
-                sudo pacman -S --noconfirm "$package_name"
+                pacman -S --noconfirm "$package_name"
                 ;;
             *)
                 echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
@@ -82,7 +80,7 @@ checkControlPanel() {
     echo -e "\n${YELLOW}Information: ${RED}$operating_system${RESET} ${CYAN}$VERSION${RESET}"
     load_average=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}')
     load_average=${load_average%,*}
-    load_average=$(echo "${load_average/,/.}")
+    load_average=${load_average//,/.}
 
     if (($(echo "$load_average < 2" | bc -l))); then
         load_average="${GREEN}$load_average${RESET}"

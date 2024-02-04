@@ -11,7 +11,7 @@ function 2_updateIoncubeHestiacpUbuntu() {
 
     # Download url
     url="https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_$arc.tar.gz"
-    wget $url -O - | tar -xz
+    wget "$url" -O - | tar -xz
 
     for php_version in $("$HESTIA"/bin/v-list-sys-php plain); do
         # Check if ioncube version is supported for example 8.0 is not availble!

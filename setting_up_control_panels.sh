@@ -39,7 +39,6 @@ for file in ./$folder_script_path/*; do
 done
 
 UPDATE_DONE=false
-# Список залежностей для перевірки та встановлення
 dependencies=(
     "grep grep"
     "sh dash"
@@ -60,7 +59,7 @@ dependencies=(
 )
 
 for dependency in "${dependencies[@]}"; do
-    check_dependency "$dependency"
+    check_dependency $dependency
 done
 
 #  ================= Start Script ==================

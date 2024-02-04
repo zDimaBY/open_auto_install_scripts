@@ -212,13 +212,13 @@ avtoInstall_openVPN() {
         ;;
     esac
 
-    mkdir -p /root/VPN && mkdir -p /root/VPN/openVPN || {
+    mkdir -p /root/VPN || mkdir -p /root/VPN/openVPN || {
         echo "Failure"
         exit 1
     }
 
     curl -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh
-    sed -i 's|"$homeDir|"/root/VPN/openVPN|g' /root/VPN/openvpn-install.sh
+    sed -i "s|$homeDir|/root/VPN/openVPN|g" /root/VPN/openvpn-install.sh
     chmod +x /root/VPN/openvpn-install.sh && export AUTO_INSTALL=y
     bash /root/VPN/openvpn-install.sh
     echo -e "${GREEN}__________________________________________________________________________openVPN script done!${RESET}"
@@ -226,7 +226,7 @@ avtoInstall_openVPN() {
 
 menu_openVPN_installer() {
     curl -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh
-    sed -i 's|"$homeDir|"/root/VPN/openVPN|g' /root/VPN/openvpn-install.sh
+    sed -i "s|$homeDir|/root/VPN/openVPN|g" /root/VPN/openvpn-install.sh
     chmod +x /root/VPN/openvpn-install.sh && export AUTO_INSTALL=n
     bash /root/VPN/openvpn-install.sh
 }
