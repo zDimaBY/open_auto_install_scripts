@@ -52,8 +52,7 @@ menu_wireguard_easy() {
 install_wg_easy() {
     get_server_ip
     generate_random_password_show
-    echo "Введіть пароль адміністратора:"
-    read -r -p admin_password # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
+    read -r -p "Введіть пароль адміністратора: " admin_password # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
 
     case $operating_system in
     debian | ubuntu) ;;

@@ -1,22 +1,21 @@
 function check_dependency() {
     local dependency_name=$1
     local package_name=$2
-    
-if [[ -e /etc/os-release ]]; then
-    source /etc/os-release
-    case "$ID" in
-        debian|ubuntu|fedora|centos|oracle|arch)
+
+    if [[ -e /etc/os-release ]]; then
+        source /etc/os-release
+        case "$ID" in
+        debian | ubuntu | fedora | centos | oracle | arch)
             operating_system="$ID"
             ;;
         *)
             echo "Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle або Arch Linux. Ваша система: $ID"
             exit 1
             ;;
-    esac
-else
-    echo "Не вдалося визначити операційну систему."
-fi
-
+        esac
+    else
+        echo "Не вдалося визначити операційну систему."
+    fi
 
     # Перевірка наявності залежності
     if ! command -v $dependency_name &>/dev/null; then
@@ -89,15 +88,15 @@ checkControlPanel() {
     else
         load_average="${RED}$load_average (!)${RESET}"
     fi
-    
+
     largest_disk=$(df -h | grep '^/dev/' | sort -k 4 -hr | head -n 1)
     disk_usage=$(echo "$largest_disk" | awk '{print $5}') # Використання місця на найбільшому диску
     echo -e "Load Average: $load_average Disk Usage: $disk_usage"
-    
+
     server_hostname=$(hostname)
     server_IP=$(hostname -I | awk '{print $1}')
     echo -e "Hostname:${GREEN}$server_hostname${RESET} IP: $server_IP"
-    
+
     case $operating_system in
     "debian" | "ubuntu" | "fedora" | "centos" | "oracle" | "arch")
         if [ -d "/usr/local/hestia" ]; then
@@ -177,16 +176,15 @@ get_server_ip() {
 }
 
 check_docker() {
-    docker_status=$(sudo systemctl status docker)
+    docker_status=$(systemctl status docker)
 
     if ! command -v docker &>/dev/null; then
         echo -e "\n${RED}Докер не встановлено на цій системі.${RESET}"
-        echo -e "${YELLOW}Бажаєте встановити докер? ${RESET}(y/n):"
-        read -p install_docker
+        read -p "Бажаєте встановити докер? (y/n): " install_docker
         if [[ "$install_docker" =~ ^(y|Y|yes)$ ]]; then
             echo -e "${YELLOW}Встановлення докера...${RESET}"
             curl -sSL https://get.docker.com | sh
-            sudo usermod -aG docker $(whoami)
+            usermod -aG docker $(whoami)
             echo -e "\n${GREEN}Докер успішно встановлено.${RESET}"
         else
             echo -e "\n${RED}Встановлення докера скасовано. Скрипт завершується.${RESET}"
@@ -195,14 +193,18 @@ check_docker() {
     fi
 
     # Перевірка, чи демон Docker запущений
-    if ! sudo systemctl status docker | grep -q "running"; then
+    if ! systemctl status docker | grep -q "running"; then
         echo -e "\n${RED}Демон Docker не запущений.${RESET}"
-        echo -e "\n${YELLOW}Бажаєте запустити демон Docker? ${RESET}"
-        read -p "(y/n): " start_docker
+        read -p "Бажаєте запустити демон Docker? (y/n): " start_docker
         if [[ "$start_docker" =~ ^(y|Y|yes)$ ]]; then
             echo -e "${YELLOW}Запуск демона Docker...${RESET}"
-            sudo systemctl start docker
-            echo -e "\n${GREEN}Демон Docker успішно запущений.${RESET}"
+            systemctl start docker
+            if [[ $? -eq 0 ]]; then
+                echo -e "\n${GREEN}Демон Docker успішно запущений.${RESET}"
+            else
+                echo -e "\n${RED}Не вдалося запустити демона Docker.${RESET}"
+                exit 1
+            fi
         else
             echo -e "\n${RED}Запуск демона Docker скасовано. Скрипт завершується.${RESET}"
             exit 1
@@ -223,7 +225,7 @@ wait_for_container_docker() {
     local max_attempts=10
     local wait_interval=10
 
-    for ((i=1; i<=$max_attempts; i++)); do
+    for ((i = 1; i <= $max_attempts; i++)); do
         if docker ps --format '{{.Names}}' | grep -q "^$container_name$"; then
             echo "Контейнер $container_name запущений."
             return 0
@@ -239,7 +241,7 @@ wait_for_container_docker() {
 
 create_folder() {
     path="$1"
-    
+
     if [ -d "$path" ]; then
         echo -e "${YELLOW}Папка $path уже існує.${RESET}"
     else

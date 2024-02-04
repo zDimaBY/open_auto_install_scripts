@@ -3,26 +3,26 @@ function 3_installComposer() {
     debian | ubuntu)
         if ! command -v php &> /dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            sudo apt-get install php-cli
+            apt-get install php-cli
         fi
         ;;
     fedora)
         if ! command -v php &> /dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            sudo dnf install php-cli
+            dnf install php-cli
         fi
         ;;
     centos | oracle)
         if ! command -v php &> /dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            sudo yum install epel-release
-            sudo yum install php-cli
+            yum install epel-release
+            yum install php-cli
         fi
         ;;
     arch)
         if ! command -v php &> /dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            sudo pacman -S php
+            pacman -S php
         fi
         ;;
     *)
