@@ -201,6 +201,13 @@ check_docker() {
             systemctl start docker
             if [[ $? -eq 0 ]]; then
                 echo -e "\n${GREEN}Демон Docker успішно запущений.${RESET}"
+
+                active_status=$(echo "$docker_status" | grep "Active:")
+                if echo "$docker_status" | grep -q "running"; then
+                    echo -e "\n${YELLOW}Статус демона Docker:${RESET}\n${GREEN}$active_status${RESET}"
+                else
+                    echo -e "\n${YELLOW}Статус демона Docker:${RESET}\n${RED}$active_status${RESET}"
+                fi
             else
                 echo -e "\n${RED}Не вдалося запустити демона Docker.${RESET}"
                 exit 1

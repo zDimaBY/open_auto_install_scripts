@@ -82,9 +82,15 @@ install_wg_easy() {
         weejewel/wg-easy
 
     if [ $? -eq 0 ]; then
-        echo -e "\n${GREEN}WireGuard Easy успішно встановлено. Веб-інтерфейс доступний за адресою ${YELLOW}$ip_address:51821${RESET}"
+        echo -e "\n${GREEN}WireGuard Easy успішно встановлено.${RESET}"
+        echo -e "Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}$ip_address:51821${RESET}"
+        echo -e "${GREEN}Пароль для доступу до інтерфейсу:${RESET} ${YELLOW}$admin_password${RESET}"
+        echo -e "${GREEN}Документація за посиланням:${RESET} https://github.com/wg-easy/wg-easy"
+        echo -e "Для діагностики використовуйте команди:"
+        echo -e "  ${YELLOW}docker logs wg-easy${RESET} - перегляд журналів контейнера"
+        echo -e "  ${YELLOW}docker exec -it wg-easy /bin/bash -c 'ls /bin'${RESET} - перегляд списку команд у контейнері"
     else
-        echo -e "\n${RED}Сталася помилка під час встановлення WireGuard Easy. Перевірте налаштування і спробуйте ще раз.${RESET}"
+        echo -e "\n${RED}Сталася помилка під час встановлення WireGuard Easy. Перевірте, будь ласка, налаштування і спробуйте ще раз.${RESET}"
     fi
 }
 
@@ -165,11 +171,12 @@ install_wireguard_scriptLocal() {
     sed -i 's|read -rp "Client WireGuard IPv|#read -rp "Client WireGuard IPv|' /root/VPN/wireguard-install.sh
     bash /root/VPN/wireguard-install.sh
     sed -i 's|CLIENT_NAME="proxy"|#read -rp "Client name: " -e CLIENT_NAME|' /root/VPN/wireguard-install.sh
-    echo -e "${GREEN}__________________________________________________________________________WireGuard script done!${RESET}"
     if [ $? -eq 0 ]; then
-        echo -e "\n${GREEN}WireGuard Easy успішно встановлено. Веб-інтерфейс доступний за адресою ${YELLOW}$ip_address:51821${RESET}"
+        echo -e "${GREEN}WireGuard успішно встановлено!${RESET}"
+        echo -e "Завантажте клієнт WireGuard за посиланням: https://www.wireguard.com/install/"
+        echo -e "Після завантаження клієнта, встановіть його та вставте файл конфігурації з серверу, який доступний за шляхом /root/VPN/wireguard/"
     else
-        echo -e "\n${RED}Сталася помилка під час встановлення WireGuard Easy. Перевірте налаштування і спробуйте ще раз.${RESET}"
+        echo -e "\n${RED}Сталася помилка під час встановлення WireGuard. Перевірте, будь ласка, налаштування і спробуйте ще раз.${RESET}"
     fi
 }
 
@@ -217,7 +224,7 @@ avtoInstall_openVPN() {
     }
 
     curl -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh
-    sed -i "s|$homeDir|/root/VPN/openVPN|g" /root/VPN/openvpn-install.sh
+    sed -i 's|"$homeDir|"/root/VPN/openVPN|g' /root/VPN/openvpn-install.sh
     chmod +x /root/VPN/openvpn-install.sh && export AUTO_INSTALL=y
     bash /root/VPN/openvpn-install.sh
     echo -e "${GREEN}__________________________________________________________________________openVPN script done!${RESET}"
@@ -225,7 +232,7 @@ avtoInstall_openVPN() {
 
 menu_openVPN_installer() {
     curl -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh
-    sed -i "s|$homeDir|/root/VPN/openVPN|g" /root/VPN/openvpn-install.sh
+    sed -i 's|"$homeDir|"/root/VPN/openVPN|g' /root/VPN/openvpn-install.sh
     chmod +x /root/VPN/openvpn-install.sh && export AUTO_INSTALL=n
     bash /root/VPN/openvpn-install.sh
 }
@@ -293,7 +300,7 @@ install_ipsec_vpn_server() {
 
         create_folder "/root/VPN/IPsec_L2TP"
 
-        wait_for_container_docker "ipsec-vpn-server"
+        wait_for_container_docker ipsec-vpn-server
 
         docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN/IPsec_L2TP
         docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN/IPsec_L2TP
