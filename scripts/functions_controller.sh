@@ -181,8 +181,8 @@ check_docker() {
 
     if ! command -v docker &>/dev/null; then
         echo -e "\n${RED}Докер не встановлено на цій системі.${RESET}"
-        echo -e "${YELLOW}Бажаєте встановити докер? ${RESET}"
-        read -p "(y/n): " install_docker
+        echo -e "${YELLOW}Бажаєте встановити докер? ${RESET}(y/n):"
+        read -p install_docker
         if [[ "$install_docker" =~ ^(y|Y|yes)$ ]]; then
             echo -e "${YELLOW}Встановлення докера...${RESET}"
             curl -sSL https://get.docker.com | sh

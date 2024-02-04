@@ -53,7 +53,7 @@ install_wg_easy() {
     get_server_ip
     generate_random_password_show
     echo "Введіть пароль адміністратора:"
-    read -r -s -p "> " admin_password # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
+    read -r -p admin_password # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
 
     case $operating_system in
     debian | ubuntu) ;;
@@ -212,7 +212,7 @@ avtoInstall_openVPN() {
         ;;
     esac
 
-    mkdir -p /root/VPN || mkdir -p /root/VPN/openVPN || {
+    mkdir -p /root/VPN && mkdir -p /root/VPN/openVPN || {
         echo "Failure"
         exit 1
     }
