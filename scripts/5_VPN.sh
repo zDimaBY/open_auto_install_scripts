@@ -35,7 +35,7 @@ menu_wireguard_easy() {
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
-        read -p "Виберіть варіант (1/2/3/4/5/6/7/8/9/0):" choice
+        read -p "Виберіть варіант:" choice
 
         case $choice in
         1) install_wg_easy ;;
@@ -145,10 +145,7 @@ install_wireguard_scriptLocal() {
         ;;
     esac
 
-    mkdir -p /root/VPN && mkdir -p /root/VPN/wireguard || {
-        echo "Failure"
-        exit 1
-    }
+    create_folder "/root/VPN/wireguard"
 
     sed -i 's/^#\$nrconf{restart} = '\''i'\'';/$nrconf{restart} = '\''a'\'';/g' /etc/needrestart/needrestart.conf
 
@@ -172,9 +169,15 @@ install_wireguard_scriptLocal() {
     bash /root/VPN/wireguard-install.sh
     sed -i 's|CLIENT_NAME="proxy"|#read -rp "Client name: " -e CLIENT_NAME|' /root/VPN/wireguard-install.sh
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}WireGuard успішно встановлено!${RESET}"
-        echo -e "Завантажте клієнт WireGuard за посиланням: https://www.wireguard.com/install/"
-        echo -e "Після завантаження клієнта, встановіть його та вставте файл конфігурації з серверу, який доступний за шляхом /root/VPN/wireguard/"
+        echo -e "${GREEN}__________________________________________________________________________WireGuard успішно встановлено!${RESET}"
+        echo -e "${YELLOW}Інструкція для налаштування WireGuard${RESET}"
+        echo "1. Завантажте клієнт WireGuard за посиланням: ${BLUE}https://www.wireguard.com/install/${RESET}"
+        echo "2. Після завантаження клієнта, встановіть його на Ваш пристрій."
+        echo "3. Перейдіть до каталогу /root/VPN/wireguard/ на Вашому сервері."
+        echo "4. Скопіюйте файл конфігурації з серверу на Ваш пристрій."
+        echo "5. Відкрийте клієнт WireGuard та імпортуйте файл конфігурації."
+        echo "6. Після імпорту, Ваш VPN-профіль буде доступний для підключення."
+
     else
         echo -e "\n${RED}Сталася помилка під час встановлення WireGuard. Перевірте, будь ласка, налаштування і спробуйте ще раз.${RESET}"
     fi
@@ -218,16 +221,50 @@ avtoInstall_openVPN() {
         ;;
     esac
 
-    mkdir -p /root/VPN && mkdir -p /root/VPN/openVPN || {
-        echo "Failure"
-        exit 1
-    }
+    create_folder "/root/VPN/openVPN"
 
     curl -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh
     sed -i 's|"$homeDir|"/root/VPN/openVPN|g' /root/VPN/openvpn-install.sh
     chmod +x /root/VPN/openvpn-install.sh && export AUTO_INSTALL=y
     bash /root/VPN/openvpn-install.sh
-    echo -e "${GREEN}__________________________________________________________________________openVPN script done!${RESET}"
+    echo -e "${GREEN}__________________________________________________________________________OpenVPN успішно встановлено!${RESET}"
+    # Інструкція для платформи Windows
+    echo -e "${YELLOW}Інструкція для платформи Windows${RESET}"
+    echo "1. Завантажте встановлювач OpenVPN для Windows з офіційного сайту OpenVPN."
+    echo "2. Встановіть програму, використовуючи стандартний інсталяційний процес."
+    echo "3. Запустіть OpenVPN."
+    echo "4. Після запуску програми, перейдіть до 'Файл' -> 'Імпорт файлу конфігурації'."
+    echo "5. Виберіть конфігураційний файл, який отримали від свого сервера VPN."
+    echo "6. Після імпорту, з'явиться новий профіль під назвою Вашого VPN. Клацніть на нього, щоб підключитися."
+
+    # Інструкція для платформи Android
+    echo -e "\n${YELLOW}Інструкція для платформи Android${RESET}"
+    echo "1. Завантажте та встановіть додаток OpenVPN для Android з Google Play Store."
+    echo "2. Перенесіть конфігураційний файл (з розширенням .ovpn) на Ваш пристрій Android."
+    echo "3. У додатку OpenVPN натисніть на значок '+' для додавання нового профілю."
+    echo "4. Виберіть опцію 'Імпорт із файлу' та оберіть свій конфігураційний файл."
+    echo "5. Після імпорту, профіль буде доступний для підключення."
+
+    # Інструкція для платформи macOS (OS X)
+    echo -e "\n${YELLOW}Інструкція для платформи macOS (OS X)${RESET}"
+    echo "1. Встановіть Tunnelblick, безкоштовний клієнт OpenVPN для macOS, завантаживши його з офіційного сайту."
+    echo "2. Відкрийте інсталятор та слідуйте інструкціям для завершення процесу встановлення."
+    echo "3. Після встановлення, перенесіть конфігураційний файл (з розширенням .ovpn) в теку 'configurations' у Вашій домашній теки."
+    echo "4. Запустіть Tunnelblick та виберіть 'Connect' для Вашого VPN-профілю."
+
+    # Інструкція для Linux
+    echo -e "\n${YELLOW}Інструкція для Linux${RESET}"
+    echo "1. Встановіть пакунок OpenVPN за допомогою менеджера пакунків Вашої дистрибуції (наприклад, apt для Ubuntu або yum для CentOS)."
+    echo "2. Перенесіть конфігураційний файл (з розширенням .ovpn) в теку /etc/openvpn."
+    echo "3. В терміналі введіть 'sudo openvpn назва_конфігураційного_файлу.ovpn' для підключення до VPN."
+
+    # Інструкція для iOS (iPhone та iPad)
+    echo -e "\n${YELLOW}Інструкція для iOS (iPhone та iPad)${RESET}"
+    echo "1. Встановіть програму OpenVPN Connect з App Store на Вашому пристрої iOS."
+    echo "2. Перенесіть конфігураційний файл (з розширенням .ovpn) на Ваш пристрій через iTunes або інші доступні методи."
+    echo "3. У програмі OpenVPN Connect, відкрийте розділ 'Настройки' та оберіть 'Імпорт файлу OpenVPN'."
+    echo "4. Оберіть свій конфігураційний файл та дотримуйтесь інструкцій для імпорту."
+    echo "5. Після імпорту, Ваш VPN-профіль буде доступний для підключення."
 }
 
 menu_openVPN_installer() {
@@ -248,7 +285,7 @@ menu_IPsec_L2TP_IKEv2() {
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
-        read -p "Виберіть варіант (1/2/3/4/5/6/7/8/9/0):" choice
+        read -p "Виберіть варіант:" choice
 
         case $choice in
         1) install_ipsec_vpn_server ;;
@@ -300,7 +337,7 @@ install_ipsec_vpn_server() {
 
         create_folder "/root/VPN/IPsec_L2TP"
 
-        wait_for_container_docker ipsec-vpn-server
+        wait_for_container_command ipsec-vpn-server "true"
 
         docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN/IPsec_L2TP
         docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN/IPsec_L2TP
@@ -312,13 +349,58 @@ install_ipsec_vpn_server() {
             echo -e "\n${RED}Помилка під час копіювання файлів.${RESET}"
             echo -e "Спробуйте, будь ласка, виконати команди вручну:"
             echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN/IPsec_L2TP${RESET}"
-            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN/IPsec_L2TP${RESET}"
-            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN/IPsec_L2TP${RESET}"
+            echo -e "${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN/IPsec_L2TP${RESET}"
+            echo -e "${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN/IPsec_L2TP${RESET}"
         fi
 
         echo -e "\n${GREEN}Контейнер ipsec-vpn-server встановлено та налаштовано успішно.${RESET}\n"
+        # Підключення через протокол IKEv2 на Windows 10/11/8
+        echo -e "${YELLOW}Підключення через протокол IKEv2 на Windows 10/11/8${RESET}"
+        echo "1. Перенесіть згенерований файл .p12 у бажану теку на вашому комп'ютері."
+        echo "1.1. Завантажте файли ikev2_config_import.cmd і IPSec_NAT_Config.bat. Переконайтеся, що обидва файли знаходяться у тій самій текі, що й файл .p12."
+        echo "2. Налаштування VPN:"
+        echo "2.1. Клацніть правою кнопкою миші на файлі IPSec_NAT_Config.bat."
+        echo "2.2. У контекстному меню виберіть 'Запустити від імені адміністратора'."
+        echo "2.3. Підтвердіть дію, якщо з'явиться запит UAC (Контроль облікових записів користувачів)."
+        echo "3. Імпорт конфігурації:"
+        echo "3.1. Клацніть правою кнопкою миші на файлі ikev2_config_import.cmd."
+        echo "3.2. У контекстному меню виберіть 'Запустити від імені адміністратора'."
+        echo "3.3. Дотримуйтесь інструкцій на екрані, щоб завершити імпорт конфігурації."
+        echo "4. Перезавантажте Ваш комп'ютер, щоб переконатися, що всі зміни набрали чинності."
+        echo "5. Тепер Ви можете спробувати підключитися до Вашого VPN-серверу, використовуючи налаштування IKEv2."
+
+        # Підключення через Android
+        echo -e "\n${YELLOW}Підключення через Android${RESET}"
+        echo "1. Перенесіть згенерований файл .sswan на Ваш пристрій Android."
+        echo "2. Завантажте і встановіть програму strongSwan VPN Client з Google Play, F-Droid або безпосередньо з сервера strongSwan."
+        echo "3. Запустіть клієнт strongSwan VPN на вашому пристрої."
+        echo "4. Імпорт профілю VPN:"
+        echo "4.1. Натисніть на іконку 'Інші параметри' (зазвичай зображена трема вертикальними крапками) у правому верхньому куті."
+        echo "4.2. У випадаючому меню виберіть 'Імпорт профілю VPN'."
+        echo "4.3. Для пошуку файлу .sswan натисніть на іконку трьох горизонтальних ліній або кнопку меню, і перейдіть до теки, де збережений файл."
+        echo "4.4. Виберіть файл .sswan, який Ви отримали з VPN-сервера."
+        echo "5. Імпорт сертифіката:"
+        echo "5.1. На екрані 'Імпорт профілю VPN' виберіть 'ІМПОРТ СЕРТИФІКАТА З ПРОФІЛЯ VPN' і дотримуйтесь вказівок на екрані."
+        echo "5.2. На наступному екрані 'Виберіть сертифікат' виберіть щойно імпортований сертифікат клієнта і натисніть 'Вибрати'."
+        echo "5.3. Потім натисніть 'ІМПОРТ'."
+        echo "5.4. Підключення до VPN: Натисніть на новий VPN-профіль, щоб розпочати підключення."
+
+        # Для налаштування OS X (macOS) / iOS використовується файл .mobileconfig
+        echo -e "\n${YELLOW}Для налаштування OS X (macOS) / iOS використовується файл .mobileconfig${RESET}"
+        echo "Спочатку безпечно передайте згенерований файл .mobileconfig на ваш Mac, а потім двічі клацніть по ньому й дотримуйтесь інструкцій для імпорту як профілю macOS."
+        echo "Якщо на вашому Mac встановлено macOS Big Sur або новіше, відкрийте Системні налаштування й перейдіть до розділу Профілі, щоб завершити імпорт."
+        echo "Для macOS Ventura і новіших відкрийте Системні налаштування й знайдіть Профілі."
+        echo "Після завершення перевірте, щоб 'IKEv2 VPN' відображалося в Системні налаштування -> Профілі."
+        echo "Для підключення до VPN:"
+        echo "1. Відкрийте Системні налаштування і перейдіть до розділу Мережа."
+        echo "2. Виберіть VPN-підключення з Вашим IP-адресою VPN-сервера (або DNS-іменем)."
+        echo "3. Поставте галочку 'Показувати статус VPN у рядку меню'. Для macOS Ventura і новіших цю настройку можна налаштувати в Системні налаштування -> Контрольний центр -> Тільки рядок меню."
+        echo "4. Натисніть Підключити або перемикніть VPN у положення ВКЛ."
+        echo "5. (Додаткова функція) Увімкніть VPN за вимогою, щоб автоматично запускати VPN-підключення, коли ваш Mac підключений до Wi-Fi."
+        echo "   Щоб увімкнути, поставте галочку 'Підключати за вимогою' для VPN-підключення і натисніть Застосувати."
+        echo "   Щоб знайти цю настройку на macOS Ventura і новіших, клацніть на значок 'i' праворуч від VPN-підключення."
     else
-        echo -e "\n${YELLOW}Контейнер ipsec-vpn-server вже встановлено. Продовжуємо...${RESET}\n"
+        echo -e "\n${YELLOW}Контейнер ipsec-vpn-server вже встановлено..${RESET}\n"
     fi
 }
 

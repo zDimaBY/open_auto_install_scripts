@@ -77,7 +77,7 @@ function selectionFunctions() {
         echo -e "7. Організування ${MAGENTA}баз данних${RESET}(test)"
         echo -e "0. Закінчити роботу скрипта\n"
 
-        read -p "Виберіть варіант (1/2/3/4/5/6/7/8/9/0):" choice
+        read -p "Виберіть варіант:" choice
 
         case $choice in
         1) 1_outputOfAllDomains ;;

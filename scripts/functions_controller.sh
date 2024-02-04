@@ -227,22 +227,23 @@ check_docker() {
     fi
 }
 
-wait_for_container_docker() {
-    local container_name="$1"
+wait_for_container_command() {
+    local container_name=${1}
+    local command=${2}
     local max_attempts=10
     local wait_interval=10
 
     for ((i = 1; i <= $max_attempts; i++)); do
-        if docker ps --format '{{.Names}}' | grep -q "^$container_name$"; then
-            echo "Контейнер $container_name запущений."
+        if docker exec "$container_name" sh -c "$command" &>/dev/null; then
+            echo "Команда \"$command\" в контейнері $container_name виконана успішно."
             return 0
         else
-            echo "Очікування запуску контейнера $container_name ($i/$max_attempts)..."
+            echo "Очікування виконання команди \"$command\" в контейнері $container_name ($i/$max_attempts)..."
             sleep $wait_interval
         fi
     done
 
-    echo "Контейнер $container_name не був запущений протягом 10с."
+    echo "Команда \"$command\" в контейнері $container_name не була виконана протягом 10с."
     return 1
 }
 
@@ -253,6 +254,6 @@ create_folder() {
         echo -e "${YELLOW}Папка $path уже існує.${RESET}"
     else
         mkdir -p "$path"
-        echo -e "${GREEN}Папка $path була створена.${RESET}"
+        echo -e "${GREEN}Папка $path створена.${RESET}"
     fi
 }
