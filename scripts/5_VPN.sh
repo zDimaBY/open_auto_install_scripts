@@ -1,30 +1,230 @@
 function 5_VPN() {
-    check_docker
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
-        echo "1. WireGuard Easy (WEB, on docker)"
-        echo "2. WireGuard script (install local)"
-        echo "3. OpenVPN (install local)"
-        echo "4. VPN server, with IPsec/L2TP, Cisco IPsec and IKEv2 (on docker) (в процесі реалізації)"
+        echo -e "1. X-UI (WEB, on docker install) https://github.com/alireza0/x-ui/pkgs/container/x-ui"
+        echo -e "2. 3X-UI (WEB, on docker install) https://github.com/MHSanaei/3x-ui"
+        echo -e "3. WireGuard Easy (WEB, on docker install) https://github.com/wg-easy/wg-easy"
+        echo -e "4. IPsec/L2TP, Cisco IPsec and IKEv2 (on docker install) https://github.com/hwdsl2/docker-ipsec-vpn-server"
+        echo -e "5. WireGuard (locall install) https://github.com/angristan/wireguard-install"
+        echo -e "6. OpenVPN (locall install) https://github.com/angristan/openvpn-install"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
         case $choice in
-        1) menu_wireguard_easy ;;
-        2) menu_wireguard_scriptLocal ;;
-        3) menu_openVPNLocal ;;
+        1) menu_x_ui ;;
+        2) menu_3x_ui ;;
+        3) menu_wireguard_easy ;;
         4) menu_IPsec_L2TP_IKEv2 ;;
+        5) menu_wireguard_scriptLocal ;;
+        6) menu_openVPNLocal ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
         esac
     done
 }
+
+#_______________________________________________________________________________________________________________________________________
+menu_x_ui() {
+    check_docker
+    while true; do
+        checkControlPanel
+        echo -e "\nВиберіть дію:\n"
+        echo "1. Встановлення X-UI"
+        echo "2. Зупинка X-UI"
+        echo "3. Видалення X-UI"
+        #echo "4. Оновлення X-UI"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант:" choice
+
+        case $choice in
+        1) list_x_ui_versions_install ;;
+        2) stop_x_ui ;;
+        3) remove_x_ui ;;
+        4) update_x_ui ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+install_x_ui() {
+    local version="$1"
+    create_folder "/root/VPN/x_ui/db/" && create_folder "/root/VPN/x_ui/cert/"
+    docker run -itd \
+        -p 54321:54321 -p 443:443 -p 80:80 \
+        -e XRAY_VMESS_AEAD_FORCED=false \
+        -v /root/VPN/x_ui/db/:/etc/x-ui/ \
+        -v /root/VPN/x_ui/cert/:/root/cert/ \
+        --name x-ui --restart=unless-stopped \
+        alireza7/x-ui:$version
+
+    ports=(54321 443 80)
+    for port in "${ports[@]}"; do
+        if ! iptables -C INPUT -p tcp --dport "$port" -j ACCEPT &>/dev/null; then
+            iptables -A INPUT -p tcp --dport "$port" -j ACCEPT
+        fi
+    done
+    docker ps -a
+}
+
+list_x_ui_versions_install() {
+    local versions=$(curl -s https://api.github.com/repos/alireza0/x-ui/tags | jq -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9)
+    echo "Список доступних версій образу ghcr.io/mhsanaei/3x-ui:"
+    local i=1
+    for ver in $versions; do
+        echo "$i. $ver"
+        ((i++))
+    done
+    read -p "Введіть номер версії, яку ви хочете встановити (1-9): " choice
+    if ((choice >= 1 && choice <= 9)); then
+        install_x_ui "$(curl -s https://api.github.com/repos/alireza0/x-ui/tags | jq -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9 | sed -n "${choice}p")"
+    else
+        echo "Неправильний вибір. Будь ласка, виберіть номер від 1 до 9."
+        exit 1
+    fi
+
+    echo -e "${YELLOW}\n\nВстановив X-UI на сервер. Для входу в панель адміністратора, використовуйте ці дані:${RESET}"
+    echo -e "http://${server_IP}:54321"
+    echo -e "Користувач: admin"
+    echo -e "Пароль: admin\n"
+
+    echo -e "${YELLOW}Також, налаштував vmess підключення:${RESET}"
+    echo -e "- QR-код (знімок екрану додаю)"
+    echo -e "- посилання: "
+    echo -e "vmess://XXXXXXXXXX\n"
+
+    echo -e "${YELLOW}Для підключення, можете використати ці додатки:${RESET}"
+    echo -e "${GREEN}Android: ${RESET}https://github.com/2dust/v2rayNG/releases/download/1.8.6/v2rayNG_1.8.6.apk"
+    echo -e "${GREEN}Windows: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip"
+    echo -e "${GREEN}Linux: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-debian-x64.deb ; https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-linux64.zip"
+    echo -e "${GREEN}MacOS (Intel + Apple): ${RESET}https://github.com/abbasnaqdi/nekoray-macos/releases/download/3.18/nekoray_amd64.zip"
+    echo -e "${GREEN}iOS: ${RESET}https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690 \n"
+
+    echo -e "${YELLOW}Для підключення через програму nekoray (для Windows, посилання: https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip), натисніть на Program -> Scan QR code. Перед цим, скопіюйте посилання для підключення.${RESET}"
+    echo -e "${YELLOW}Після цього, увімкніть Tune Mode і System Proxy, натисніть ПКМ на нове підключення, і виберіть Start. Після цього, VPN повинен стати активним.${RESET}"
+
+}
+stop_x_ui() {
+    docker stop 'x-ui'
+    echo "x-ui зупинено."
+}
+
+remove_x_ui() {
+    docker stop 'x-ui'
+    docker rm 'x-ui'
+    echo "x-ui Easy видалено."
+    docker ps -a
+}
+
+update_x_ui() {
+    echo "Функція не реалізована"
+}
+#_______________________________________________________________________________________________________________________________________
+menu_3x_ui() {
+    check_docker
+    while true; do
+        checkControlPanel
+        echo -e "\nВиберіть дію:\n"
+        echo "1. Встановлення 3X-UI"
+        echo "2. Зупинка 3X-UI"
+        echo "3. Видалення 3X-UI"
+        #echo "4. Оновлення 3X-UI"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант:" choice
+
+        case $choice in
+        1) list_3x_ui_versions_install ;;
+        2) stop_3x_ui ;;
+        3) remove_3x_ui ;;
+        4) update_3x_ui ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+install_3x_ui() {
+    local version="$1"
+    create_folder "/root/VPN/3x_ui/db/" && create_folder "/root/VPN/3x_ui/cert/"
+    docker run -itd \
+        -e XRAY_VMESS_AEAD_FORCED=false \
+        -v /root/VPN/3x_ui/db/:/etc/x-ui/ \
+        -v /root/VPN/3x_ui/cert/:/root/cert/ \
+        --network=host \
+        --restart=unless-stopped \
+        --name 3x-ui \
+        ghcr.io/mhsanaei/3x-ui:$version
+
+    if ! iptables -C INPUT -p tcp --dport 2053 -j ACCEPT &>/dev/null; then
+        iptables -A INPUT -p tcp --dport 2053 -j ACCEPT
+    fi
+    docker ps -a
+}
+
+list_3x_ui_versions_install() {
+    local versions=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9)
+    echo "Список доступних версій образу ghcr.io/mhsanaei/3x-ui:"
+    local i=1
+    for ver in $versions; do
+        echo "$i. $ver"
+        ((i++))
+    done
+    read -p "Введіть номер версії, яку ви хочете встановити (1-9): " choice
+    if ((choice >= 1 && choice <= 9)); then
+        version=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9 | sed -n "${choice}p")
+        install_3x_ui "$version"
+    else
+        echo "Неправильний вибір. Будь ласка, виберіть номер від 1 до 9."
+        exit 1
+    fi
+
+    echo -e "${YELLOW}\n\nВстановив X-UI на сервер. Для входу в панель адміністратора, використовуйте ці дані:${RESET}"
+    echo -e "http://${server_IP}:2053"
+    echo -e "Користувач: admin"
+    echo -e "Пароль: admin\n"
+
+    echo -e "${YELLOW}Також, налаштував vmess підключення:${RESET}"
+    echo -e "- QR-код (знімок екрану додаю)"
+    echo -e "- посилання: "
+    echo -e "vmess://XXXXXXXXXX\n"
+
+    echo -e "${YELLOW}Для підключення, можете використати ці додатки:${RESET}"
+    echo -e "${GREEN}Android: ${RESET}https://github.com/2dust/v2rayNG/releases/download/1.8.6/v2rayNG_1.8.6.apk"
+    echo -e "${GREEN}Windows: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip"
+    echo -e "${GREEN}Linux: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-debian-x64.deb ; https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-linux64.zip"
+    echo -e "${GREEN}MacOS (Intel + Apple): ${RESET}https://github.com/abbasnaqdi/nekoray-macos/releases/download/3.18/nekoray_amd64.zip"
+    echo -e "${GREEN}iOS: ${RESET}https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690 \n"
+
+    echo -e "${YELLOW}Для підключення через програму nekoray (для Windows, посилання: https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip), натисніть на Program -> Scan QR code. Перед цим, скопіюйте посилання для підключення.${RESET}"
+    echo -e "${YELLOW}Після цього, увімкніть Tune Mode і System Proxy, натисніть ПКМ на нове підключення, і виберіть Start. Після цього, VPN повинен стати активним.${RESET}"
+
+}
+stop_3x_ui() {
+    docker stop '3x-ui'
+    echo "3x-ui зупинено."
+}
+
+remove_3x_ui() {
+    docker stop '3x-ui'
+    docker rm '3x-ui'
+    echo "3x-ui Easy видалено."
+    docker ps -a
+}
+
+update_3x_ui() {
+    echo "Функція не реалізована"
+}
 #_______________________________________________________________________________________________________________________________________
 menu_wireguard_easy() {
+    check_docker
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
@@ -82,11 +282,10 @@ install_wg_easy() {
         weejewel/wg-easy
 
     if [ $? -eq 0 ]; then
-        echo -e "\n${GREEN}WireGuard Easy успішно встановлено.${RESET}"
+        echo -e "\n${GREEN}WireGuard Easy успішно встановлено. ${YELLOW}Документація за посиланням: https://github.com/wg-easy/wg-easy${RESET}"
         echo -e "Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}$ip_address:51821${RESET}"
-        echo -e "${GREEN}Пароль для доступу до інтерфейсу:${RESET} ${YELLOW}$admin_password${RESET}"
-        echo -e "${GREEN}Документація за посиланням:${RESET} https://github.com/wg-easy/wg-easy"
-        echo -e "Для діагностики використовуйте команди:"
+        echo -e "${GREEN}Пароль для доступу до інтерфейсу:${RESET} ${YELLOW}$admin_password${RESET}" \
+            echo -e "Для діагностики використовуйте команди:"
         echo -e "  ${YELLOW}docker logs wg-easy${RESET} - перегляд журналів контейнера"
         echo -e "  ${YELLOW}docker exec -it wg-easy /bin/bash -c 'ls /bin'${RESET} - перегляд списку команд у контейнері"
     else
@@ -171,12 +370,13 @@ install_wireguard_scriptLocal() {
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}__________________________________________________________________________WireGuard успішно встановлено!${RESET}"
         echo -e "${YELLOW}Інструкція для налаштування WireGuard${RESET}"
-        echo "1. Завантажте клієнт WireGuard за посиланням: ${BLUE}https://www.wireguard.com/install/${RESET}"
+        echo -e "1. Завантажте клієнт WireGuard за посиланням: ${BLUE}https://www.wireguard.com/install/${RESET}"
         echo "2. Після завантаження клієнта, встановіть його на Ваш пристрій."
         echo "3. Перейдіть до каталогу /root/VPN/wireguard/ на Вашому сервері."
         echo "4. Скопіюйте файл конфігурації з серверу на Ваш пристрій."
         echo "5. Відкрийте клієнт WireGuard та імпортуйте файл конфігурації."
         echo "6. Після імпорту, Ваш VPN-профіль буде доступний для підключення."
+        echo "Документація за посиланням: https://github.com/angristan/openvpn-install"
 
     else
         echo -e "\n${RED}Сталася помилка під час встановлення WireGuard. Перевірте, будь ласка, налаштування і спробуйте ще раз.${RESET}"
@@ -228,6 +428,7 @@ avtoInstall_openVPN() {
     chmod +x /root/VPN/openvpn-install.sh && export AUTO_INSTALL=y
     bash /root/VPN/openvpn-install.sh
     echo -e "${GREEN}__________________________________________________________________________OpenVPN успішно встановлено!${RESET}"
+    echo -e "Документація за посиланням: https://github.com/angristan/openvpn-install"
     # Інструкція для платформи Windows
     echo -e "${YELLOW}Інструкція для платформи Windows${RESET}"
     echo "1. Завантажте встановлювач OpenVPN для Windows з офіційного сайту OpenVPN."
@@ -275,6 +476,7 @@ menu_openVPN_installer() {
 }
 #_______________________________________________________________________________________________________________________________________
 menu_IPsec_L2TP_IKEv2() {
+    check_docker
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію для налаштування контейнера IPsec/L2TP, Cisco IPsec та IKEv2:\n"
@@ -300,17 +502,18 @@ menu_IPsec_L2TP_IKEv2() {
 }
 
 install_ipsec_vpn_server() {
+    create_folder "/root/VPN/IPsec_L2TP"
     generate_vpn_env_file() {
         generate_random_password
-        echo "VPN_IPSEC_PSK=$rand_password" >./vpn.env
+        echo "VPN_IPSEC_PSK=$rand_password" >/root/VPN/IPsec_L2TP/vpn.env
         read -p "Введіть ім'я користувача для VPN: " vpn_username
-        echo "VPN_USER=$vpn_username" >>./vpn.env
+        echo "VPN_USER=$vpn_username" >>/root/VPN/IPsec_L2TP/vpn.env
         generate_random_password
-        echo "VPN_PASSWORD=$rand_password" >>./vpn.env
+        echo "VPN_PASSWORD=$rand_password" >>/root/VPN/IPsec_L2TP/vpn.env
         echo -e "${GREEN}Файл vpn.env створено та налаштовано успішно.${RESET}\n"
     }
 
-    if [ -f ./vpn.env ]; then
+    if [ -f /root/VPN/IPsec_L2TP/vpn.env ]; then
         echo -e "${GREEN}Файл vpn.env для кнфігурації вже існує. Ви хочете створити новий чи використовувати той що є ?${RESET}"
         read -p "(y/n): " create_new_vpn_env
         if [[ "$create_new_vpn_env" =~ ^(y|Y|yes)$ ]]; then
@@ -326,7 +529,7 @@ install_ipsec_vpn_server() {
     if ! docker ps -a --format '{{.Names}}' | grep -q "^ipsec-vpn-server$"; then
         docker run \
             --name ipsec-vpn-server \
-            --env-file ./vpn.env \
+            --env-file /root/VPN/IPsec_L2TP/vpn.env \
             --restart=always \
             -v ikev2-vpn-data:/etc/ipsec.d \
             -v /lib/modules:/lib/modules:ro \
@@ -335,16 +538,15 @@ install_ipsec_vpn_server() {
             -d --privileged \
             hwdsl2/ipsec-vpn-server
 
-        create_folder "/root/VPN/IPsec_L2TP"
-
-        wait_for_container_command ipsec-vpn-server "true"
-
-        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN/IPsec_L2TP
-        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN/IPsec_L2TP
-        docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN/IPsec_L2TP
+        wget https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat -P /root/VPN/IPsec_L2TP
+        wget https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd -P /root/VPN/IPsec_L2TP
+        
+        copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.p12" "/root/VPN/IPsec_L2TP"
+        copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.sswan" "/root/VPN/IPsec_L2TP"
+        copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.mobileconfig" "/root/VPN/IPsec_L2TP"
 
         if [ $? -eq 0 ]; then
-            echo -e "\n${GREEN}Файли для налаштуваня успішно скопійовано до /root/VPN/IPsec_L2TP${RESET}"
+            echo -e "\n${GREEN}Файли для налаштуваня клієнта успішно скопійовано до /root/VPN/IPsec_L2TP${RESET}"
         else
             echo -e "\n${RED}Помилка під час копіювання файлів.${RESET}"
             echo -e "Спробуйте, будь ласка, виконати команди вручну:"
@@ -353,7 +555,8 @@ install_ipsec_vpn_server() {
             echo -e "${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN/IPsec_L2TP${RESET}"
         fi
 
-        echo -e "\n${GREEN}Контейнер ipsec-vpn-server встановлено та налаштовано успішно.${RESET}\n"
+        echo -e "\n${GREEN}Контейнер ipsec-vpn-server встановлено та налаштовано успішно. Документація за посиланням: https://github.com/hwdsl2/setup-ipsec-vpn${RESET}\n"
+
         # Підключення через протокол IKEv2 на Windows 10/11/8
         echo -e "${YELLOW}Підключення через протокол IKEv2 на Windows 10/11/8${RESET}"
         echo "1. Перенесіть згенерований файл .p12 у бажану теку на вашому комп'ютері."

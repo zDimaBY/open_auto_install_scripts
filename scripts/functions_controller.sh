@@ -192,15 +192,15 @@ check_docker() {
         fi
     fi
 
-    # Перевірка, чи демон Docker запущений
+    # Перевірка, чи Docker запущений
     if ! systemctl status docker | grep -q "running"; then
-        echo -e "\n${RED}Демон Docker не запущений.${RESET}"
-        read -p "Бажаєте запустити демон Docker? (y/n): " start_docker
+        echo -e "\n${RED}Docker не запущений.${RESET}"
+        read -p "Бажаєте запустити Docker? (y/n): " start_docker
         if [[ "$start_docker" =~ ^(y|Y|yes)$ ]]; then
             echo -e "${YELLOW}Запуск демона Docker...${RESET}"
             systemctl start docker
             if [[ $? -eq 0 ]]; then
-                echo -e "\n${GREEN}Демон Docker успішно запущений.${RESET}"
+                echo -e "\n${GREEN}Docker успішно запущений.${RESET}"
 
                 active_status=$(echo "$docker_status" | grep "Active:")
                 if echo "$docker_status" | grep -q "running"; then
@@ -227,26 +227,6 @@ check_docker() {
     fi
 }
 
-wait_for_container_command() {
-    local container_name=${1}
-    local command=${2}
-    local max_attempts=10
-    local wait_interval=10
-
-    for ((i = 1; i <= $max_attempts; i++)); do
-        if docker exec "$container_name" sh -c "$command" &>/dev/null; then
-            echo "Команда \"$command\" в контейнері $container_name виконана успішно."
-            return 0
-        else
-            echo "Очікування виконання команди \"$command\" в контейнері $container_name ($i/$max_attempts)..."
-            sleep $wait_interval
-        fi
-    done
-
-    echo "Команда \"$command\" в контейнері $container_name не була виконана протягом 10с."
-    return 1
-}
-
 create_folder() {
     path="$1"
 
@@ -256,4 +236,18 @@ create_folder() {
         mkdir -p "$path"
         echo -e "${GREEN}Папка $path створена.${RESET}"
     fi
+}
+
+copy_file_from_container() {
+    local container_name="$1"
+    local file_path="$2"
+    local target_directory="$3"
+    
+    while ! docker exec "$container_name" test -e "$file_path"; do
+        echo "Очікування створення файлу $file_path в контейнері $container_name..."
+        sleep 5
+    done
+    
+    docker cp "$container_name":"$file_path" "$target_directory"
+    echo "Файл $file_path було скопійовано в $target_directory"
 }
