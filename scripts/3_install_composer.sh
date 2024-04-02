@@ -1,3 +1,24 @@
+function 3_list_install_programs() {
+    while true; do
+        checkControlPanel
+        echo -e "\nВиберіть дію:\n"
+        echo -e "1. Встановлення ${BROWN}Composer${RESET}"
+        echo -e "2. Встановлення ${BROWN}Docker${RESET}"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант:" choice
+
+        case $choice in
+        1) 3_installComposer ;;
+        2) check_docker ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+
 function 3_installComposer() {
     case $operating_system in
     debian | ubuntu)

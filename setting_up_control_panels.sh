@@ -12,7 +12,7 @@ lIGHT_GREEN="\e[92m"
 BROWN='\033[0;33m'
 RESET="\e[0m"
 # Розгортаєм скрипт
-folder_script_path="/root/control_panels/scripts"
+folder_script_path="/root/controlPanelFiles/scripts"
 mkdir -p $folder_script_path
 urls=(
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/0_exit.sh"
@@ -70,9 +70,9 @@ function selectionFunctions() {
         echo -e "\nВиберіть дію:\n"
         echo "1. Домени користувача панелі керування"
         echo -e "2. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + Ubuntu + php-fpm)"
-        echo -e "3. Встановлення ${BROWN}Composer${RESET}"
+        echo -e "3. Встановлення ПЗ ( ${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET} )"
         echo -e "4. DDos"
-        echo -e "5. Втановлення ${MAGENTA}VPN${RESET} та ${YELLOW}Docker${RESET}"
+        echo -e "5. Втановлення ${MAGENTA}VPN${RESET}"
         echo -e "6. Організування ${BLUE}FTP${RESET} доступу(test)"
         echo -e "7. Організування ${MAGENTA}баз данних${RESET}(test)"
         echo -e "0. Закінчити роботу скрипта\n"
@@ -82,7 +82,7 @@ function selectionFunctions() {
         case $choice in
         1) 1_outputOfAllDomains ;;
         2) 2_updateIoncubeHestiacpUbuntu ;;
-        3) 3_installComposer ;;
+        3) 3_list_install_programs ;;
         4) 4_DDos ;;
         5) 5_VPN ;;
         6) 6_FTP ;;

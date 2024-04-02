@@ -481,9 +481,10 @@ menu_IPsec_L2TP_IKEv2() {
         checkControlPanel
         echo -e "\nВиберіть дію для налаштування контейнера IPsec/L2TP, Cisco IPsec та IKEv2:\n"
         echo "1. Встановлення ipsec-vpn-server"
-        echo "2. Зупинка ipsec-vpn-server"
-        echo "3. Видалення ipsec-vpn-server"
-        echo "4. Оновлення ipsec-vpn-server"
+        echo "2. Створити нову конфігурацію для клієнта ipsec-vpn-server"
+        echo "3. Зупинка ipsec-vpn-server"
+        echo "4. Видалення ipsec-vpn-server"
+        echo "5. Оновлення ipsec-vpn-server"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -491,9 +492,10 @@ menu_IPsec_L2TP_IKEv2() {
 
         case $choice in
         1) install_ipsec_vpn_server ;;
-        2) stop_ipsec_vpn_server ;;
-        3) remove_ipsec_vpn_server ;;
-        4) update_ipsec_vpn_server ;;
+        2) add_client_ipsec_vpn_server ;;
+        3) stop_ipsec_vpn_server ;;
+        4) remove_ipsec_vpn_server ;;
+        5) update_ipsec_vpn_server ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -540,7 +542,7 @@ install_ipsec_vpn_server() {
 
         wget https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat -P /root/VPN/IPsec_L2TP
         wget https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd -P /root/VPN/IPsec_L2TP
-        
+
         copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.p12" "/root/VPN/IPsec_L2TP"
         copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.sswan" "/root/VPN/IPsec_L2TP"
         copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.mobileconfig" "/root/VPN/IPsec_L2TP"
@@ -605,6 +607,28 @@ install_ipsec_vpn_server() {
     else
         echo -e "\n${YELLOW}Контейнер ipsec-vpn-server вже встановлено..${RESET}\n"
     fi
+}
+
+add_client_ipsec_vpn_server() {
+    read -p "Введіть ім'я підключення: " connection_name
+    
+    if [ -z "$connection_name" ]; then
+        echo "Помилка: не вказано ім'я підключення"
+        return 1
+    fi
+    
+    if docker exec -it ipsec-vpn-server ls "/etc/ipsec.d/$connection_name.p12" &> /dev/null; then
+        echo "Помилка: підключення \"$connection_name\" вже існує"
+        return 1
+    fi
+    
+    docker exec -it ipsec-vpn-server /opt/src/ikev2.sh --addclient "$connection_name"
+
+    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.p12" "/root/VPN/IPsec_L2TP/$connection_name"
+    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.sswan" "/root/VPN/IPsec_L2TP/$connection_name"
+    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.mobileconfig" "/root/VPN/IPsec_L2TP/$connection_name"
+    
+    echo -e "${GREEN}Файли конфігурації скопійовано за шляхом /root/VPN/IPsec_L2TP/$connection_name ${RESET}"
 }
 
 stop_ipsec_vpn_server() {

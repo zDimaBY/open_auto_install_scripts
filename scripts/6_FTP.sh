@@ -27,10 +27,10 @@ function 6_FTP() {
 install_alpine_ftp_server() {
     get_server_ip
     echo "Введіть імя користувача FTP:"
-    read -r -s -p "> " ftp_user
+    read -r -p "> " ftp_user
     echo "Введіть пароль користувача FTP:"
     generate_random_password_show
-    read -r -s -p "> " ftp_password  # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
+    read -r -p "> " ftp_password  # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
 
     docker run -d \
     --name=alpine-ftp-server \
