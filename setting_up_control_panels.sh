@@ -12,7 +12,7 @@ lIGHT_GREEN="\e[92m"
 BROWN='\033[0;33m'
 RESET="\e[0m"
 # Розгортаєм скрипт
-folder_script_path="scripts"
+folder_script_path="/root/control_panels/scripts"
 mkdir -p $folder_script_path
 urls=(
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/0_exit.sh"
@@ -29,10 +29,10 @@ echo -e "${LIGHT_GREEN}Loading script, please wait.${RESET}"
 # Завантажуєм скрипти
 for url in "${urls[@]}"; do
     filename=$(basename "$url")
-    wget -qO- "$url" >"./$folder_script_path/$filename"
+    wget -qO- "$url" >"$folder_script_path/$filename"
 done
 # Підключаєм усі файли з папки
-for file in ./$folder_script_path/*; do
+for file in $folder_script_path/*; do
     if [ -f "$file" ] && [ -r "$file" ]; then
         source "$file"
     fi
