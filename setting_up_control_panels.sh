@@ -70,7 +70,7 @@ function selectionFunctions() {
         echo -e "\nВиберіть дію:\n"
         echo "1. Домени користувача панелі керування"
         echo -e "2. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + Ubuntu + php-fpm)"
-        echo -e "3. Встановлення ПЗ ( ${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET} )"
+        echo -e "3. Встановлення ПЗ (${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET}, ${BLUE}RouterOS 7.5${RESET})"
         echo -e "4. DDos"
         echo -e "5. Втановлення ${MAGENTA}VPN${RESET}"
         echo -e "6. Організування ${BLUE}FTP${RESET} доступу(test)"
