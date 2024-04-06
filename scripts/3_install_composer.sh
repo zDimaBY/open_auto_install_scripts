@@ -123,11 +123,13 @@ function 3_installRouterOSMikrotik() {
     if [ "$disk_number" -ge 1 ] && [ "$disk_number" -le "${#disks[@]}" ]; then
         selected_disk=${disks[$(($disk_number - 1))]}
         echo -e "Обраний диск: ${RED}$selected_disk${RESET}"
-        echo -e "${RED}Система через декілька секунд система буде перезавантажена. Будь ласка, проведіть налаштування RouterOS у VNC.${GREEN} \nКористувач: admin \nПароль: <не налаштований в RouterOS>${RESET}"
-        echo -e "\nВиконайти наступні команди, вкажіть IP-адресу: ip address add address=xxx.xxx.xxx.xxx/24 interface=ether1"
-        echo -e "Вкажіть шлюз: ip route add gateway=yyy.yyy.yyy.yyy"
+        echo -e "${RED}Проведіть, будь ласка, налаштування RouterOS у VNC.${GREEN} \nКористувач: admin \nПароль: <не налаштований в RouterOS>${RESET}"
+        get_public_interface
+        echo -e "\nВиконайти наступні команди, вкажіть налаштування мережі: \nip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1" 
+        echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
+        echo -e "Перевірте мережу: ping ${gateway} , ping 8.8.8.8"
         
-        echo -e "${YELLOW}\nСистема встановлена. Перейдіть за посиланням http://хх.хх.хх.хх/webfig/ для доступу до WEB-інтерфейсу. \nЛогін: admin \nПароль: <XXXXXXX>${RESET}"
+        echo -e "${YELLOW}\nСистема встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу. \nЛогін: admin \nПароль: <XXXXXXX>${RESET}"
         
         dd if=chr-7.5.img of=${selected_disk} bs=4M oflag=sync
         echo 1 >/proc/sys/kernel/sysrq

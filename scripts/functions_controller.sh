@@ -242,12 +242,46 @@ copy_file_from_container() {
     local container_name="$1"
     local file_path="$2"
     local target_directory="$3"
-    
+
     while ! docker exec "$container_name" test -e "$file_path"; do
         echo "Очікування створення файлу $file_path в контейнері $container_name..."
         sleep 5
     done
-    
+
     docker cp "$container_name":"$file_path" "$target_directory"
     echo "Файл $file_path було скопійовано в $target_directory"
+}
+
+mask_to_cidr() { #cidr
+    local IFS=.
+    read -r i1 i2 i3 i4 <<<"$1"
+    local binary=$(echo "obase=2;$i1*256*256*256+$i2*256*256+$i3*256+$i4" | bc)
+    local cidr=$(echo -n "${binary}" | tr -d 0 | wc -c)
+    if [ "$cidr" -eq 0 ]; then
+        echo "Недійсна маска підмережі"
+        exit 1
+    fi
+    echo "${cidr}"
+}
+
+get_public_interface() { #hostname_ip selected_adapter mask gateway
+    hostname_ip=$(hostname -I | awk '{print $1}')
+    adapters=$(ip addr show | grep "^[0-9]" | awk '{print $2}' | sed 's/://')
+    selected_adapter=""
+    for adapter in $adapters; do
+        adapter_ip=$(ip addr show dev "$adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f1)
+        if [ "$adapter_ip" == "$hostname_ip" ]; then
+            selected_adapter="$adapter"
+            break
+        fi
+    done
+    if [ -z "$selected_adapter" ]; then
+        echo "Не вдалося знайти адаптер з IP-адресою, яка відповідає результату команди hostname -I: $hostname_ip"
+        selected_adapter="none"
+        mask="xx"
+        gateway="xxx.xxx.xxx.xxx"
+    else
+        mask=$(ip addr show dev "$selected_adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f2)
+        gateway=$(ip route show dev "$selected_adapter" | grep "default via" | awk '{print $3}')
+    fi
 }

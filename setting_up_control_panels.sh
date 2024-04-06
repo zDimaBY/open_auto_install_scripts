@@ -11,9 +11,10 @@ WHITE="\e[37m"
 lIGHT_GREEN="\e[92m"
 BROWN='\033[0;33m'
 RESET="\e[0m"
-# Розгортаєм скрипт
+# Каталог для скриптів
 folder_script_path="/root/controlPanelFiles/scripts"
-mkdir -p $folder_script_path
+mkdir -p "$folder_script_path"
+
 urls=(
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/0_exit.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/1_user_domains.sh"
@@ -25,16 +26,17 @@ urls=(
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/7_MySQL.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/functions_controller.sh"
 )
-echo -e "${LIGHT_GREEN}Loading script, please wait.${RESET}"
-# Завантажуєм скрипти
+
+# Завантаження та розгортання скриптів
 for url in "${urls[@]}"; do
     filename=$(basename "$url")
-    wget -qO- "$url" >"$folder_script_path/$filename"
+    wget -qO "$folder_script_path/$filename" "$url" || { echo -e "${RED}Не вдалося завантажити $filename${RESET}"; exit 1; }
 done
-# Підключаєм усі файли з папки
-for file in $folder_script_path/*; do
-    if [ -f "$file" ] && [ -r "$file" ]; then
-        source "$file"
+
+# Підключення усіх файлів з папки
+for file in "$folder_script_path"/*; do
+    if [[ -f "$file" && -r "$file" ]]; then
+        source "$file" && rm -f "$file"
     fi
 done
 
@@ -68,8 +70,8 @@ function selectionFunctions() {
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
-        echo "1. Домени користувача панелі керування"
-        echo -e "2. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + Ubuntu + php-fpm)"
+        echo "1. Домени користувача панелі керування(test)"
+        echo -e "2. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + php-fpm)"
         echo -e "3. Встановлення ПЗ (${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET}, ${BLUE}RouterOS 7.5${RESET})"
         echo -e "4. DDos"
         echo -e "5. Втановлення ${MAGENTA}VPN${RESET}"

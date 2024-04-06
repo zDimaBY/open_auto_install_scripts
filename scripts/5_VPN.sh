@@ -283,9 +283,9 @@ install_wg_easy() {
 
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}WireGuard Easy успішно встановлено. ${YELLOW}Документація за посиланням: https://github.com/wg-easy/wg-easy${RESET}"
-        echo -e "Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}$ip_address:51821${RESET}"
-        echo -e "${GREEN}Пароль для доступу до інтерфейсу:${RESET} ${YELLOW}$admin_password${RESET}" \
-            echo -e "Для діагностики використовуйте команди:"
+        echo -e "Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}http://$ip_address:51821${RESET}"
+        echo -e "${GREEN}Пароль для доступу до інтерфейсу:${RESET} ${YELLOW}$admin_password${RESET}"
+        echo -e "Для діагностики використовуйте команди:"
         echo -e "  ${YELLOW}docker logs wg-easy${RESET} - перегляд журналів контейнера"
         echo -e "  ${YELLOW}docker exec -it wg-easy /bin/bash -c 'ls /bin'${RESET} - перегляд списку команд у контейнері"
     else
@@ -624,9 +624,9 @@ add_client_ipsec_vpn_server() {
     
     docker exec -it ipsec-vpn-server /opt/src/ikev2.sh --addclient "$connection_name"
 
-    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.p12" "/root/VPN/IPsec_L2TP/$connection_name"
-    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.sswan" "/root/VPN/IPsec_L2TP/$connection_name"
-    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.mobileconfig" "/root/VPN/IPsec_L2TP/$connection_name"
+    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.p12" "/root/VPN/IPsec_L2TP/$connection_name/"
+    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.sswan" "/root/VPN/IPsec_L2TP/$connection_name/"
+    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.mobileconfig" "/root/VPN/IPsec_L2TP/$connection_name/"
     
     echo -e "${GREEN}Файли конфігурації скопійовано за шляхом /root/VPN/IPsec_L2TP/$connection_name ${RESET}"
 }
