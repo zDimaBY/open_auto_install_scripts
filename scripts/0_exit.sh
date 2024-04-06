@@ -1,5 +1,5 @@
 function 0_funExit() {
-    echo -e "Exit.\nПриберіть за собою! Використавши:$RED rm -rf /root/controlPanelFiles /root/setting_up_control_panels.sh && && history -c && history -a $RESET\n\n"
+    echo -e "Exit. Приберіть за собою! \nВикориставши:$RED rm -rf /root/controlPanelFiles /root/setting_up_control_panels.sh && history -c && history -a $RESET\n\n"
     sed -i '/wget https:\/\/raw.githubusercontent.com\/zDimaBY/d' /root/.bash_history
     rm -rf $folder_script_path /root/setting_up_control_panels.sh
     exit 0

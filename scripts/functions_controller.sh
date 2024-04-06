@@ -143,38 +143,6 @@ generate_random_password() {
     rand_password=$(openssl rand -base64 12)
 }
 
-get_server_ip() {
-    echo "Визначення IP-адреси сервера"
-    echo "Список доступних мережевих інтерфейсів та їх IP-адрес:"
-    interfaces=($(ifconfig -a | grep -E '^[A-Za-z0-9]+:' | awk '{print $1}' | sed 's/://g'))
-
-    for ((i = 0; i < ${#interfaces[@]}; i++)); do
-        interface_name=${interfaces[$i]}
-        ip_address=$(ifconfig "$interface_name" | awk '/inet / {print $2}')
-        echo -e "$((i + 1)). Інтерфейс: ${RED}$interface_name${RESET}, IP-адреса: $ip_address"
-    done
-
-    read -p "Введіть номер інтерфейсу для використання: " choice
-    index=$((choice - 1))
-
-    if [[ $index -lt 0 || $index -ge ${#interfaces[@]} ]]; then
-        echo "Невірний вибір. Спробуйте ще раз."
-        exit 1
-    fi
-
-    interface=${interfaces[$index]}
-    ip_address=$(ifconfig "$interface" | awk '/inet / {print $2}')
-
-    if [ -z "$ip_address" ]; then
-        echo "Не вдалося отримати IP-адресу для інтерфейсу $interface."
-        exit 1
-    fi
-
-    echo "Обраний мережевий інтерфейс: $interface"
-    echo "IP-адреса: $ip_address"
-    server_ip="$ip_address"
-}
-
 check_docker() {
     docker_status=$(systemctl status docker)
 
@@ -284,4 +252,38 @@ get_public_interface() { #hostname_ip selected_adapter mask gateway
         mask=$(ip addr show dev "$selected_adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f2)
         gateway=$(ip route show dev "$selected_adapter" | grep "default via" | awk '{print $3}')
     fi
+}
+
+get_selected_interface() { #hostname_ip selected_adapter mask gateway
+    adapters=$(ip addr show | grep "^[0-9]" | awk '{print $2}' | sed 's/://')
+    echo "Виберіть доступний мережеви адаптер:"
+    count=0
+    for adapter in $adapters; do
+        if [[ $adapter != veth* && $adapter != br-* ]]; then
+            ((count++))
+            ip=$(ip addr show dev "$adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f1)
+            echo "$count. $adapter: $ip"
+        fi
+    done
+    echo ""
+    read -p "Введіть номер адаптера (від 1 до $count): " selected_index
+    if ! [[ "$selected_index" =~ ^[0-9]+$ ]]; then
+        echo "Помилка: Потрібно ввести число."
+        exit 1
+    fi
+
+    if ((selected_index < 1 || selected_index > count)); then
+        echo "Помилка: Некоректний номер адаптера."
+        exit 1
+    fi
+
+    selected_adapter=$(echo "$adapters" | sed -n "${selected_index}p")
+    ip=$(ip addr show dev "$selected_adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f1)
+    mask=$(ip addr show dev "$selected_adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f2)
+    gateway=$(ip route show dev "$selected_adapter" | grep "default via" | awk '{print $3}')
+
+    echo "Інформація про мережний адаптер $selected_adapter:"
+    echo "IP адрес: $ip"
+    echo "Маска: $mask"
+    echo "Шлюз: $gateway"
 }

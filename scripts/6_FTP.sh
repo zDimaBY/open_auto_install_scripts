@@ -25,7 +25,7 @@ function 6_FTP() {
 }
 
 install_alpine_ftp_server() {
-    get_server_ip
+    get_selected_interface
     echo "Введіть імя користувача FTP:"
     read -r -p "> " ftp_user
     echo "Введіть пароль користувача FTP:"
@@ -52,7 +52,7 @@ docker run -d \
 
 
     if [ $? -eq 0 ]; then
-        echo -e "\n${GREEN}alpine-ftp-server успішно встановлено. Дані доступу до FTP:\nHost: ${YELLOW}$ip_address${RESET}\nUser: ${YELLOW}$ftp_user${RESET}\nPassword: ${YELLOW}$ftp_password${RESET}"
+        echo -e "\n${GREEN}alpine-ftp-server успішно встановлено. Дані доступу до FTP:\nHost: ${YELLOW}$ip${RESET}\nUser: ${YELLOW}$ftp_user${RESET}\nPassword: ${YELLOW}$ftp_password${RESET}"
     else
         echo -e "\n${RED}Сталася помилка під час встановлення alpine-ftp-server. Перевірте налаштування і спробуйте ще раз.${RESET}"
     fi

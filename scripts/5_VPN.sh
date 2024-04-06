@@ -75,7 +75,7 @@ install_x_ui() {
 
 list_x_ui_versions_install() {
     local versions=$(curl -s https://api.github.com/repos/alireza0/x-ui/tags | jq -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9)
-    echo "Список доступних версій образу ghcr.io/mhsanaei/3x-ui:"
+    echo "Список доступних версій образу alireza7/x-ui:"
     local i=1
     for ver in $versions; do
         echo "$i. $ver"
@@ -250,7 +250,7 @@ menu_wireguard_easy() {
 }
 
 install_wg_easy() {
-    get_server_ip
+    get_selected_interface
     generate_random_password_show
     read -r -p "Введіть пароль адміністратора: " admin_password # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
 
@@ -269,7 +269,7 @@ install_wg_easy() {
 
     docker run -d \
         --name=wg-easy \
-        -e WG_HOST="$ip_address" \
+        -e WG_HOST="$ip" \
         -e PASSWORD="$admin_password" \
         -v ~/.wg-easy:/etc/wireguard \
         -p 51820:51820/udp \
@@ -283,7 +283,7 @@ install_wg_easy() {
 
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}WireGuard Easy успішно встановлено. ${YELLOW}Документація за посиланням: https://github.com/wg-easy/wg-easy${RESET}"
-        echo -e "Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}http://$ip_address:51821${RESET}"
+        echo -e "Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}http://$ip:51821${RESET}"
         echo -e "${GREEN}Пароль для доступу до інтерфейсу:${RESET} ${YELLOW}$admin_password${RESET}"
         echo -e "Для діагностики використовуйте команди:"
         echo -e "  ${YELLOW}docker logs wg-easy${RESET} - перегляд журналів контейнера"
@@ -621,12 +621,13 @@ add_client_ipsec_vpn_server() {
         echo "Помилка: підключення \"$connection_name\" вже існує"
         return 1
     fi
-    
+    create_folder "/root/VPN/IPsec_L2TP/$connection_name"
     docker exec -it ipsec-vpn-server /opt/src/ikev2.sh --addclient "$connection_name"
-
     copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.p12" "/root/VPN/IPsec_L2TP/$connection_name/"
     copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.sswan" "/root/VPN/IPsec_L2TP/$connection_name/"
     copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.mobileconfig" "/root/VPN/IPsec_L2TP/$connection_name/"
+    wget https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat -P /root/VPN/IPsec_L2TP/${connection_name}/
+    wget https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd -P /root/VPN/IPsec_L2TP/${connection_name}/
     
     echo -e "${GREEN}Файли конфігурації скопійовано за шляхом /root/VPN/IPsec_L2TP/$connection_name ${RESET}"
 }
