@@ -283,7 +283,7 @@ get_selected_interface() { #hostname_ip selected_adapter mask gateway
     gateway=$(ip route show dev "$selected_adapter" | grep "default via" | awk '{print $3}')
 
     echo "Інформація про мережний адаптер $selected_adapter:"
-    echo "IP адрес: $ip"
+    echo "IP адреса: $ip"
     echo "Маска: $mask"
     echo "Шлюз: $gateway"
 }

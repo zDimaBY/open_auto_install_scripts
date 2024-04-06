@@ -540,8 +540,8 @@ install_ipsec_vpn_server() {
             -d --privileged \
             hwdsl2/ipsec-vpn-server
 
-        wget https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat -P /root/VPN/IPsec_L2TP
-        wget https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd -P /root/VPN/IPsec_L2TP
+        wget -N -P /root/VPN/IPsec_L2TP/ https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat
+        wget -N -P /root/VPN/IPsec_L2TP/ https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd
 
         copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.p12" "/root/VPN/IPsec_L2TP"
         copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.sswan" "/root/VPN/IPsec_L2TP"
@@ -611,13 +611,13 @@ install_ipsec_vpn_server() {
 
 add_client_ipsec_vpn_server() {
     read -p "Введіть ім'я підключення: " connection_name
-    
+
     if [ -z "$connection_name" ]; then
         echo "Помилка: не вказано ім'я підключення"
         return 1
     fi
-    
-    if docker exec -it ipsec-vpn-server ls "/etc/ipsec.d/$connection_name.p12" &> /dev/null; then
+
+    if docker exec -it ipsec-vpn-server ls "/etc/ipsec.d/$connection_name.p12" &>/dev/null; then
         echo "Помилка: підключення \"$connection_name\" вже існує"
         return 1
     fi
@@ -626,9 +626,9 @@ add_client_ipsec_vpn_server() {
     copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.p12" "/root/VPN/IPsec_L2TP/$connection_name/"
     copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.sswan" "/root/VPN/IPsec_L2TP/$connection_name/"
     copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.mobileconfig" "/root/VPN/IPsec_L2TP/$connection_name/"
-    wget https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat -P /root/VPN/IPsec_L2TP/${connection_name}/
-    wget https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd -P /root/VPN/IPsec_L2TP/${connection_name}/
-    
+    wget -N -P /root/VPN/IPsec_L2TP/${connection_name}/ https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat
+    wget -N -P /root/VPN/IPsec_L2TP/${connection_name}/ https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd
+
     echo -e "${GREEN}Файли конфігурації скопійовано за шляхом /root/VPN/IPsec_L2TP/$connection_name ${RESET}"
 }
 

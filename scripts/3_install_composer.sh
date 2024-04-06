@@ -129,7 +129,7 @@ function 3_installRouterOSMikrotik() {
         echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
         echo -e "Перевірте мережу: ping ${gateway} , ping 8.8.8.8"
         
-        echo -e "${YELLOW}\nСистема встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу. \nЛогін: admin \nПароль: <XXXXXXX>${RESET}"
+        echo -e "${YELLOW}\nСистема RouterOS встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу. \nЛогін: admin \nПароль: <XXXXXXX>${RESET}"
         
         dd if=chr-7.5.img of=${selected_disk} bs=4M oflag=sync
         echo 1 >/proc/sys/kernel/sysrq

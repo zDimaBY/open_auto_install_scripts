@@ -58,7 +58,7 @@ function 7_DB() {
         generate_random_password_show
         read -p "root password: " mysql_password
         echo -e "${GREEN}Унікальні використовані порти (TCP та UDP) у системі:${RESET}"
-        netstat -tuln | awk '/^Proto|^tcp|^udp/ {print $4}' | sed 's/.*://' | sort -n | uniq
+        ss -tuln | awk 'NR>1 {split($5,a,":"); print a[length(a)]}' | sort -n | uniq
         echo "Введіть порт прослуховування для контейнера"
         read -p "(за замовчуванням 3306): " port
         port=${port:-3306}

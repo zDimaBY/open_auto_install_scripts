@@ -11,8 +11,10 @@ WHITE="\e[37m"
 lIGHT_GREEN="\e[92m"
 BROWN='\033[0;33m'
 RESET="\e[0m"
+
 # Каталог для скриптів
-folder_script_path="/root/controlPanelFiles/scripts"
+rand_head=$(head /dev/urandom | tr -dc 'a-z' | head -c 6)
+folder_script_path="/root/scripts_${rand_head}"
 mkdir -p "$folder_script_path"
 
 urls=(
@@ -39,6 +41,7 @@ for file in "$folder_script_path"/*; do
         source "$file" && rm -f "$file"
     fi
 done
+rm -rf "$folder_script_path" /root/setting_up_control_panels.sh
 
 UPDATE_DONE=false
 dependencies=(
