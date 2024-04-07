@@ -73,7 +73,7 @@ function selectionFunctions() {
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
         echo "1. Домени користувача панелі керування(test)"
-        echo -e "2. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + php-fpm)"
+        echo -e "2. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + php-fpm)(test)"
         echo -e "3. Встановлення ПЗ (${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET}, ${BLUE}RouterOS 7.5${RESET})"
         echo -e "4. DDos"
         echo -e "5. Організування ${MAGENTA}VPN${RESET} серверів"
