@@ -72,25 +72,25 @@ function 3_installRouterOSMikrotik() {
     case $operating_system in
     debian | ubuntu)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
-            echo -e "${RED}unzip не знайдено. Встановлюємо...${RESET}"
+            echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
             apt install -y qemu-utils pv
         fi
         ;;
     fedora)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
-            echo -e "${RED}unzip не знайдено. Встановлюємо...${RESET}"
+            echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
             dnf install qemu-utils pv
         fi
         ;;
     centos | oracle)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
-            echo -e "${RED}unzip не знайдено. Встановлюємо...${RESET}"
+            echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
             yum install qemu-utils pv
         fi
         ;;
     arch)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
-            echo -e "${RED}unzip не знайдено. Встановлюємо...${RESET}"
+            echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
             pacman -S qemu-utils pv
         fi
         ;;
@@ -107,6 +107,7 @@ function 3_installRouterOSMikrotik() {
         wget https://download.mikrotik.com/routeros/7.5/chr-7.5.img.zip -O chr.img.zip
     elif [[ "$answer" =~ ^[Nn]o?$ ]]; then
         echo "Відмінено користувачем."
+        return 1
     else
         echo "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
     fi
@@ -116,17 +117,17 @@ function 3_installRouterOSMikrotik() {
     for ((i = 0; i < ${#disks[@]}; i++)); do
         echo "$(($i + 1)). ${disks[$i]}"
     done
-    read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
-    
     read -p "Виберіть номер диска (1-${#disks[@]}): " disk_number
+    read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
 
     if [ "$disk_number" -ge 1 ] && [ "$disk_number" -le "${#disks[@]}" ]; then
         selected_disk=${disks[$(($disk_number - 1))]}
         echo -e "Обраний диск: ${RED}$selected_disk${RESET}"
         gunzip -c chr.img.zip >chr.img
+        
+        delay_command=3
 
         # Монтування образу
-        apt update && apt install -y qemu-utils pv
         qemu-img convert chr.img -O qcow2 chr.qcow2 && sleep "$delay_command"
         qemu-img resize chr.qcow2 1073741824 && sleep "$delay_command" # Розширюєм образ диска до 1G
         modprobe nbd && qemu-nbd -c /dev/nbd0 chr.qcow2 && sleep "$delay_command"
