@@ -104,25 +104,26 @@ function 3_installRouterOSMikrotik() {
 
     if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
         echo "Встановлення системи RouterOS..."
-        wget https://download.mikrotik.com/routeros/7.5/chr-7.5.img.zip -O chr.img.zip
     elif [[ "$answer" =~ ^[Nn]o?$ ]]; then
         echo "Відмінено користувачем."
         return 1
     else
         echo "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
     fi
-
+    
     echo "Список дисків:"
     disks=($(fdisk -l | grep -o '^Disk /[^:]*' | cut -d ' ' -f 2))
     for ((i = 0; i < ${#disks[@]}; i++)); do
         echo "$(($i + 1)). ${disks[$i]}"
     done
-    read -p "Виберіть номер диска (1-${#disks[@]}): " disk_number
+    read -p "Виберіть диск (1-${#disks[@]}): " disk_number
+    generate_random_password_show
     read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
 
     if [ "$disk_number" -ge 1 ] && [ "$disk_number" -le "${#disks[@]}" ]; then
         selected_disk=${disks[$(($disk_number - 1))]}
         echo -e "Обраний диск: ${RED}$selected_disk${RESET}"
+        wget https://download.mikrotik.com/routeros/7.5/chr-7.5.img.zip -O chr.img.zip
         gunzip -c chr.img.zip >chr.img
         
         delay_command=3
@@ -165,13 +166,11 @@ EOF
         # Розпакування образу та копіювання його на пристрій /dev/vda
         zcat /mnt/chr-extended.gz | pv >/dev/vda && sleep 10 || true
         
-        echo -e "${RED}Перевірте, будь ласка, роботу RouterOS.${GREEN} \nКористувач: admin \nПароль: ${passwd_routeros}${RESET}"
+        echo -e "${RED}Перевірте, будь ласка, роботу RouterOS, на данний момент ${YELLOW}\"$(date)\"${RED} в системі запущене оновлення.${RESET}"
+        echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу. \nЛогін: admin \nПароль: ${passwd_routeros}${RESET}"
         echo -e "\nВиконайти наступні команди, якщо мережа не налаштована: \nip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1"
         echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
         echo -e "Перевірте мережу: ping ${gateway} , ping 8.8.8.8"
-
-        echo -e "${YELLOW}\nСистема RouterOS встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу. \nЛогін: admin \nПароль: ${passwd_routeros}${RESET}"
-
 
         # Синхронізація даних на диску і перезавантаження системи
         echo "sync disk" && sleep "$delay_command" && echo s >/proc/sysrq-trigger && sleep "$delay_command" && echo b >/proc/sysrq-trigger
