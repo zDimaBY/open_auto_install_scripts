@@ -4,7 +4,7 @@ function 3_list_install_programs() {
         echo -e "\nВиберіть дію:\n"
         echo -e "1. Встановлення ${BROWN}Composer${RESET}"
         echo -e "2. Встановлення ${BROWN}Docker${RESET}"
-        echo -e "3. Встановлення ${BROWN}RouterOS від Mikrotik${RESET}"
+        echo -e "3. Встановлення ${BLUE}RouterOS від Mikrotik${RESET}"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -79,13 +79,14 @@ function 3_installRouterOSMikrotik() {
     fedora)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
             echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
-            dnf install qemu-utils pv
+            dnf install epel-release
+            dnf install qemu-img pv nbd
         fi
         ;;
     centos | oracle)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
             echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
-            yum install qemu-utils pv
+            yum install qemu-img pv nbd -y
         fi
         ;;
     arch)
@@ -110,7 +111,7 @@ function 3_installRouterOSMikrotik() {
     else
         echo "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
     fi
-    
+
     echo "Список дисків:"
     disks=($(fdisk -l | grep -o '^Disk /[^:]*' | cut -d ' ' -f 2))
     for ((i = 0; i < ${#disks[@]}; i++)); do
@@ -125,7 +126,7 @@ function 3_installRouterOSMikrotik() {
         echo -e "Обраний диск: ${RED}$selected_disk${RESET}"
         wget https://download.mikrotik.com/routeros/7.5/chr-7.5.img.zip -O chr.img.zip
         gunzip -c chr.img.zip >chr.img
-        
+
         delay_command=3
 
         # Монтування образу
@@ -137,13 +138,14 @@ function 3_installRouterOSMikrotik() {
 
         # Отримання налаштувань мережі ip, mask, gateway
         get_public_interface
+        date_start_isntall=$(date)
 
         # Налаштування мережі та інших параметрів
         cat <<EOF >/mnt/rw/autorun.scr
 /ip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1
 /ip route add dst-address=0.0.0.0/0 gateway=${gateway}
 /ip service disable telnet
-/user set 0 name=admin password=123qwe
+/user set 0 name=admin password=${passwd_routeros}
 /system package update install
 EOF
 
@@ -165,12 +167,13 @@ EOF
 
         # Розпакування образу та копіювання його на пристрій /dev/vda
         zcat /mnt/chr-extended.gz | pv >/dev/vda && sleep 10 || true
-        
-        echo -e "${RED}Перевірте, будь ласка, роботу RouterOS, на данний момент ${YELLOW}\"$(date)\"${RED} в системі запущене оновлення.${RESET}"
-        echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу. \nЛогін: admin \nПароль: ${passwd_routeros}${RESET}"
-        echo -e "\nВиконайти наступні команди, якщо мережа не налаштована: \nip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1"
+
+        echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
+        echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
+        echo -e "\nВиконайте наступні команди, якщо мережа не налаштована:"
+        echo -e "ip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1"
         echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
-        echo -e "Перевірте мережу: ping ${gateway} , ping 8.8.8.8"
+        echo -e "Перевірте мережу: ping ${gateway}, ping 8.8.8.8"
 
         # Синхронізація даних на диску і перезавантаження системи
         echo "sync disk" && sleep "$delay_command" && echo s >/proc/sysrq-trigger && sleep "$delay_command" && echo b >/proc/sysrq-trigger

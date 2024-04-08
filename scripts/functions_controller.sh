@@ -35,6 +35,7 @@ function check_dependency() {
                 ;;
             centos | oracle)
                 yum update
+                yum install epel-release -y
                 yum install -y "$package_name"
                 ;;
             arch)
