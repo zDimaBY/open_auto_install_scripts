@@ -89,11 +89,12 @@ function 3_installRouterOSMikrotik() {
             if modprobe nbd &>/dev/null; then
                 echo "Модуль nbd успішно завантажено"
             else
-                echo "Помилка: модуль nbd, у ядрі ${YELLOW}$(uname -r)${RESET} системи ${RED}${NAME} ${VERSION}${RESET} не увімкнено."
+                echo -e "${RED}Помилка:${RESET} модуль nbd, у ядрі ${YELLOW}$(uname -r)${RESET} системи ${RED}${NAME} ${VERSION}${RESET} не увімкнено."
                 echo "Скористайтеся інструкціями та повторіть спробу:"
                 echo "https://blog.csdn.net/lv0918_qian/article/details/117651096"
                 echo "https://gist.github.com/Thodorhs/76edc2acd4d89bbb0b4d2cd4908fec97 - Перезбір модулів ядра може зайняти понад 2 години."
-                echo "Також вам знадобляться пакети: yum install gcc ncurses ncurses-devel elfutils-libelf-devel openssl-devel kernel-devel kernel-headers"
+                echo -e "Також вам знадобляться пакети: yum install gcc ncurses ncurses-devel elfutils-libelf-devel openssl-devel kernel-devel kernel-headers\n\n"
+                return 1
             fi
         fi
         ;;
@@ -112,7 +113,7 @@ function 3_installRouterOSMikrotik() {
     read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (y/n): " answer
 
     if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
-        echo "${GREEN}Встановлення системи RouterOS...${RESET}"
+        echo -e "${GREEN}Встановлення системи RouterOS...${RESET}"
         read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.14. default: 7.5): " version_routeros
         version_routeros=${version_routeros:-7.5}
 
