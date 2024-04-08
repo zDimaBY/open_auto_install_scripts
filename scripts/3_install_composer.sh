@@ -79,14 +79,22 @@ function 3_installRouterOSMikrotik() {
     fedora)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
             echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
-            dnf install epel-release
-            dnf install qemu-img pv nbd
+            dnf install -y qemu-img pv nbd libaio
         fi
         ;;
     centos | oracle)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
-            echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
-            yum install qemu-img pv nbd -y
+            echo -e "${RED}qemu-img або pv не знайдено. Встановлюємо...${RESET}"
+            yum install -y qemu-img pv nbd libaio
+            if modprobe nbd &>/dev/null; then
+                echo "Модуль nbd успішно завантажено"
+            else
+                echo "Помилка: модуль nbd, у ядрі ${YELLOW}$(uname -r)${RESET} системи ${RED}${NAME} ${VERSION}${RESET} не увімкнено."
+                echo "Скористайтеся інструкціями та повторіть спробу:"
+                echo "https://blog.csdn.net/lv0918_qian/article/details/117651096"
+                echo "https://gist.github.com/Thodorhs/76edc2acd4d89bbb0b4d2cd4908fec97 - Перезбір модулів ядра може зайняти понад 2 години."
+                echo "Також вам знадобляться пакети: yum install gcc ncurses ncurses-devel elfutils-libelf-devel openssl-devel kernel-devel kernel-headers"
+            fi
         fi
         ;;
     arch)
@@ -101,47 +109,49 @@ function 3_installRouterOSMikrotik() {
         ;;
     esac
     echo -e "Бажаєте встановити систему RouterOS від MikroTik? ${RED}Після цієї операції диск буде перезаписаний${RESET}"
-    read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (yes/no): " answer
+    read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (y/n): " answer
 
     if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
-        echo "Встановлення системи RouterOS..."
-    elif [[ "$answer" =~ ^[Nn]o?$ ]]; then
-        echo "Відмінено користувачем."
-        return 1
-    else
-        echo "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
-    fi
+        echo "${GREEN}Встановлення системи RouterOS...${RESET}"
+        read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.14. default: 7.5): " version_routeros
+        version_routeros=${version_routeros:-7.5}
 
-    echo "Список дисків:"
-    disks=($(fdisk -l | grep -o '^Disk /[^:]*' | cut -d ' ' -f 2))
-    for ((i = 0; i < ${#disks[@]}; i++)); do
-        echo "$(($i + 1)). ${disks[$i]}"
-    done
-    read -p "Виберіть диск (1-${#disks[@]}): " disk_number
-    generate_random_password_show
-    read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
+        if [[ ! $version_routeros =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "Помилка: Введено неправильне значення версії. Будь ласка, введіть числове значення (наприклад 7.12, 7.14)."
+            echo "Для посилання: https://download.mikrotik.com/routeros/\$version_routeros/chr-\$version_routeros.img.zip."
+            exit 1
+        fi
 
-    if [ "$disk_number" -ge 1 ] && [ "$disk_number" -le "${#disks[@]}" ]; then
-        selected_disk=${disks[$(($disk_number - 1))]}
-        echo -e "Обраний диск: ${RED}$selected_disk${RESET}"
-        wget https://download.mikrotik.com/routeros/7.5/chr-7.5.img.zip -O chr.img.zip
-        gunzip -c chr.img.zip >chr.img
+        echo "Список дисків:"
+        disks=($(fdisk -l | grep -o '^Disk /[^:]*' | cut -d ' ' -f 2))
+        for ((i = 0; i < ${#disks[@]}; i++)); do
+            echo "$(($i + 1)). ${disks[$i]}"
+        done
+        read -p "Виберіть диск (1-${#disks[@]}): " disk_number
+        generate_random_password_show
+        read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
 
-        delay_command=3
+        if [ "$disk_number" -ge 1 ] && [ "$disk_number" -le "${#disks[@]}" ]; then
+            selected_disk=${disks[$(($disk_number - 1))]}
+            echo -e "Обраний диск: ${RED}${selected_disk}${RESET}"
+            wget https://download.mikrotik.com/routeros/7.14/chr-7.14.img.zip -O chr.img.zip
+            gunzip -c chr.img.zip >chr.img
 
-        # Монтування образу
-        qemu-img convert chr.img -O qcow2 chr.qcow2 && sleep "$delay_command"
-        qemu-img resize chr.qcow2 1073741824 && sleep "$delay_command" # Розширюєм образ диска до 1G
-        modprobe nbd && qemu-nbd -c /dev/nbd0 chr.qcow2 && sleep "$delay_command"
-        sleep 2 && partprobe /dev/nbd0 && sleep 5
-        mount /dev/nbd0p2 /mnt
+            delay_command=3
 
-        # Отримання налаштувань мережі ip, mask, gateway
-        get_public_interface
-        date_start_isntall=$(date)
+            # Монтування образу
+            qemu-img convert chr.img -O qcow2 chr.qcow2 && sleep "$delay_command"
+            qemu-img resize chr.qcow2 1073741824 && sleep "$delay_command" # Розширюєм образ диска до 1G
+            modprobe nbd && qemu-nbd -c /dev/nbd0 chr.qcow2 && sleep "$delay_command"
+            sleep 2 && partprobe /dev/nbd0 && sleep 5
+            mount /dev/nbd0p2 /mnt
 
-        # Налаштування мережі та інших параметрів
-        cat <<EOF >/mnt/rw/autorun.scr
+            # Отримання налаштувань мережі ip, mask, gateway
+            get_public_interface
+            date_start_install=$(date)
+
+            # Налаштування мережі та інших параметрів
+            cat <<EOF >/mnt/rw/autorun.scr
 /ip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1
 /ip route add dst-address=0.0.0.0/0 gateway=${gateway}
 /ip service disable telnet
@@ -149,34 +159,46 @@ function 3_installRouterOSMikrotik() {
 /system package update install
 EOF
 
-        # Розмонтування образу
-        umount /mnt && sleep "$delay_command"
+            if [ $? -ne 0 ]; then
+                passwd_routeros="не заданий"
+            fi
 
-        # Створення нового розділу та перепідключення образу диска
-        echo -e 'd\n2\nn\np\n2\n65537\n\nw\n' | fdisk /dev/nbd0 && sleep "$delay_command"
+            # Розмонтування образу
+            umount /mnt && sleep "$delay_command"
 
-        # Виконання перевірки файлової системи і зміна її розміру
-        e2fsck -f -y /dev/nbd0p2 || true && resize2fs /dev/nbd0p2 && sleep "$delay_command"
+            # Створення нового розділу та перепідключення образу диска
+            echo -e 'd\n2\nn\np\n2\n65537\n\nw\n' | fdisk /dev/nbd0 && sleep "$delay_command"
 
-        # Копіювання образу та збереження його на тимчасове сховище
-        pv /dev/nbd0 | gzip >/mnt/chr-extended.gz && sleep "$delay_command"
+            # Виконання перевірки файлової системи і зміна її розміру
+            e2fsck -f -y /dev/nbd0p2 || true && resize2fs /dev/nbd0p2 && sleep "$delay_command"
 
-        # Завершення роботи qemu-nbd та відправлення сигналу перезавантаження
-        killall qemu-nbd && sleep "$delay_command"
-        echo u >/proc/sysrq-trigger && sleep "$delay_command"
+            # Копіювання образу та збереження його на тимчасове сховище
+            pv /dev/nbd0 | gzip >/mnt/chr-extended.gz && sleep "$delay_command"
 
-        # Розпакування образу та копіювання його на пристрій /dev/vda
-        zcat /mnt/chr-extended.gz | pv >/dev/vda && sleep 10 || true
+            # Завершення роботи qemu-nbd та відправлення сигналу перезавантаження
+            killall qemu-nbd && sleep "$delay_command"
+            echo u >/proc/sysrq-trigger && sleep "$delay_command"
 
-        echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
-        echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
-        echo -e "\nВиконайте наступні команди, якщо мережа не налаштована:"
-        echo -e "ip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1"
-        echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
-        echo -e "Перевірте мережу: ping ${gateway}, ping 8.8.8.8"
+            # Розпакування образу та копіювання його на пристрій ${selected_disk}
+            zcat /mnt/chr-extended.gz | pv >${selected_disk} && sleep 10 || true
 
-        # Синхронізація даних на диску і перезавантаження системи
-        echo "sync disk" && sleep "$delay_command" && echo s >/proc/sysrq-trigger && sleep "$delay_command" && echo b >/proc/sysrq-trigger
+            echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
+            echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
+            echo -e "\nВиконайте наступні команди, якщо мережа не налаштована:"
+            echo -e "ip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1"
+            echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
+            echo -e "Перевірте мережу: ping ${gateway}, ping 8.8.8.8"
+
+            # Синхронізація даних на диску і перезавантаження системи
+            echo "sync disk" && sleep "$delay_command" && echo s >/proc/sysrq-trigger && sleep "$delay_command" && echo b >/proc/sysrq-trigger
+
+        elif [[ "$answer" =~ ^[Nn]o?$ ]]; then
+            echo "Відмінено користувачем."
+            return 1
+        else
+            echo "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
+        fi
+
     else
         echo "Помилка: Неправильний номер диска."
     fi
