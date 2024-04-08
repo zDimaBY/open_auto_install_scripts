@@ -1,3 +1,5 @@
+# shellcheck disable=SC2148
+# shellcheck disable=SC2154
 function check_dependency() {
     local dependency_name=$1
     local package_name=$2
@@ -138,7 +140,7 @@ checkControlPanel() {
 
 generate_random_password_show() {
     rand_password=$(openssl rand -base64 12)
-    echo -e "\n\nЗгенерований випадковий пароль: ${RED}$rand_password${RESET}"
+    echo -e "\nЗгенерований випадковий пароль: ${RED}$rand_password${RESET}"
 }
 generate_random_password() {
     rand_password=$(openssl rand -base64 12)

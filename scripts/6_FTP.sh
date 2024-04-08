@@ -1,4 +1,6 @@
-function 6_FTP() {
+# shellcheck disable=SC2148
+# shellcheck disable=SC2154
+function 4_FTP() {
     check_docker
     while true; do
         checkControlPanel

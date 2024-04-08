@@ -1,10 +1,13 @@
-function 3_list_install_programs() {
+# shellcheck disable=SC2148
+# shellcheck disable=SC2154
+function 1_list_install_programs() {
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
         echo -e "1. Встановлення ${BROWN}Composer${RESET}"
         echo -e "2. Встановлення ${BROWN}Docker${RESET}"
         echo -e "3. Встановлення ${BLUE}RouterOS від Mikrotik${RESET}"
+        echo -e "4. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + php-fpm) ${RED}(test)${RESET}"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -14,6 +17,7 @@ function 3_list_install_programs() {
         1) 3_installComposer ;;
         2) check_docker ;;
         3) 3_installRouterOSMikrotik ;;
+        4) 3_updateIoncube ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -94,6 +98,7 @@ function 3_installRouterOSMikrotik() {
                 echo "https://blog.csdn.net/lv0918_qian/article/details/117651096"
                 echo "https://gist.github.com/Thodorhs/76edc2acd4d89bbb0b4d2cd4908fec97 - Перезбір модулів ядра може зайняти понад 2 години."
                 echo -e "Також вам знадобляться пакети: yum install gcc ncurses ncurses-devel elfutils-libelf-devel openssl-devel kernel-devel kernel-headers\n\n"
+                echo -e "Ви можите встановти CentOS 8, ubuntu 20.04, Debian 11 і вище, щоб виконати встановлення корректно\n\n"
                 return 1
             fi
         fi
@@ -113,17 +118,17 @@ function 3_installRouterOSMikrotik() {
     read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (y/n): " answer
 
     if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
-        echo -e "${GREEN}Встановлення системи RouterOS...${RESET}"
-        read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.14. default: 7.5): " version_routeros
-        version_routeros=${version_routeros:-7.5}
+        echo -e "${GREEN}Встановлення системи RouterOS... https://mikrotik.com/download${RESET}"
+        read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.14): " version_routeros
+        version_routeros=${version_routeros:-7.14}
 
         if [[ ! $version_routeros =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
             echo "Помилка: Введено неправильне значення версії. Будь ласка, введіть числове значення (наприклад 7.12, 7.14)."
-            echo "Для посилання: https://download.mikrotik.com/routeros/\$version_routeros/chr-\$version_routeros.img.zip."
-            exit 1
+            echo "Для посилання: https://download.mikrotik.com/routeros/${version_routeros}/chr-${version_routeros}.img.zip."
+            return 1
         fi
 
-        echo "Список дисків:"
+        echo -e "\nСписок дисків:"
         disks=($(fdisk -l | grep -o '^Disk /[^:]*' | cut -d ' ' -f 2))
         for ((i = 0; i < ${#disks[@]}; i++)); do
             echo "$(($i + 1)). ${disks[$i]}"
@@ -135,7 +140,11 @@ function 3_installRouterOSMikrotik() {
         if [ "$disk_number" -ge 1 ] && [ "$disk_number" -le "${#disks[@]}" ]; then
             selected_disk=${disks[$(($disk_number - 1))]}
             echo -e "Обраний диск: ${RED}${selected_disk}${RESET}"
-            wget https://download.mikrotik.com/routeros/7.14/chr-7.14.img.zip -O chr.img.zip
+            wget https://download.mikrotik.com/routeros/${version_routeros}/chr-${version_routeros}.img.zip -O chr.img.zip
+            if [ $? -ne 0 ]; then
+                echo -e "${RED}Помилка $?:${RESET} не вдалося завантажити файл chr.img.zip. Вихід зі скрипта."
+                return 1
+            fi
             gunzip -c chr.img.zip >chr.img
 
             delay_command=3
@@ -157,9 +166,8 @@ function 3_installRouterOSMikrotik() {
 /ip route add dst-address=0.0.0.0/0 gateway=${gateway}
 /ip service disable telnet
 /user set 0 name=admin password=${passwd_routeros}
-/system package update install
 EOF
-
+            #/system package update install
             if [ $? -ne 0 ]; then
                 passwd_routeros="не заданий"
             fi

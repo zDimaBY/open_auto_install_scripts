@@ -1,7 +1,13 @@
-function 2_updateIoncubeHestiacpUbuntu() {
+# shellcheck disable=SC2148
+# shellcheck disable=SC2154
+function 3_updateIoncube() {
     # Instals Ioncube on all  existing and supported php versions
     source /etc/hestiacp/hestia.conf
 
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Помилка $?:${RESET} не вдалося підключити файл /etc/hestiacp/hestia.conf."
+        return 1
+    fi
     # Look up what version is used x86_64 needs to become x86-64 instead
     # Only tested for aarch and x86_64
     arc=$(arch)
@@ -35,7 +41,7 @@ function 2_updateIoncubeHestiacpUbuntu() {
     rm -fr ioncube
 }
 
-function 2_updateIoncubeVestacpUbuntu() { #No work
+function 3_updateIoncubeVestacpUbuntu() { #No work
     # Install Ioncube on all existing and supported PHP versions
     source /usr/local/vesta/conf/vesta.conf
 
@@ -74,7 +80,7 @@ function 2_updateIoncubeVestacpUbuntu() { #No work
     rm -fr ioncube
 }
 
-function 2_updateIoncubeVestacpCentos7() { #No work
+function 3_updateIoncubeVestacpCentos7() { #No work
     # Install Ioncube on all existing and supported PHP versions
     source /usr/local/vesta/conf/vesta.conf
 

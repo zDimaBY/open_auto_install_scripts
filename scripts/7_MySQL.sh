@@ -1,4 +1,6 @@
-function 7_DB() {
+# shellcheck disable=SC2148
+# shellcheck disable=SC2154
+function 5_DB() {
     check_docker
     while true; do
         checkControlPanel

@@ -1,4 +1,6 @@
-function 4_DDos() {
+# shellcheck disable=SC2148
+# shellcheck disable=SC2154
+function 2_DDos() {
     clear
     while true; do
         checkControlPanel

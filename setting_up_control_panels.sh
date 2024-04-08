@@ -72,25 +72,23 @@ function selectionFunctions() {
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
-        echo "1. Домени користувача панелі керування(test)"
-        echo -e "2. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + php-fpm)(test)"
-        echo -e "3. Встановлення ПЗ (${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET}, ${BLUE}RouterOS 7.5${RESET})"
-        echo -e "4. DDos"
-        echo -e "5. Організування ${MAGENTA}VPN${RESET} серверів"
-        echo -e "6. Організування ${BLUE}FTP${RESET} доступу(test)"
-        echo -e "7. Організування ${MAGENTA}баз данних${RESET}(test)"
+        #echo "1. Домени користувача панелі керування(test)"
+        echo -e "1. Встановлення ПЗ (${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET}, ${BLUE}RouterOS 7.5${RESET})"
+        echo -e "2. DDos"
+        echo -e "3. Організування ${MAGENTA}VPN${RESET} серверів"
+        echo -e "4. Організування ${BLUE}FTP${RESET} доступу(test)"
+        echo -e "5. Організування ${MAGENTA}баз данних${RESET}(test)"
         echo -e "0. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
         case $choice in
-        1) 1_outputOfAllDomains ;;
-        2) 2_updateIoncubeHestiacpUbuntu ;;
-        3) 3_list_install_programs ;;
-        4) 4_DDos ;;
-        5) 5_VPN ;;
-        6) 6_FTP ;;
-        7) 7_DB ;;
+        #1) 1_outputOfAllDomains ;;
+        1) 1_list_install_programs ;;
+        2) 2_DDos ;;
+        3) 3_VPN ;;
+        4) 4_FTP ;;
+        5) 5_DB ;;
         0) 0_funExit ;;
         *) 0_invalid ;;
         esac
