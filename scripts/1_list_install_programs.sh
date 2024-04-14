@@ -7,15 +7,17 @@ function 1_list_install_programs() {
         echo -e "1. Встановлення ${BROWN}Composer${RESET}"
         echo -e "2. Встановлення ${BROWN}Docker${RESET}"
         echo -e "3. Встановлення ${BLUE}RouterOS від Mikrotik${RESET}"
+        echo -e "4. Встановлення ${BLUE}Elasticsearch${RESET} ${RED}(test)${RESET}"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
         case $choice in
-        1) 3_installComposer ;;
+        1) 1_installComposer ;;
         2) check_docker ;;
-        3) 3_installRouterOSMikrotik ;;
+        3) 1_installRouterOSMikrotik ;;
+        4) 1_installElasticsearch ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -23,7 +25,7 @@ function 1_list_install_programs() {
     done
 }
 
-function 3_installComposer() {
+function 1_installComposer() {
     case $operating_system in
     debian | ubuntu)
         if ! command -v php &>/dev/null; then
@@ -70,7 +72,7 @@ function 3_installComposer() {
     fi
 }
 
-function 3_installRouterOSMikrotik() {
+function 1_installRouterOSMikrotik() {
     case $operating_system in
     debian | ubuntu)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
@@ -209,4 +211,83 @@ EOF
     else
         echo "Помилка: Неправильний номер диска."
     fi
+}
+
+1_installElasticsearch() {
+    case $operating_system in
+    debian | ubuntu)
+        if dpkg -l | grep -q '^ii.*apt-transport-https' &>/dev/null; then
+            echo -e "${RED}apt-transport-https не знайдено. Встановлюємо...${RESET}"
+            apt-get install apt-transport-https
+        fi
+        echo "Ви обрали головну версію $main_version."
+
+        echo -e "${GREEN}Завантаження ключа GPG Elasticsearch...${RESET}"
+        wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
+
+        echo -e "${GREEN}Додавання репозиторію Elasticsearch до списку джерел APT...${RESET}"
+        echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | tee /etc/apt/sources.list.d/elastic-8.x.list
+        echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/7.x/apt stable main" | tee /etc/apt/sources.list.d/elastic-7.x.list
+
+        echo -e "${GREEN}Оновлення списку пакунків APT...${RESET}"
+        apt update
+        echo -e "${GREEN}Список пакунків APT оновлено.${RESET}"
+
+        # Отримати доступні головні версії Elasticsearch
+        main_versions=$(apt policy elasticsearch | grep -E "^[[:space:]]+[0-9]+\..*\." | awk '{print $1}' | cut -d'.' -f1 | sort -ru)
+
+        PS3="Оберіть головну версію Elasticsearch: "
+        select main_version in $main_versions; do
+            if [ -n "$main_version" ]; then
+                echo "Ви обрали головну версію $main_version."
+                break
+            else
+                echo "Невірний вибір. Будь ласка, спробуйте ще раз."
+            fi
+        done
+
+        # Отримати версії, що відповідають обраній головній версії
+        sub_versions=$(apt policy elasticsearch | grep -E "^[[:space:]]+[0-9]+\..*\." | grep "^ *$main_version\." | awk '{print $1}')
+
+        PS3="Оберіть підверсію Elasticsearch для встановлення: "
+        select sub_version in $sub_versions; do
+            if [ -n "$sub_version" ]; then
+                echo "Ви обрали версію $sub_version для встановлення."
+                apt install elasticsearch=$sub_version
+                if [ $? -eq 0 ]; then
+                    echo "Elasticsearch версії $sub_version успішно встановлено."
+                else
+                    echo -e "${RED}Помилка при встановленні Elasticsearch версії $sub_version.${RESET}"
+                fi
+                break
+            else
+                echo "Невірний вибір. Будь ласка, спробуйте ще раз."
+            fi
+        done
+
+        ;;
+    fedora)
+        if rpm -q apt-transport-https &>/dev/null; then
+            echo -e "${RED}apt-transport-https не знайдено. Функція не реалізована...${RESET}"
+            #dnf install -y apt-transport-https
+        fi
+        ;;
+    centos | oracle)
+        if rpm -q apt-transport-https &>/dev/null; then
+            echo -e "${RED}apt-transport-https не знайдено. Функція не реалізована...${RESET}"
+            #yum install -y apt-transport-https
+        fi
+        ;;
+    arch)
+        if ! pacman -Qq apt-transport-https &>/dev/null; then
+            echo -e "${RED}apt-transport-https не знайдено. Функція не реалізована...${RESET}"
+            #pacman -Sy --noconfirm apt-transport-https
+        fi
+        ;;
+    *)
+        echo -e "${RED}Не вдалося встановити Composer. Будь ласка, встановіть його вручну.${RESET}"
+        return 1
+        ;;
+    esac
+
 }
