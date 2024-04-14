@@ -119,8 +119,8 @@ function 1_installRouterOSMikrotik() {
 
     if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
         echo -e "${GREEN}Встановлення системи RouterOS... https://mikrotik.com/download${RESET}"
-        read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.5): " version_routeros
-        version_routeros=${version_routeros:-7.5}
+        read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.14): " version_routeros
+        version_routeros=${version_routeros:-7.14}
 
         if [[ ! $version_routeros =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
             echo "Помилка: Введено неправильне значення версії. Будь ласка, введіть числове значення (наприклад 7.12, 7.14)."
@@ -158,7 +158,7 @@ function 1_installRouterOSMikrotik() {
 
             # Отримання налаштувань мережі ip, mask, gateway
             get_public_interface
-            date_start_install=$(date)
+            #date_start_install=$(date)
 
             # Налаштування мережі та інших параметрів
             cat <<EOF >/mnt/rw/autorun.scr
@@ -175,7 +175,7 @@ EOF
             # Розмонтування образу
             umount /mnt && sleep "$delay_command"
 
-            # Створення нового розділу та перепідключення образу диска
+            # Створення нового розділу
             echo -e 'd\n2\nn\np\n2\n65537\n\nw\n' | fdisk /dev/nbd0 && sleep "$delay_command"
 
             # Виконання перевірки файлової системи і зміна її розміру
@@ -184,19 +184,19 @@ EOF
             # Копіювання образу та збереження його на тимчасове сховище
             pv /dev/nbd0 | gzip >/mnt/chr-extended.gz && sleep "$delay_command"
 
-            # Завершення роботи qemu-nbd та відправлення сигналу перезавантаження
+            # Завершення роботи qemu-nbd
             killall qemu-nbd && sleep "$delay_command"
             echo u >/proc/sysrq-trigger && sleep "$delay_command"
 
             # Розпакування образу та копіювання його на пристрій ${selected_disk}
             zcat /mnt/chr-extended.gz | pv >${selected_disk} && sleep 10 || true
 
-            echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
+            #echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
             echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
             echo -e "\nВиконайте наступні команди, якщо мережа не налаштована:"
             echo -e "ip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1"
             echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
-            echo -e "Перевірте мережу: ping ${gateway}, ping 8.8.8.8"
+            echo -e "Перевірте мережу: \nping ${gateway} \nping 8.8.8.8"
 
             # Синхронізація даних на диску і перезавантаження системи
             echo "sync disk" && sleep "$delay_command" && echo s >/proc/sysrq-trigger && sleep "$delay_command" && echo b >/proc/sysrq-trigger
@@ -217,10 +217,10 @@ EOF
     case $operating_system in
     debian | ubuntu)
         if dpkg -l | grep -q '^ii.*apt-transport-https'; then
-            echo "${GREEN}apt-transport-https встановлено.${RESET}"
+            echo -e "${GREEN}apt-transport-https встановлено.${RESET}"
         else
             apt-get install apt-transport-https
-            echo "${RED}apt-transport-https не встановлено.${RESET}"
+            echo -e "${RED}apt-transport-https не встановлено.${RESET}"
         fi
 
         echo -e "${GREEN}Завантаження ключа GPG Elasticsearch...${RESET}"
@@ -231,7 +231,7 @@ EOF
         echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-7.x.list
 
         echo -e "${GREEN}Оновлення списку пакунків APT...${RESET}"
-        if apt-get update &>/dev/null; then
+        if apt-get update; then
             echo -e "${GREEN}Список пакунків APT оновлено.${RESET}"
         else
             echo -e "${RED}Помилка під час оновлення списку пакунків APT. Можна спробувати продовжити не вибираючи репозиторій з помилкою оновлення.${RESET}"
@@ -259,7 +259,7 @@ EOF
                 echo "Ви обрали версію $sub_version для встановлення."
                 apt install elasticsearch=$sub_version
                 if [ $? -eq 0 ]; then
-                    echo "Elasticsearch версії $sub_version успішно встановлено."
+                    echo -e "${GREEN}Elasticsearch версії ${YELLOW}$sub_version${GREEN} успішно встановлено.${RESET}"
                 else
                     echo -e "${RED}Помилка при встановленні Elasticsearch версії $sub_version.${RESET}"
                 fi
@@ -294,4 +294,6 @@ EOF
         ;;
     esac
 
+    echo "Включення служби Elasticsearch: systemctl enable elasticsearch && systemctl start elasticsearch"
+    echo "Перевірка доступності: curl -X GET \"localhost:9200\""
 }

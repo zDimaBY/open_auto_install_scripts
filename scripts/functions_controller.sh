@@ -147,55 +147,47 @@ generate_random_password() {
 }
 
 check_docker() {
-    docker_status=$(systemctl status docker)
-
+    # Перевіряємо, чи встановлений Docker
     if ! command -v docker &>/dev/null; then
-        echo -e "\n${RED}Докер не встановлено на цій системі.${RESET}"
-        read -p "Бажаєте встановити докер? (y/n): " install_docker
-        if [[ "$install_docker" =~ ^(y|Y|yes)$ ]]; then
-            echo -e "${YELLOW}Встановлення докера...${RESET}"
-            curl -sSL https://get.docker.com | sh
-            usermod -aG docker $(whoami)
-            echo -e "\n${GREEN}Докер успішно встановлено.${RESET}"
+        echo -e "\n${RED}Docker не встановлено на цій системі.${RESET}"
+        read -p "Бажаєте встановити Docker? (y/n): " install_docker
+        if [[ "$install_docker" =~ ^(yes|Yes|y|Y)$ ]]; then
+            echo -e "${YELLOW}Встановлення Docker...${RESET}"
+            curl -fsSL https://get.docker.com | sh
+            sudo usermod -aG docker "$(whoami)"
+            echo -e "\n${GREEN}Docker успішно встановлено.${RESET}"
         else
-            echo -e "\n${RED}Встановлення докера скасовано. Скрипт завершується.${RESET}"
+            echo -e "\n${RED}Встановлення Docker скасовано. Скрипт завершується.${RESET}"
             exit 1
         fi
     fi
 
-    # Перевірка, чи Docker запущений
-    if ! systemctl status docker | grep -q "running"; then
+    local docker_status=$(systemctl is-active docker)
+    local active_status=""
+    # Перевіряємо, чи Docker запущений
+    if [ "$docker_status" != "active" ]; then
         echo -e "\n${RED}Docker не запущений.${RESET}"
-        read -p "Бажаєте запустити Docker? (y/n): " start_docker
-        if [[ "$start_docker" =~ ^(y|Y|yes)$ ]]; then
-            echo -e "${YELLOW}Запуск демона Docker...${RESET}"
-            systemctl start docker
-            if [[ $? -eq 0 ]]; then
-                echo -e "\n${GREEN}Docker успішно запущений.${RESET}"
-
-                active_status=$(echo "$docker_status" | grep "Active:")
-                if echo "$docker_status" | grep -q "running"; then
-                    echo -e "\n${YELLOW}Статус демона Docker:${RESET}\n${GREEN}$active_status${RESET}"
-                else
-                    echo -e "\n${YELLOW}Статус демона Docker:${RESET}\n${RED}$active_status${RESET}"
-                fi
-            else
-                echo -e "\n${RED}Не вдалося запустити демона Docker.${RESET}"
-                exit 1
-            fi
-        else
-            echo -e "\n${RED}Запуск демона Docker скасовано. Скрипт завершується.${RESET}"
-            exit 1
-        fi
+        echo -e "${YELLOW}Запуск Docker...${RESET}"
+        sudo systemctl start docker
+        echo -e "\n${GREEN}Docker успішно запущений.${RESET}"
+        active_status=$(systemctl status docker | grep "Active:")
     else
-        active_status=$(echo "$docker_status" | grep "Active:")
-
-        if echo "$docker_status" | grep -q "running"; then
-            echo -e "\n${YELLOW}Статус демона Docker:${RESET}\n${GREEN}$active_status${RESET}"
+        active_status=$(systemctl status docker | grep "Active:")
+    fi
+    
+    # Перевіряємо, чи Docker доданий до автозапуску
+    if systemctl is-enabled docker &>/dev/null; then
+        echo -e "\n${YELLOW}Docker доданий до автозапуску.${RESET}"
+    else
+        systemctl enable docker
+        if systemctl is-enabled docker &>/dev/null; then
+            echo -e "\n${GREEN}Docker успішно доданий до автозапуску.${RESET}"
         else
-            echo -e "\n${YELLOW}Статус демона Docker:${RESET}\n${RED}$active_status${RESET}"
+            echo -e "\n${RED}Помилка: Docker не був доданий до автозапуску.${RESET}"
         fi
     fi
+
+    echo -e "\n${YELLOW}Статус Docker:${RESET}\n${GREEN}$active_status${RESET}"
 }
 
 create_folder() {

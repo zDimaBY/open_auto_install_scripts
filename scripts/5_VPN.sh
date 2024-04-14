@@ -165,8 +165,16 @@ install_3x_ui() {
         --name 3x-ui \
         ghcr.io/mhsanaei/3x-ui:$version
 
-    if ! iptables -C INPUT -p tcp --dport 2053 -j ACCEPT &>/dev/null; then
-        iptables -A INPUT -p tcp --dport 2053 -j ACCEPT
+    if command -v firewall-cmd &>/dev/null; then
+        if ! firewall-cmd --zone=public --query-port=2053/tcp; then
+            firewall-cmd --zone=public --add-port=2053/tcp --permanent
+        fi
+        firewall-cmd --reload
+    else
+        if ! iptables -C INPUT -p tcp --dport 2053 -j ACCEPT &>/dev/null; then
+            iptables -A INPUT -p tcp --dport 2053 -j ACCEPT
+        fi
+        service iptables save
     fi
     docker ps -a
 }
@@ -260,7 +268,11 @@ install_wg_easy() {
     debian | ubuntu) ;;
     fedora) ;;
     centos | oracle)
-        yum install epel-release elrepo-release yum-plugin-elrepo kmod-wireguard wireguard-tools
+        if [[ "$VERSION" == "7" ]]; then
+            yum install epel-release elrepo-release yum-plugin-elrepo kmod-wireguard wireguard-tools
+        elif (( "$VERSION" > 8 )); then
+            dnf install epel-release kernel-modules-extra qrencode
+        fi
         ;;
     arch) ;;
     *)
