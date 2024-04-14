@@ -119,8 +119,8 @@ function 1_installRouterOSMikrotik() {
 
     if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
         echo -e "${GREEN}Встановлення системи RouterOS... https://mikrotik.com/download${RESET}"
-        read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.14): " version_routeros
-        version_routeros=${version_routeros:-7.14}
+        read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.5): " version_routeros
+        version_routeros=${version_routeros:-7.5}
 
         if [[ ! $version_routeros =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
             echo "Помилка: Введено неправильне значення версії. Будь ласка, введіть числове значення (наприклад 7.12, 7.14)."
@@ -216,40 +216,44 @@ EOF
 1_installElasticsearch() {
     case $operating_system in
     debian | ubuntu)
-        if dpkg -l | grep -q '^ii.*apt-transport-https' &>/dev/null; then
-            echo -e "${RED}apt-transport-https не знайдено. Встановлюємо...${RESET}"
+        if dpkg -l | grep -q '^ii.*apt-transport-https'; then
+            echo "${GREEN}apt-transport-https встановлено.${RESET}"
+        else
             apt-get install apt-transport-https
+            echo "${RED}apt-transport-https не встановлено.${RESET}"
         fi
-        echo "Ви обрали головну версію $main_version."
 
         echo -e "${GREEN}Завантаження ключа GPG Elasticsearch...${RESET}"
-        wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
+        wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
 
         echo -e "${GREEN}Додавання репозиторію Elasticsearch до списку джерел APT...${RESET}"
-        echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | tee /etc/apt/sources.list.d/elastic-8.x.list
-        echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/7.x/apt stable main" | tee /etc/apt/sources.list.d/elastic-7.x.list
+        echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+        echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-7.x.list
 
         echo -e "${GREEN}Оновлення списку пакунків APT...${RESET}"
-        apt update
-        echo -e "${GREEN}Список пакунків APT оновлено.${RESET}"
+        if apt-get update &>/dev/null; then
+            echo -e "${GREEN}Список пакунків APT оновлено.${RESET}"
+        else
+            echo -e "${RED}Помилка під час оновлення списку пакунків APT. Можна спробувати продовжити не вибираючи репозиторій з помилкою оновлення.${RESET}"
+        fi
 
         # Отримати доступні головні версії Elasticsearch
         main_versions=$(apt policy elasticsearch | grep -E "^[[:space:]]+[0-9]+\..*\." | awk '{print $1}' | cut -d'.' -f1 | sort -ru)
 
-        PS3="Оберіть головну версію Elasticsearch: "
+        PS3="Оберіть версію Elasticsearch: " # змінна оболонки (shell), яка використовується в разі використання команди select в bash для введення меню.
         select main_version in $main_versions; do
             if [ -n "$main_version" ]; then
-                echo "Ви обрали головну версію $main_version."
+                echo -e "${GREEN}Ви обрали версію $main_version.${RESET}"
                 break
             else
-                echo "Невірний вибір. Будь ласка, спробуйте ще раз."
+                echo -e "${RED}Невірний вибір. Будь ласка, спробуйте ще раз.${RESET}"
             fi
         done
 
         # Отримати версії, що відповідають обраній головній версії
         sub_versions=$(apt policy elasticsearch | grep -E "^[[:space:]]+[0-9]+\..*\." | grep "^ *$main_version\." | awk '{print $1}')
 
-        PS3="Оберіть підверсію Elasticsearch для встановлення: "
+        PS3="Оберіть підверсію Elasticsearch для встановлення: " # змінна оболонки (shell), яка використовується в разі використання команди select в bash для введення меню.
         select sub_version in $sub_versions; do
             if [ -n "$sub_version" ]; then
                 echo "Ви обрали версію $sub_version для встановлення."
@@ -268,19 +272,19 @@ EOF
         ;;
     fedora)
         if rpm -q apt-transport-https &>/dev/null; then
-            echo -e "${RED}apt-transport-https не знайдено. Функція не реалізована...${RESET}"
+            echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
             #dnf install -y apt-transport-https
         fi
         ;;
     centos | oracle)
         if rpm -q apt-transport-https &>/dev/null; then
-            echo -e "${RED}apt-transport-https не знайдено. Функція не реалізована...${RESET}"
+            echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
             #yum install -y apt-transport-https
         fi
         ;;
     arch)
         if ! pacman -Qq apt-transport-https &>/dev/null; then
-            echo -e "${RED}apt-transport-https не знайдено. Функція не реалізована...${RESET}"
+            echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
             #pacman -Sy --noconfirm apt-transport-https
         fi
         ;;
