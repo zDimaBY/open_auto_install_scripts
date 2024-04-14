@@ -19,9 +19,8 @@ mkdir -p "$folder_script_path"
 
 urls=(
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/0_exit.sh"
-    "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/1_user_domains.sh"
-    "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/2_update_ioncube.sh"
-    "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/3_install_composer.sh"
+    "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/1_list_install_programs.sh"
+    "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/2_site_control_panel.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/4_DDos.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/5_VPN.sh"
     "https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/6_FTP.sh"
@@ -72,23 +71,23 @@ function selectionFunctions() {
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
-        #echo "1. Домени користувача панелі керування(test)"
         echo -e "1. Встановлення ПЗ (${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET}, ${BLUE}RouterOS 7.5${RESET})"
-        echo -e "2. DDos"
-        echo -e "3. Організування ${MAGENTA}VPN${RESET} серверів"
-        echo -e "4. Організування ${BLUE}FTP${RESET} доступу(test)"
-        echo -e "5. Організування ${MAGENTA}баз данних${RESET}(test)"
+        echo -e "2. Функції для панелей керування сайтами ${RED}(test)${RESET}"
+        echo -e "3. DDos"
+        echo -e "4. Організування ${MAGENTA}VPN${RESET} серверів"
+        echo -e "5. Організування ${BLUE}FTP${RESET} доступу ${RED}(test)${RESET}"
+        echo -e "6. Організування ${MAGENTA}баз данних ${RED}(test)${RESET}"
         echo -e "0. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
         case $choice in
-        #1) 1_outputOfAllDomains ;;
         1) 1_list_install_programs ;;
-        2) 2_DDos ;;
-        3) 3_VPN ;;
-        4) 4_FTP ;;
-        5) 5_DB ;;
+        2) 2_site_control_panel ;;
+        3) 2_DDos ;;
+        4) 3_VPN ;;
+        5) 4_FTP ;;
+        6) 5_DB ;;
         0) 0_funExit ;;
         *) 0_invalid ;;
         esac

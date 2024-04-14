@@ -7,7 +7,6 @@ function 1_list_install_programs() {
         echo -e "1. Встановлення ${BROWN}Composer${RESET}"
         echo -e "2. Встановлення ${BROWN}Docker${RESET}"
         echo -e "3. Встановлення ${BLUE}RouterOS від Mikrotik${RESET}"
-        echo -e "4. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + php-fpm) ${RED}(test)${RESET}"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -17,7 +16,6 @@ function 1_list_install_programs() {
         1) 3_installComposer ;;
         2) check_docker ;;
         3) 3_installRouterOSMikrotik ;;
-        4) 3_updateIoncube ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
