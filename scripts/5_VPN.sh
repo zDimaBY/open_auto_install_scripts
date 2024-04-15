@@ -4,8 +4,8 @@ function 3_VPN() {
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
-        echo -e "1. X-UI (WEB, on docker install) https://github.com/alireza0/x-ui/pkgs/container/x-ui"
-        echo -e "2. 3X-UI (WEB, on docker install) https://github.com/MHSanaei/3x-ui"
+        echo -e "1. 3X-UI (WEB, on docker install) https://github.com/MHSanaei/3x-ui (OS - Windows 64)"
+        echo -e "2. X-UI (WEB, on docker install) https://github.com/alireza0/x-ui/pkgs/container/x-ui"
         echo -e "3. WireGuard Easy (WEB, on docker install) https://github.com/wg-easy/wg-easy"
         echo -e "4. IPsec/L2TP, Cisco IPsec and IKEv2 (on docker install) https://github.com/hwdsl2/docker-ipsec-vpn-server"
         echo -e "5. WireGuard (locall install) https://github.com/angristan/wireguard-install"
@@ -16,8 +16,8 @@ function 3_VPN() {
         read -p "Виберіть варіант:" choice
 
         case $choice in
-        1) menu_x_ui ;;
-        2) menu_3x_ui ;;
+        1) menu_3x_ui ;;
+        2) menu_x_ui ;;
         3) menu_wireguard_easy ;;
         4) menu_IPsec_L2TP_IKEv2 ;;
         5) menu_wireguard_scriptLocal ;;
@@ -27,6 +27,38 @@ function 3_VPN() {
         *) 0_invalid ;;
         esac
     done
+}
+
+info_for_client_programs() {
+    echo -e "${YELLOW}Також, налаштував vmess підключення:${RESET}"
+    echo -e "- QR-код (знімок екрану додаю)"
+    echo -e "- посилання: "
+    echo -e "vmess://XXXXXXXXXX\n"
+
+    echo -e "${YELLOW}Для підключення, можете використати ці додатки:${RESET}"
+    echo -e "${GREEN}Android - v2rayNG: ${RESET}https://github.com/2dust/v2rayNG/releases/download/1.8.6/v2rayNG_1.8.6.apk"
+    echo -e "${GREEN}Windows - nekoray, v2rayNG: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip , https://github.com/2dust/v2rayN/releases/download/6.42/v2rayN.zip"
+    echo -e "${GREEN}Linux: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-debian-x64.deb , https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-linux64.zip"
+    echo -e "${GREEN}MacOS (Intel + Apple): ${RESET}https://github.com/abbasnaqdi/nekoray-macos/releases/download/3.18/nekoray_amd64.zip"
+    echo -e "${GREEN}iOS: ${RESET}https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
+
+    echo -e "Інструкції для підключення:"
+    echo -e "Android - v2rayNG:"
+    echo -e "-"
+    echo -e "${GREEN}Підключення до VPN сервера за допомогою Nekoray (Windows):${RESET}"
+    echo -e "${YELLOW}Щоб підключитись, виконайте наступні кроки:${RESET}"
+    echo -e "${YELLOW}1. Завантажте та розпакуйте програму Nekoray за посиланням:${RESET} ${GREEN}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip${RESET}"
+    echo -e "${YELLOW}2. Додайте профіль для підключення до VPN:${RESET}"
+    echo -e "${YELLOW}   - Скопіюйте посилання 'vmess://XXXXXXXXXX' і вставте його в програму Nekoray, перейдіть у меню 'Program' -> 'Add profile from clipboard'.${RESET}"
+    echo -e "${YELLOW}   - Або скористайтесь QR-кодом. Скопіюйте QR-код і вставте його в програму Nekoray, перейдіть у меню 'Program' -> 'Scan QR code'.${RESET}"
+    echo -e "${YELLOW}3. Увімкніть налаштування 'Tune Mode' і 'System Proxy' в головному меню програми.${RESET}"
+    echo -e "${YELLOW}4. Запустіть підключення: перейдіть у меню 'Program' -> 'Active server' і виберіть ваше підключення. VPN має стати активним.${RESET}"
+    echo -e "Linux - nekoray:"
+    echo -e "-"
+    echo -e "MacOS (Intel + Apple) - nekoray:"
+    echo -e "-"
+    echo -e "iOS - napsternetv, v2box-v2ray-client:"
+    echo -e "-"
 }
 
 #_______________________________________________________________________________________________________________________________________
@@ -57,21 +89,20 @@ menu_x_ui() {
 }
 install_x_ui() {
     local version="$1"
+    name_docker_container="x-ui"
     create_folder "/root/VPN/x_ui/db/" && create_folder "/root/VPN/x_ui/cert/"
     docker run -itd \
         -p 54321:54321 -p 443:443 -p 80:80 \
         -e XRAY_VMESS_AEAD_FORCED=false \
         -v /root/VPN/x_ui/db/:/etc/x-ui/ \
         -v /root/VPN/x_ui/cert/:/root/cert/ \
-        --name x-ui --restart=unless-stopped \
+        --name ${name_docker_container} --restart=unless-stopped \
         alireza7/x-ui:$version
 
-    ports=(54321 443 80)
-    for port in "${ports[@]}"; do
-        if ! iptables -C INPUT -p tcp --dport "$port" -j ACCEPT &>/dev/null; then
-            iptables -A INPUT -p tcp --dport "$port" -j ACCEPT
-        fi
-    done
+    # Функція для додавання правил файерволу з скриптів functions_controller.sh
+    add_firewall_rule 80
+    add_firewall_rule 443
+    add_firewall_rule 54321
     docker ps -a
 }
 
@@ -101,27 +132,22 @@ list_x_ui_versions_install() {
     echo -e "- посилання: "
     echo -e "vmess://XXXXXXXXXX\n"
 
-    echo -e "${YELLOW}Для підключення, можете використати ці додатки:${RESET}"
-    echo -e "${GREEN}Android: ${RESET}https://github.com/2dust/v2rayNG/releases/download/1.8.6/v2rayNG_1.8.6.apk"
-    echo -e "${GREEN}Windows: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip"
-    echo -e "${GREEN}Linux: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-debian-x64.deb ; https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-linux64.zip"
-    echo -e "${GREEN}MacOS (Intel + Apple): ${RESET}https://github.com/abbasnaqdi/nekoray-macos/releases/download/3.18/nekoray_amd64.zip"
-    echo -e "${GREEN}iOS: ${RESET}https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690 \n"
-
-    echo -e "${YELLOW}Для підключення через програму nekoray (для Windows, посилання: https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip), натисніть на Program -> Scan QR code. Перед цим, скопіюйте посилання для підключення.${RESET}"
-    echo -e "${YELLOW}Після цього, увімкніть Tune Mode і System Proxy, натисніть ПКМ на нове підключення, і виберіть Start. Після цього, VPN повинен стати активним.${RESET}"
-
+    info_for_client_programs
 }
 stop_x_ui() {
-    docker stop 'x-ui'
-    echo "x-ui зупинено."
+    docker stop ${name_docker_container}
+    echo "${name_docker_container} зупинено."
 }
 
 remove_x_ui() {
-    docker stop 'x-ui'
-    docker rm 'x-ui'
-    echo "x-ui Easy видалено."
+    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker stop
+    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker rm
+    docker rmi ${name_docker_container}
+    echo "${name_docker_container} видалено."
     docker ps -a
+    remove_firewall_rule 80
+    remove_firewall_rule 443
+    remove_firewall_rule 54321
 }
 
 update_x_ui() {
@@ -154,6 +180,7 @@ menu_3x_ui() {
     done
 }
 install_3x_ui() {
+    name_docker_container="3x-ui"
     local version="$1"
     create_folder "/root/VPN/3x_ui/db/" && create_folder "/root/VPN/3x_ui/cert/"
     docker run -itd \
@@ -162,26 +189,26 @@ install_3x_ui() {
         -v /root/VPN/3x_ui/cert/:/root/cert/ \
         --network=host \
         --restart=unless-stopped \
-        --name 3x-ui \
+        --name ${name_docker_container} \
         ghcr.io/mhsanaei/3x-ui:$version
 
-    if command -v firewall-cmd &>/dev/null; then
-        if ! firewall-cmd --zone=public --query-port=2053/tcp; then
-            firewall-cmd --zone=public --add-port=2053/tcp --permanent
-        fi
-        firewall-cmd --reload
-    else
-        if ! iptables -C INPUT -p tcp --dport 2053 -j ACCEPT &>/dev/null; then
-            iptables -A INPUT -p tcp --dport 2053 -j ACCEPT
-        fi
-        service iptables save
-    fi
+    # Функція для додавання правил файерволу з скриптів functions_controller.sh
+    add_firewall_rule 2053
     docker ps -a
 }
 
 list_3x_ui_versions_install() {
+    echo -e "\nТакож 3x-ui стала доступна у Windows. Для запуска 3x-ui виконайте наступні кроки:"
+    echo "1: Перейдіть за посиланням: https://github.com/MHSanaei/3x-ui/releases"
+    echo "2: Виберіть необхідну версію і завантажте її з підменю 'Assets' -> x-ui-windows-amd64.zip"
+    echo "3: Розпакуйте архів, завантажте та встановіть мову 'go' за посиланням: https://go.dev/dl/go1.22.1.windows-amd64.msi" як вказано у файлі readme.txt.
+    echo "4: Виконайте нвступну команду у powershell: New-NetFirewallRule -DisplayName "Allow_TCP_2053" -Direction Inbound -LocalPort 2053 -Protocol TCP -Action Allow"
+    echo "5: Запустіть 3x-ui.exe з папки 3x-ui та перейдіть за посиланням: http://localhost:2053"
+    echo "6: Для видачі SSL сертифіката встановіть Win64OpenSSL_Light-3_2_1.exe з папки 'SSL'"
+    echo "Примітка: Для в такому випадку потрібно відкривати порти для кожного нового клієнта, або відключати фаєрвол"
+
     local versions=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9)
-    echo "Список доступних версій образу ghcr.io/mhsanaei/3x-ui:"
+    echo -e "\n${GREEN}Список доступних версій образу ${YELLOW}ghcr.io/mhsanaei/3x-ui:${RESET}"
     local i=1
     for ver in $versions; do
         echo "$i. $ver"
@@ -201,32 +228,22 @@ list_3x_ui_versions_install() {
     echo -e "Користувач: admin"
     echo -e "Пароль: admin\n"
 
-    echo -e "${YELLOW}Також, налаштував vmess підключення:${RESET}"
-    echo -e "- QR-код (знімок екрану додаю)"
-    echo -e "- посилання: "
-    echo -e "vmess://XXXXXXXXXX\n"
-
-    echo -e "${YELLOW}Для підключення, можете використати ці додатки:${RESET}"
-    echo -e "${GREEN}Android: ${RESET}https://github.com/2dust/v2rayNG/releases/download/1.8.6/v2rayNG_1.8.6.apk"
-    echo -e "${GREEN}Windows: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip"
-    echo -e "${GREEN}Linux: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-debian-x64.deb ; https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-linux64.zip"
-    echo -e "${GREEN}MacOS (Intel + Apple): ${RESET}https://github.com/abbasnaqdi/nekoray-macos/releases/download/3.18/nekoray_amd64.zip"
-    echo -e "${GREEN}iOS: ${RESET}https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690 \n"
-
-    echo -e "${YELLOW}Для підключення через програму nekoray (для Windows, посилання: https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip), натисніть на Program -> Scan QR code. Перед цим, скопіюйте посилання для підключення.${RESET}"
-    echo -e "${YELLOW}Після цього, увімкніть Tune Mode і System Proxy, натисніть ПКМ на нове підключення, і виберіть Start. Після цього, VPN повинен стати активним.${RESET}"
-
+    info_for_client_programs
 }
 stop_3x_ui() {
-    docker stop '3x-ui'
-    echo "3x-ui зупинено."
+    docker stop ${name_docker_container}
+    echo "${name_docker_container} зупинено."
 }
 
 remove_3x_ui() {
-    docker stop '3x-ui'
-    docker rm '3x-ui'
-    echo "3x-ui Easy видалено."
+    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker stop
+    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker rm
+    docker rmi ${name_docker_container}
+    echo "${name_docker_container} видалено."
     docker ps -a
+    
+    # Функція для видалення правил з файервола з скриптів functions_controller.sh
+    remove_firewall_rule 2053
 }
 
 update_3x_ui() {
@@ -270,7 +287,7 @@ install_wg_easy() {
     centos | oracle)
         if [[ "$VERSION" == "7" ]]; then
             yum install epel-release elrepo-release yum-plugin-elrepo kmod-wireguard wireguard-tools
-        elif (( "$VERSION" > 8 )); then
+        elif (("$VERSION" > 8)); then
             dnf install epel-release kernel-modules-extra qrencode
         fi
         ;;
@@ -280,9 +297,11 @@ install_wg_easy() {
         return 1
         ;;
     esac
+    
+    name_docker_container="wg-easy"
 
     docker run -d \
-        --name=wg-easy \
+        --name ${name_docker_container} \
         -e WG_HOST="$ip" \
         -e PASSWORD="$admin_password" \
         -v ~/.wg-easy:/etc/wireguard \
@@ -313,8 +332,9 @@ stop_wg_easy() {
 }
 
 remove_wg_easy() {
-    docker stop wg-easy
-    docker rm wg-easy
+    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker stop
+    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker rm
+    docker rmi ${name_docker_container}
     echo "WireGuard Easy видалено."
 }
 

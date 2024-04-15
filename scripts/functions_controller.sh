@@ -174,7 +174,7 @@ check_docker() {
     else
         active_status=$(systemctl status docker | grep "Active:")
     fi
-    
+
     # Перевіряємо, чи Docker доданий до автозапуску
     if systemctl is-enabled docker &>/dev/null; then
         echo -e "\n${YELLOW}Docker доданий до автозапуску.${RESET}"
@@ -281,4 +281,46 @@ get_selected_interface() { #hostname_ip selected_adapter mask gateway
     echo "IP адреса: $ip"
     echo "Маска: $mask"
     echo "Шлюз: $gateway"
+}
+
+total_free_swap_end_ram() {
+    free_output=$(free)
+    free_ram=$(echo "$free_output" | awk '/^Mem:/ {print $4}')
+    free_swap=$(echo "$free_output" | awk '/^Swap:/ {print $4}')
+    free_swap_end_ram=$((free_ram / 1024 + free_swap / 1024))
+    free_swap_end_ram_gb=$((free_swap_end_ram / 1024))
+}
+
+# Функція для додавання правил файерволу або iptables, add_firewall_rule 80
+add_firewall_rule() {
+    local port="$1"
+    if command -v firewall-cmd &>/dev/null; then
+        if ! firewall-cmd --zone=public --query-port="$port/tcp"; then
+            firewall-cmd --zone=public --add-port="$port/tcp" --permanent
+        fi
+        firewall-cmd --reload
+    else
+        if ! iptables -C INPUT -p tcp --dport "$port" -j ACCEPT &>/dev/null; then
+            iptables -A INPUT -p tcp --dport "$port" -j ACCEPT
+        fi
+        service iptables save
+    fi
+}
+
+# Функція для видалення правил з файервола та таблиці iptables, remove_firewall_rule 80
+remove_firewall_rule() {
+    local port="$1"
+    if firewall-cmd --zone=public --query-port="$port/tcp"; then
+        firewall-cmd --zone=public --remove-port="$port/tcp" --permanent
+        echo "Правило видалено з файервола."
+    else
+        echo "Правила відсутні у файерволі."
+    fi
+
+    if iptables -C INPUT -p tcp --dport "$port" -j ACCEPT &> /dev/null; then
+        iptables -D INPUT -p tcp --dport "$port" -j ACCEPT
+        echo "Правило видалено з таблиці iptables."
+    else
+        echo "Правила відсутні у таблиці iptables."
+    fi
 }

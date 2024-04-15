@@ -259,9 +259,10 @@ EOF
                 echo "Ви обрали версію $sub_version для встановлення."
                 apt install elasticsearch=$sub_version
                 if [ $? -eq 0 ]; then
-                    echo -e "${GREEN}Elasticsearch версії ${YELLOW}$sub_version${GREEN} успішно встановлено.${RESET}"
+                    echo -e "${GREEN}\nElasticsearch версії ${YELLOW}$sub_version${GREEN} успішно встановлено.${RESET}"
                 else
                     echo -e "${RED}Помилка при встановленні Elasticsearch версії $sub_version.${RESET}"
+                    return 1
                 fi
                 break
             else
@@ -293,7 +294,17 @@ EOF
         return 1
         ;;
     esac
+    # Перевіряємо вільну память swap та ram
+    total_free_swap_end_ram
+    if ((free_swap_end_ram_gb < 2)); then
+        echo -e "${RED}Недостатньо вільної пам'яті. Поточно доступно більше: ${YELLOW}${total_free} ГБ (${free_swap_end_ram} МБ)${RESET}"
+        echo -e "Можна підключити SWAP файл, але швидкість вузла може зменшиться, з документації рекомандуть не використовувати SWAP."
+        echo -e "Детальніше за посиланням: https://www.elastic.co/guide/en/elasticsearch/reference/8.13/setup-configuration-memory.html"
+        echo -e "\nЩоб запустити службу Elasticsearch виконайте наступні команди: systemctl enable elasticsearch && systemctl start elasticsearch"
+        echo -e "Перевірка доступності: curl -X GET \"localhost:9200\""
+    else
+        echo -e "${GREEN}Доступно достатньо вільної пам'яті, більше: ${YELLOW}${total_free} ГБ (${free_swap_end_ram} МБ)${RESET}"
+        systemctl enable elasticsearch && systemctl start elasticsearch
+    fi
 
-    echo "Включення служби Elasticsearch: systemctl enable elasticsearch && systemctl start elasticsearch"
-    echo "Перевірка доступності: curl -X GET \"localhost:9200\""
 }
