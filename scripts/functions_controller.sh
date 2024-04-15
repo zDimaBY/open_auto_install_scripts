@@ -294,33 +294,65 @@ total_free_swap_end_ram() {
 # Функція для додавання правил файерволу або iptables, add_firewall_rule 80
 add_firewall_rule() {
     local port="$1"
+
     if command -v firewall-cmd &>/dev/null; then
         if ! firewall-cmd --zone=public --query-port="$port/tcp"; then
             firewall-cmd --zone=public --add-port="$port/tcp" --permanent
+            firewall-cmd --reload
+            echo "Порт $port відкрито у firewalld."
+        else
+            echo "Порт $port вже відкрито у firewalld."
         fi
-        firewall-cmd --reload
-    else
+    elif command -v iptables &>/dev/null; then
         if ! iptables -C INPUT -p tcp --dport "$port" -j ACCEPT &>/dev/null; then
             iptables -A INPUT -p tcp --dport "$port" -j ACCEPT
+            service iptables save
+            echo "Порт $port відкрито у iptables."
+        else
+            echo "Порт $port вже відкрито у iptables."
         fi
-        service iptables save
+    elif command -v ufw &>/dev/null; then
+        if ! ufw status | grep -q "$port/tcp"; then
+            ufw allow "$port/tcp"
+            echo "Порт $port відкрито у ufw."
+        else
+            echo "Порт $port вже відкрито у ufw."
+        fi
+    else
+        echo "Помилка: файервол не встановлено або невідомий. Перевірте порт '$port' перед використанням"
+        exit 1
     fi
 }
 
 # Функція для видалення правил з файервола та таблиці iptables, remove_firewall_rule 80
 remove_firewall_rule() {
     local port="$1"
-    if firewall-cmd --zone=public --query-port="$port/tcp"; then
-        firewall-cmd --zone=public --remove-port="$port/tcp" --permanent
-        echo "Правило видалено з файервола."
-    else
-        echo "Правила відсутні у файерволі."
-    fi
 
-    if iptables -C INPUT -p tcp --dport "$port" -j ACCEPT &> /dev/null; then
-        iptables -D INPUT -p tcp --dport "$port" -j ACCEPT
-        echo "Правило видалено з таблиці iptables."
+    if command -v firewall-cmd &>/dev/null; then
+        if firewall-cmd --zone=public --query-port="$port/tcp"; then
+            firewall-cmd --zone=public --remove-port="$port/tcp" --permanent
+            firewall-cmd --reload
+            echo "Правило для порту $port видалено з firewalld."
+        else
+            echo "Правило для порту $port відсутнє у firewalld."
+        fi
+    elif command -v iptables &>/dev/null; then
+        if iptables -C INPUT -p tcp --dport "$port" -j ACCEPT &>/dev/null; then
+            iptables -D INPUT -p tcp --dport "$port" -j ACCEPT
+            service iptables save
+            echo "Правило для порту $port видалено з iptables."
+        else
+            echo "Правило для порту $port відсутнє у iptables."
+        fi
+    elif command -v ufw &>/dev/null; then
+        if ufw status | grep -q "$port/tcp"; then
+            ufw delete allow "$port/tcp"
+            echo "Правило для порту $port видалено з ufw."
+        else
+            echo "Правило для порту $port відсутнє у ufw."
+        fi
     else
-        echo "Правила відсутні у таблиці iptables."
+        echo "Помилка: файервол не встановлено або невідомий."
+        exit 1
     fi
 }

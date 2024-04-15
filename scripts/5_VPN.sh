@@ -156,6 +156,14 @@ update_x_ui() {
 #_______________________________________________________________________________________________________________________________________
 menu_3x_ui() {
     check_docker
+    echo -e "\nТакож 3x-ui стала доступна у Windows. Для запуска 3x-ui виконайте наступні кроки:"
+    echo "1: Перейдіть за посиланням: https://github.com/MHSanaei/3x-ui/releases"
+    echo "2: Виберіть необхідну версію і завантажте її з підменю 'Assets' -> x-ui-windows-amd64.zip"
+    echo "3: Розпакуйте архів, завантажте та встановіть мову 'go' за посиланням: https://go.dev/dl/go1.22.1.windows-amd64.msi" як вказано у файлі readme.txt.
+    echo "4: Виконайте нвступну команду у powershell: New-NetFirewallRule -DisplayName "Allow_TCP_2053" -Direction Inbound -LocalPort 2053 -Protocol TCP -Action Allow"
+    echo "5: Запустіть 3x-ui.exe з папки 3x-ui та перейдіть за посиланням: http://localhost:2053"
+    echo "6: Для видачі SSL сертифіката встановіть Win64OpenSSL_Light-3_2_1.exe з папки 'SSL'"
+    echo "Примітка: Для в такому випадку потрібно відкривати порти для кожного нового клієнта, або відключати фаєрвол"
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
@@ -198,15 +206,6 @@ install_3x_ui() {
 }
 
 list_3x_ui_versions_install() {
-    echo -e "\nТакож 3x-ui стала доступна у Windows. Для запуска 3x-ui виконайте наступні кроки:"
-    echo "1: Перейдіть за посиланням: https://github.com/MHSanaei/3x-ui/releases"
-    echo "2: Виберіть необхідну версію і завантажте її з підменю 'Assets' -> x-ui-windows-amd64.zip"
-    echo "3: Розпакуйте архів, завантажте та встановіть мову 'go' за посиланням: https://go.dev/dl/go1.22.1.windows-amd64.msi" як вказано у файлі readme.txt.
-    echo "4: Виконайте нвступну команду у powershell: New-NetFirewallRule -DisplayName "Allow_TCP_2053" -Direction Inbound -LocalPort 2053 -Protocol TCP -Action Allow"
-    echo "5: Запустіть 3x-ui.exe з папки 3x-ui та перейдіть за посиланням: http://localhost:2053"
-    echo "6: Для видачі SSL сертифіката встановіть Win64OpenSSL_Light-3_2_1.exe з папки 'SSL'"
-    echo "Примітка: Для в такому випадку потрібно відкривати порти для кожного нового клієнта, або відключати фаєрвол"
-
     local versions=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9)
     echo -e "\n${GREEN}Список доступних версій образу ${YELLOW}ghcr.io/mhsanaei/3x-ui:${RESET}"
     local i=1
