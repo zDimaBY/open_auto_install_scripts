@@ -42,7 +42,7 @@ info_for_client_programs() {
     echo -e "${GREEN}MacOS (Intel + Apple): ${RESET}https://github.com/abbasnaqdi/nekoray-macos/releases/download/3.18/nekoray_amd64.zip"
     echo -e "${GREEN}iOS: ${RESET}https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
 
-    echo -e "Інструкції для підключення:"
+    echo -e "\n\nІнструкції для підключення:"
     echo -e "Android - v2rayNG:"
     echo -e "-"
     echo -e "${GREEN}Підключення до VPN сервера за допомогою Nekoray (Windows):${RESET}"
@@ -127,22 +127,17 @@ list_x_ui_versions_install() {
     echo -e "Користувач: admin"
     echo -e "Пароль: admin\n"
 
-    echo -e "${YELLOW}Також, налаштував vmess підключення:${RESET}"
-    echo -e "- QR-код (знімок екрану додаю)"
-    echo -e "- посилання: "
-    echo -e "vmess://XXXXXXXXXX\n"
-
     info_for_client_programs
 }
 stop_x_ui() {
-    docker stop ${name_docker_container}
+    docker stop "$name_docker_container"
     echo "${name_docker_container} зупинено."
 }
 
 remove_x_ui() {
-    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker stop
-    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker rm
-    docker rmi ${name_docker_container}
+    docker stop "$name_docker_container"
+    docker rm "$name_docker_container"
+    docker rmi "$name_docker_container"
     echo "${name_docker_container} видалено."
     docker ps -a
     remove_firewall_rule 80
@@ -230,14 +225,14 @@ list_3x_ui_versions_install() {
     info_for_client_programs
 }
 stop_3x_ui() {
-    docker stop ${name_docker_container}
+    docker stop "$name_docker_container"
     echo "${name_docker_container} зупинено."
 }
 
 remove_3x_ui() {
-    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker stop
-    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker rm
-    docker rmi ${name_docker_container}
+    docker stop "$name_docker_container"
+    docker rm "$name_docker_container"
+    docker rmi "$name_docker_container"
     echo "${name_docker_container} видалено."
     docker ps -a
     
@@ -326,20 +321,20 @@ install_wg_easy() {
 }
 
 stop_wg_easy() {
-    docker stop wg-easy
+    docker stop "$name_docker_container"
     echo "WireGuard Easy зупинено."
 }
 
 remove_wg_easy() {
-    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker stop
-    docker ps -a | grep ${name_docker_container} | awk '{print $1}' | xargs -r docker rm
-    docker rmi ${name_docker_container}
+    docker stop "$name_docker_container"
+    docker rm "$name_docker_container"
+    docker rmi "$name_docker_container"
     echo "WireGuard Easy видалено."
 }
 
 update_wg_easy() {
-    docker stop wg-easy
-    docker rm wg-easy
+    docker stop "$name_docker_container"
+    docker rm "$name_docker_container"
     docker pull weejewel/wg-easy
     echo "WireGuard Easy оновлено."
 }

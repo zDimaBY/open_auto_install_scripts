@@ -177,7 +177,7 @@ check_docker() {
 
     # Перевіряємо, чи Docker доданий до автозапуску
     if systemctl is-enabled docker &>/dev/null; then
-        echo -e "\n${YELLOW}Docker доданий до автозапуску.${RESET}"
+        echo -e "\n${YELLOW}Docker вже є у автозапуску.${RESET}"
     else
         systemctl enable docker
         if systemctl is-enabled docker &>/dev/null; then
@@ -304,7 +304,7 @@ add_firewall_rule() {
             echo "Порт $port вже відкрито у firewalld."
         fi
     elif command -v iptables &>/dev/null; then
-        if ! iptables -C INPUT -p tcp --dport "$port" -j ACCEPT &>/dev/null; then
+        if ! iptables-save | grep "INPUT -p tcp -m tcp --dport $port -j ACCEPT\b"; then
             iptables -A INPUT -p tcp --dport "$port" -j ACCEPT
             service iptables save
             echo "Порт $port відкрито у iptables."
@@ -312,7 +312,7 @@ add_firewall_rule() {
             echo "Порт $port вже відкрито у iptables."
         fi
     elif command -v ufw &>/dev/null; then
-        if ! ufw status | grep -q "$port/tcp"; then
+        if ! ufw status | grep "$port/tcp"; then
             ufw allow "$port/tcp"
             echo "Порт $port відкрито у ufw."
         else
@@ -337,15 +337,15 @@ remove_firewall_rule() {
             echo "Правило для порту $port відсутнє у firewalld."
         fi
     elif command -v iptables &>/dev/null; then
-        if iptables -C INPUT -p tcp --dport "$port" -j ACCEPT &>/dev/null; then
+        if iptables-save | grep "INPUT -p tcp -m tcp --dport $port -j ACCEPT\b"; then
             iptables -D INPUT -p tcp --dport "$port" -j ACCEPT
             service iptables save
             echo "Правило для порту $port видалено з iptables."
         else
-            echo "Правило для порту $port відсутнє у iptables."
+            echo "Правило для порту $port відсутнє у таблиці iptables."
         fi
     elif command -v ufw &>/dev/null; then
-        if ufw status | grep -q "$port/tcp"; then
+        if ufw status | grep "$port/tcp"; then
             ufw delete allow "$port/tcp"
             echo "Правило для порту $port видалено з ufw."
         else
