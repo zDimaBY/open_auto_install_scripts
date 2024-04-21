@@ -296,7 +296,7 @@ add_firewall_rule() {
     local port="$1"
     local success=0
 
-    if command -v firewall-cmd &>/dev/null; then
+    if systemctl is-active --quiet firewalld; then
         if ! firewall-cmd --zone=public --query-port="$port/tcp"; then
             firewall-cmd --zone=public --add-port="$port/tcp" --permanent
             firewall-cmd --reload
@@ -306,6 +306,8 @@ add_firewall_rule() {
             echo "Порт $port вже відкрито у firewalld."
             success=1
         fi
+    else
+        echo "firewalld не запущений або не встановлений. Якщо інший firewall встановлений, то відкрию порти у ньому."
     fi
 
     if command -v iptables &>/dev/null; then
