@@ -137,7 +137,7 @@ stop_x_ui() {
 remove_x_ui() {
     docker stop "$name_docker_container"
     docker rm "$name_docker_container"
-    docker rmi "$name_docker_container"
+    #docker rmi "$name_docker_container"
     echo "${name_docker_container} видалено."
     docker ps -a
     remove_firewall_rule 80
@@ -232,7 +232,7 @@ stop_3x_ui() {
 remove_3x_ui() {
     docker stop "$name_docker_container"
     docker rm "$name_docker_container"
-    docker rmi "$name_docker_container"
+    #docker rmi "$name_docker_container"
     echo "${name_docker_container} видалено."
     docker ps -a
     
@@ -328,7 +328,7 @@ stop_wg_easy() {
 remove_wg_easy() {
     docker stop "$name_docker_container"
     docker rm "$name_docker_container"
-    docker rmi "$name_docker_container"
+    #docker rmi "$name_docker_container"
     echo "WireGuard Easy видалено."
 }
 

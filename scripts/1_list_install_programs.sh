@@ -272,22 +272,15 @@ EOF
 
         ;;
     fedora)
-        if rpm -q apt-transport-https &>/dev/null; then
-            echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
-            #dnf install -y apt-transport-https
-        fi
+        echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
         ;;
     centos | oracle)
-        if rpm -q apt-transport-https &>/dev/null; then
-            echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
-            #yum install -y apt-transport-https
-        fi
+        echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
+
         ;;
     arch)
-        if ! pacman -Qq apt-transport-https &>/dev/null; then
-            echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
-            #pacman -Sy --noconfirm apt-transport-https
-        fi
+        echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
+
         ;;
     *)
         echo -e "${RED}Не вдалося встановити Composer. Будь ласка, встановіть його вручну.${RESET}"
@@ -297,13 +290,13 @@ EOF
     # Перевіряємо вільну память swap та ram
     total_free_swap_end_ram
     if ((free_swap_end_ram_gb < 2)); then
-        echo -e "${RED}Недостатньо вільної пам'яті. Поточно доступно більше: ${YELLOW}${total_free} ГБ (${free_swap_end_ram} МБ)${RESET}"
+        echo -e "${RED}Недостатньо вільної пам'яті. Поточно доступно більше: ${YELLOW}${free_swap_end_ram_gb} ГБ (${free_swap_end_ram} МБ)${RESET}"
         echo -e "Можна підключити SWAP файл, але швидкість вузла може зменшиться, з документації рекомандуть не використовувати SWAP."
         echo -e "Детальніше за посиланням: https://www.elastic.co/guide/en/elasticsearch/reference/8.13/setup-configuration-memory.html"
         echo -e "\nЩоб запустити службу Elasticsearch виконайте наступні команди: systemctl enable elasticsearch && systemctl start elasticsearch"
         echo -e "Перевірка доступності: curl -X GET \"localhost:9200\""
     else
-        echo -e "${GREEN}Доступно достатньо вільної пам'яті, більше: ${YELLOW}${total_free} ГБ (${free_swap_end_ram} МБ)${RESET}"
+        echo -e "${GREEN}Доступно достатньо вільної пам'яті, більше: ${YELLOW}${free_swap_end_ram_gb} ГБ (${free_swap_end_ram} МБ)${RESET}"
         systemctl enable elasticsearch && systemctl start elasticsearch
     fi
 
