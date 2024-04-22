@@ -130,13 +130,11 @@ function 2_updateIoncube() {
 
     read -p "Вкажіть домен для wordpress: " WP_SITE_DOMEN
 
-    # Перевірка, чи було вказано домен
     if [ -z "$WP_SITE_DOMEN" ]; then
         echo "Домен не було вказано."
         return 1
     fi
 
-    # Перевіряємо, чи існує папка з доменом
     if [ -d "/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN" ]; then
         echo "Домен $DOMAIN уже є за шляхом /home/$CONTROLPANEL_USER/web/."
         return 1

@@ -98,7 +98,7 @@ checkControlPanel() {
 
     server_hostname=$(hostname)
     server_IP=$(hostname -I | awk '{print $1}')
-    echo -e "Hostname:${GREEN}$server_hostname${RESET} IP: $server_IP"
+    echo -e "Hostname:${GREEN}$server_hostname${RESET} IP: $server_IP version script: $LAST_COMMIT"
 
     case $operating_system in
     "debian" | "ubuntu" | "fedora" | "centos" | "oracle" | "arch")
