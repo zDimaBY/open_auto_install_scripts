@@ -98,7 +98,7 @@ function 2_updateIoncube() {
         source $HESTIA/conf/hestia.conf
     else
         echo -e "${RED}Не вдалося визначити панель управління сайтами.${RESET}"
-        exit 1
+        return 1
     fi
 
     # Шлях до директорії з користувачами
@@ -119,13 +119,13 @@ function 2_updateIoncube() {
     # Перевірка правильності вводу
     if [[ ! "$choice" =~ ^[0-9]+$ ]]; then
         echo "Будь ласка, виберіть користувача."
-        exit 1
+        return 1
     fi
 
     # Перевірка чи номер вибраної папки в діапазоні
     if ((choice < 1 || choice > ${#folders[@]})); then
         echo "Недійсний номер папки."
-        exit 1
+        return 1
     fi
 
     read -p "Вкажіть домен для wordpress: " WP_SITE_DOMEN
@@ -133,19 +133,13 @@ function 2_updateIoncube() {
     # Перевірка, чи було вказано домен
     if [ -z "$WP_SITE_DOMEN" ]; then
         echo "Домен не було вказано."
-        exit 1
-    fi
-
-    # Валідація домену за допомогою регулярних виразів
-    if ! [[ "$DOMAIN" =~ ^([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$ ]]; then
-        echo "Неправильний формат домену."
-        exit 1
+        return 1
     fi
 
     # Перевіряємо, чи існує папка з доменом
     if [ -d "/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN" ]; then
         echo "Домен $DOMAIN уже є за шляхом /home/$CONTROLPANEL_USER/web/."
-        exit 1
+        return 1
     fi
 
     SITE_PASSWORD=$(head /dev/urandom | tr -dc 'a-z' | head -c 12)
