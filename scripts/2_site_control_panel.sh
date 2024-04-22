@@ -86,11 +86,13 @@ function 2_updateIoncube() {
     #Перевіряємо яка панель керування встановлена
     if [ -e "/usr/local/vesta" ]; then
         echo -e "${YELLOW}Використовується VestaCP.${RESET}"
+        control_panel_install="vesta"
         source /etc/profile
         source $VESTA/func/main.sh
         source $VESTA/conf/vesta.conf
     elif [ -e "/usr/local/hestia" ]; then
         echo -e "${YELLOW}Використовується HestiaCP.${RESET}"
+        control_panel_install="hestia"
         source /etc/profile
         source $HESTIA/func/main.sh
         source $HESTIA/conf/hestia.conf
@@ -98,9 +100,9 @@ function 2_updateIoncube() {
         echo -e "${RED}Не вдалося визначити панель управління сайтами.${RESET}"
         exit 1
     fi
-    
+
     # Шлях до директорії з користувачами
-    user_dir="/usr/local/hestia/data/users/"
+    user_dir="/usr/local/$control_panel_install/data/users/"
 
     # Виведення списку папок
     echo "Доступні користувачі панелі керування сайтами:"
@@ -112,7 +114,7 @@ function 2_updateIoncube() {
     done
 
     # Запит на вибір папки
-    read -p "Виберіть користувача панелі керування сайтами: " choice
+    read -p "Виберіть користувача: " choice
 
     # Перевірка правильності вводу
     if [[ ! "$choice" =~ ^[0-9]+$ ]]; then
@@ -125,9 +127,33 @@ function 2_updateIoncube() {
         echo "Недійсний номер папки."
         exit 1
     fi
-    
+
     read -p "Вкажіть домен для wordpress: " WP_SITE_DOMEN
-    
+
+    # Перевірка, чи було вказано домен
+    if [ -z "$WP_SITE_DOMEN" ]; then
+        echo "Домен не було вказано."
+        exit 1
+    fi
+
+    # Перевірка на кирилицю
+    if [[ "$WP_SITE_DOMEN" =~ [а-яА-Я] ]]; then
+        echo "Вказано кирилицю, що не підтримується."
+        exit 1
+    fi
+
+    # Валідація домену за допомогою регулярних виразів
+    if ! [[ "$DOMAIN" =~ ^([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$ ]]; then
+        echo "Неправильний формат домену."
+        exit 1
+    fi
+
+    # Перевіряємо, чи існує папка з доменом
+    if [ -d "/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN" ]; then
+        echo "Домен $DOMAIN уже є за шляхом /home/$CONTROLPANEL_USER/web/."
+        exit 1
+    fi
+
     SITE_PASSWORD=$(head /dev/urandom | tr -dc 'a-z' | head -c 12)
     SITE_ADMIN_MAIL="admin@$WP_SITE_DOMEN"
 
@@ -144,8 +170,17 @@ function 2_updateIoncube() {
     # Обрана папка
     CONTROLPANEL_USER="${folders[$((choice - 1))]}"
     echo "Ви обрали користувача: $CONTROLPANEL_USER"
-    
-    cd /home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN/public_html/
+
+    /usr/local/hestia/bin/v-add-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
+
+    dir_wp_in_panel="/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN/public_html/"
+
+    if [ ! -d "$dir_wp_in_panel" ]; then
+        echo "Папка $dir_wp_in_panel не існує. Вихід..."
+        return 1
+    fi
+
+    cd $dir_wp_in_panel
 
     # Завантажуємо та розпаковуємо WordPress
     echo -e "${YELLOW}Завантажуємо та розпаковуємо WordPress...${RESET}"
@@ -195,7 +230,7 @@ function 2_updateIoncube() {
     # Створюємо базу даних та користувача, якщо база даних не існує
     echo -e "${YELLOW}Створюємо базу даних та користувача...${RESET}"
 
-    v-add-database $CONTROLPANEL_USER $DB_NAME $DB_USER $DB_PASSWORD
+    /usr/local/$control_panel_install/bin/v-add-database $CONTROLPANEL_USER $DB_NAME $DB_USER $DB_PASSWORD
 
     # Перевірка наявності команди wp
     if ! command -v wp &>/dev/null; then
