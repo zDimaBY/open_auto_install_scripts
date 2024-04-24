@@ -1,0 +1,120 @@
+# shellcheck disable=SC2148
+# shellcheck disable=SC2154
+v_sys_change_ip() {
+    if [ -d "/usr/local/hestia/data/ips" ]; then
+        control_panel_install="hestia"
+    elif [ -d "/usr/local/vesta/data/ips" ]; then
+        control_panel_install="vesta"
+    else
+        echo "Не вдалося знайти папку ips для Hestia або Vesta."
+        exit 1
+    fi
+
+    # Перевірка типу веб-сервера Apache2 або HTTPD
+    if [ -d "/etc/apache2" ]; then
+        DIR_APACHE="/etc/apache2"
+        RESTART_COMMAND="apache2"
+    elif [ -d "/etc/httpd" ]; then
+        DIR_APACHE="/etc/httpd"
+        RESTART_COMMAND="httpd"
+    fi
+    
+    read -p "Вкажіть стару адресу сервера:" OLD_IP
+    read -p "Вкажіть нову адресу сервера:" NEW_IP
+
+    # Інші налаштування
+    LOG_DIR="/var/log/$control_panel_install"
+    LOG="$LOG_DIR/system.log"
+    HAVE_NGINX=1
+
+    # Перевірка доступу Root
+    if [ "$(id -u)" != "0" ]; then
+        echo "Для запуску цього скрипту потрібен доступ Root"
+        exit 1
+    fi
+
+    # Перевірка правильності аргументів
+    if [ "$#" -ne 2 ] && [ "$#" -ne 3 ]; then
+        echo "Використання: $0 <старий_IP> <новий_IP>"
+        echo "Ви вказали аргумент: $0 $1"
+        exit 1
+    fi
+
+    # Визначення старого та нового IP
+    if ! [[ $OLD_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "Помилка: \"$OLD_IP\" не є дійсною IPv4-адресою"
+        exit 1
+    fi
+    if ! [[ $NEW_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "Помилка: \"$NEW_IP\" не є дійсною IPv4-адресою"
+        exit 1
+    fi
+
+    # Якщо каталог відсутній або файл не існує, створити його
+    if [ ! -d "$LOG_DIR" ] || [ ! -f "$LOG" ]; then
+        echo "Створення файлу журналу: $LOG"
+        mkdir -p "$LOG_DIR" && touch "$LOG"
+    else
+        echo "Виводимо все в журнал: $LOG"
+    fi
+
+    current_date_dir=$(date +'%Y_%m_%d_%H_%M_%S')
+    if [ ! -d "/root/backup_conf_$current_date_dir/" ]; then
+        mkdir -p "/root/backup_conf_$current_date_dir/"
+    fi
+    current_date=$(date +'%Y-%m-%d %H:%M:%S')
+    echo "tail -n 50 /var/log/$control_panel_install/system.log для перегляду що було замінено. У папці /root/backup_conf_$current_date_dir/ старі файли конфігурації"
+    echo "$current_date Виконана заміна файлів. ---------------------------" >>"$LOG"
+    if [ -f "/usr/local/$control_panel_install/data/ips/$1" ]; then
+        echo "$current_date mv -f \"/usr/local/$control_panel_install/data/ips/$1\" -> \"/usr/local/$control_panel_install/data/ips/$2\"" >>"$LOG"
+        mv -f "/usr/local/$control_panel_install/data/ips/$1" "/usr/local/$control_panel_install/data/ips/$2"
+    fi
+
+    if [ -f "$DIR_APACHE/conf.d/$1.conf" ]; then
+        echo "$current_date mv -f \"$DIR_APACHE/conf.d/$1.conf\" -> \"$DIR_APACHE/conf.d/$2.conf\"" >>"$LOG"
+        mv -f "$DIR_APACHE/conf.d/$1.conf" "$DIR_APACHE/conf.d/$2.conf"
+    fi
+
+    if [ -f "/etc/nginx/conf.d/$1.conf" ]; then
+        echo "$current_date mv -f \"/etc/nginx/conf.d/$1.conf\" -> \"/etc/nginx/conf.d/$2.conf\"" >>"$LOG"
+        mv -f "/etc/nginx/conf.d/$1.conf" "/etc/nginx/conf.d/$2.conf"
+    fi
+
+    echo "$current_date Заміна IP-адреси з $OLD_IP на $NEW_IP відбулась у наступних файлах: ---------------------------" >>"$LOG"
+    for user_conf_dir in /etc/hosts /home/*/conf /usr/local/$control_panel_install/data/users $DIR_APACHE /etc/nginx; do
+        find "$user_conf_dir" -type f -exec grep -q "$OLD_IP" {} \; -exec sh -c '
+    dest_dir="/root/backup_conf_'${current_date_dir}'/${1#"/"}" # Формування шляху у папці /root/backup_conf_$current_date_dir/
+    mkdir -p "$(dirname "$dest_dir")" # Створення відповідної структури каталогів
+    cp "$1" "$dest_dir" # Копіювання файлу
+' _ {} \;
+        find "$user_conf_dir" -type f -exec sed -i "s|$OLD_IP|$NEW_IP|g" {} + -exec grep -l "$OLD_IP" {} \; >>"$LOG"
+    done
+
+    grep -A "$(wc -l <"$LOG")" "$current_date" "$LOG"
+
+    # Перезапуск служб
+    echo -e "Перезапуск служб ---------------------------"
+    if [ -n "$DIR_APACHE" ]; then
+        systemctl restart "$RESTART_COMMAND"
+    fi
+
+    if [ "$HAVE_NGINX" -eq 1 ]; then
+        systemctl restart nginx
+    fi
+
+    # Вивід завершального повідомлення
+    echo -e "\n\n*** Заміна $OLD_IP на $NEW_IP завершена ***"
+    echo "Для перегляду поточної адреси в усіх файлах: grep -rE -o '([0-9]{1,3}\.){3}[0-9]{1,3}' /home/*/conf/"
+
+    # Пошук та вивід інформації про старий IP у різних файлах
+    echo -e "\n\nПошук старої адреси: grep -r "$OLD_IP" /etc ------------------------------------------------------------"
+    grep -r "$OLD_IP" /etc
+
+    echo -e "\n\nПошук старої адреси: grep -r "$OLD_IP" /home/*/conf ----------------------------------------------------"
+    grep -r "$OLD_IP" /home/*/conf
+
+    echo -e "\n\nПошук старої адреси: grep -r "$OLD_IP" /usr/local/$control_panel_install/data/users ------------------------------------"
+    grep -r "$OLD_IP" /usr/local/$control_panel_install/data/users
+
+    echo -e "\nЯкщо адреса не була замінена коректно, спробуйте виправити її вручну. Після цього напишіть в slack а67, що Ви зробили для цього."
+}

@@ -6,6 +6,7 @@ function 2_site_control_panel() {
         echo -e "\nВиберіть дію:\n"
         echo -e "1. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + php-fpm) ${RED}(test)${RESET}"
         echo -e "2. Встановлення ${RED}CMS${RESET} ${RED}(test)${RESET}"
+        echo -e "3. Заміна IP-адреси з old на new ${RED}(test)${RESET}"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -14,6 +15,7 @@ function 2_site_control_panel() {
         case $choice in
         1) 2_updateIoncube ;;
         2) 2_install_list_CMS ;;
+        3) v_sys_change_ip ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;

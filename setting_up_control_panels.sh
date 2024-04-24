@@ -17,19 +17,20 @@ rand_head=$(head /dev/urandom | tr -dc 'a-z' | head -c 6)
 folder_script_path="/root/scripts_${rand_head}"
 mkdir -p "$folder_script_path"
 
+URL_GITHUB="https://raw.githubusercontent.com"
 REPO="zDimaBY/setting_up_control_panels"
 BRANCH="main"
-LAST_COMMIT=$(curl -s "https://api.github.com/repos/$REPO/commits/$BRANCH" | jq -r '.commit.message')
 
 urls=(
-    "https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/0_exit.sh"
-    "https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/1_list_install_programs.sh"
-    "https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/2_site_control_panel.sh"
-    "https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/4_DDos.sh"
-    "https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/5_VPN.sh"
-    "https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/6_FTP.sh"
-    "https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/7_MySQL.sh"
-    "https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/functions_controller.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/0_exit.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/1_list_install_programs.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/2_site_control_panel.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/4_DDos.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/5_VPN.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/6_FTP.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/7_MySQL.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/functions_controller.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/hestiaCP_and_vestaCP_scripts/command/v-sys-change-ip"
 )
 
 # Завантаження та розгортання скриптів
@@ -69,6 +70,7 @@ for dependency in "${dependencies[@]}"; do
     check_dependency $dependency
 done
 
+LAST_COMMIT=$(curl -s "https://api.github.com/repos/$REPO/commits/$BRANCH" | jq -r '.commit.message')
 #  ================= Start Script ==================
 function selectionFunctions() {
     clear
