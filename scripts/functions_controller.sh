@@ -401,6 +401,10 @@ trim_to_16() {
     echo "${1:0:16}"
 }
 
+trim_to_12() {
+    echo "${1:0:12}"
+}
+
 # Функція для перевірки направлений домен на сервер
 check_domain() { # check_domain "example.com"
     domain="$1"

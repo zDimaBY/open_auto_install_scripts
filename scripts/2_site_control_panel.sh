@@ -161,19 +161,17 @@ function 2_updateIoncube() {
         return 1
     fi
 
-    SITE_PASSWORD=$(head /dev/urandom | tr -dc 'a-z' | head -c 12)
+    SITE_PASSWORD=$(generate_random_part_16)
     SITE_ADMIN_MAIL="admin@$WP_SITE_DOMEN"
 
     WORDPRESS_URL="https://wordpress.org/latest.tar.gz"
     WP_USER="admin"
     DB_NAME="wp_db_$(generate_random_part_16)"
-    DB_NAME=$(trim_to_16 "$DB_NAME")
+    DB_NAME=$(trim_to_12 "$DB_NAME")
     DB_USER="wp_u_$(generate_random_part_16)"
-    DB_USER=$(trim_to_16 "$DB_USER")
+    DB_USER=$(trim_to_12 "$DB_USER")
     DB_PASSWORD="wp_p_$(generate_random_part_16)"
     DB_PASSWORD=$(trim_to_16 "$DB_PASSWORD")
-
-    
 
     HTACCESS_CONTENT="# BEGIN WordPress\n<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteBase /\nRewriteRule ^index\.php$ - [L]\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.php [L]\n</IfModule>\n# END WordPress"
 
@@ -242,7 +240,7 @@ function 2_updateIoncube() {
 
     # Встановлюємо права доступу
     echo -e "${YELLOW}Встановлюємо права доступу...${RESET}"
-    chown -R $CONTROLPANEL_USER:$CONTROLPANEL_USER *
+    chown -R $CONTROLPANEL_USER:$CONTROLPANEL_USER * && chown -R $CONTROLPANEL_USER:$CONTROLPANEL_USER .htaccess
 
     # Створюємо базу даних та користувача, якщо база даних не існує
     echo -e "${YELLOW}Створюємо базу даних та користувача...${RESET}"
