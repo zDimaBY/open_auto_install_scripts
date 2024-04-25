@@ -390,3 +390,18 @@ remove_firewall_rule() {
         exit 1
     fi
 }
+
+# Функція для перевірки домену
+check_domain() { # check_domain "example.com"
+    domain="$1"
+    
+    domain_ip=$(nslookup "$domain" | awk '/^Address: / { print $2 }')
+
+    if [ "$domain_ip" == "$server_IP" ]; then
+        echo "Домен $domain спрямований на цей сервер ($server_IP)"
+        return 0
+    else
+        echo "Домен $domain не спрямований на цей сервер"
+        return 1
+    fi
+}

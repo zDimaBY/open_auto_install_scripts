@@ -159,7 +159,15 @@ function 2_updateIoncube() {
     CONTROLPANEL_USER="${folders[$((choice - 1))]}"
     echo "Ви обрали користувача: $CONTROLPANEL_USER"
 
-    /usr/local/hestia/bin/v-add-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
+    /usr/local/$control_panel_install/bin/v-add-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
+
+    check_domain $WP_SITE_DOMEN
+    if [ $? -eq 0 ]; then
+        /usr/local/$control_panel_install/bin/v-schedule-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
+    else
+        /usr/local/$control_panel_install/bin/v-generate-ssl-cert $WP_SITE_DOMEN $SITE_ADMIN_MAIL USA California Monterey ACME.COM IT
+    fi
+    
 
     dir_wp_in_panel="/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN/public_html/"
 
