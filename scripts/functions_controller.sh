@@ -391,7 +391,17 @@ remove_firewall_rule() {
     fi
 }
 
-# Функція для перевірки домену
+# Генерація випадкових 16 символів 
+generate_random_part_16() {
+    echo "$(head /dev/urandom | tr -dc 'a-z' | head -c 16)"
+}
+
+# Функція для обрізання строки до 16 символів
+trim_to_16() {
+    echo "${1:0:16}"
+}
+
+# Функція для перевірки направлений домен на сервер
 check_domain() { # check_domain "example.com"
     domain="$1"
     

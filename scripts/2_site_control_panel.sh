@@ -65,6 +65,25 @@ function 2_updateIoncube() {
 }
 
 2_install_list_CMS() {
+    while true; do
+        checkControlPanel
+        echo -e "\nВиберіть дію:\n"
+        echo -e "1. WordPress ${RED}(test)${RESET}"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант:" choice
+
+        case $choice in
+        1) 2_install_CMS_wordpress ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+
+2_install_CMS_wordpress() {
     #Перевіряємо сумісніть системи
     case $operating_system in
     debian | ubuntu)
@@ -147,12 +166,15 @@ function 2_updateIoncube() {
 
     WORDPRESS_URL="https://wordpress.org/latest.tar.gz"
     WP_USER="admin"
-    rand_head=$(head /dev/urandom | tr -dc 'a-z' | head -c 6)
-    DB_NAME="wp_db_$rand_head"
-    rand_head=$(head /dev/urandom | tr -dc 'a-z' | head -c 6)
-    DB_USER="wp_u_$rand_head"
-    rand_head=$(head /dev/urandom | tr -dc 'a-z' | head -c 6)
-    DB_PASSWORD="wp_p_$rand_head"
+    DB_NAME="wp_db_$(generate_random_part_16)"
+    DB_NAME=$(trim_to_16 "$DB_NAME")
+    DB_USER="wp_u_$(generate_random_part_16)"
+    DB_USER=$(trim_to_16 "$DB_USER")
+    DB_PASSWORD="wp_p_$(generate_random_part_16)"
+    DB_PASSWORD=$(trim_to_16 "$DB_PASSWORD")
+
+    
+
     HTACCESS_CONTENT="# BEGIN WordPress\n<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteBase /\nRewriteRule ^index\.php$ - [L]\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.php [L]\n</IfModule>\n# END WordPress"
 
     # Обрана папка
@@ -167,7 +189,6 @@ function 2_updateIoncube() {
     else
         /usr/local/$control_panel_install/bin/v-generate-ssl-cert $WP_SITE_DOMEN $SITE_ADMIN_MAIL USA California Monterey ACME.COM IT
     fi
-    
 
     dir_wp_in_panel="/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN/public_html/"
 
@@ -251,5 +272,4 @@ function 2_updateIoncube() {
     echo -e "\n\n${lIGHT_GREEN}Wordpress встановлено: http://${WP_SITE_DOMEN}/wp-login.php${RESET}"
     echo -e "Логін: ${WP_USER}"
     echo -e "Пароль: ${SITE_PASSWORD}\n\n"
-
 }
