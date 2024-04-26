@@ -69,6 +69,7 @@ function 2_updateIoncube() {
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
         echo -e "1. WordPress ${RED}(test)${RESET}"
+        echo -e "2. DLE ${RED}(test)${RESET}"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -76,6 +77,7 @@ function 2_updateIoncube() {
 
         case $choice in
         1) 2_install_CMS_wordpress ;;
+        2) 2_install_CMS_DLE ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -166,10 +168,10 @@ function 2_updateIoncube() {
 
     WORDPRESS_URL="https://wordpress.org/latest.tar.gz"
     WP_USER="admin"
-    DB_NAME="wp_db_$(generate_random_part_16)"
-    DB_NAME=$(trim_to_12 "$DB_NAME")
-    DB_USER="wp_u_$(generate_random_part_16)"
-    DB_USER=$(trim_to_12 "$DB_USER")
+    DB_NAME="w$(generate_random_part_16)"
+    DB_NAME=$(trim_to_10 "$DB_NAME")
+    DB_USER="w$(generate_random_part_16)"
+    DB_USER=$(trim_to_10 "$DB_USER")
     DB_PASSWORD="wp_p_$(generate_random_part_16)"
     DB_PASSWORD=$(trim_to_16 "$DB_PASSWORD")
 
@@ -270,4 +272,8 @@ function 2_updateIoncube() {
     echo -e "\n\n${lIGHT_GREEN}Wordpress встановлено: http://${WP_SITE_DOMEN}/wp-login.php${RESET}"
     echo -e "Логін: ${WP_USER}"
     echo -e "Пароль: ${SITE_PASSWORD}\n\n"
+}
+
+2_install_CMS_DLE() {
+    echo -e "В розробці: ..."
 }
