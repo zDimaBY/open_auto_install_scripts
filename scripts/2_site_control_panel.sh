@@ -7,6 +7,7 @@ function 2_site_control_panel() {
         echo -e "1. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + php-fpm) ${RED}(test)${RESET}"
         echo -e "2. Встановлення ${RED}CMS${RESET} ${RED}(test)${RESET}"
         echo -e "3. Заміна IP-адреси з old на new ${RED}(test)${RESET}"
+        echo -e "4. Відключення префікса ${RED}\"admin_\"${RESET} ${RED}(test)${RESET} ${GREEN}(безпечна функція)${RESET}"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -16,6 +17,7 @@ function 2_site_control_panel() {
         1) 2_updateIoncube ;;
         2) 2_install_list_CMS ;;
         3) v_sys_change_ip ;;
+        4) 2_disable_prefix_on_VestaCP_HestiaCP ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -83,6 +85,36 @@ function 2_updateIoncube() {
         *) 0_invalid ;;
         esac
     done
+}
+
+2_disable_prefix_on_VestaCP_HestiaCP() {
+    #Перевіряємо яка панель керування встановлена
+    if [ -e "/usr/local/vesta" ]; then
+        echo -e "${YELLOW}Використовується VestaCP.${RESET}"
+        control_panel_install="vesta"
+    elif [ -e "/usr/local/hestia" ]; then
+        echo -e "${YELLOW}Використовується HestiaCP.${RESET}"
+        control_panel_install="hestia"
+    else
+        echo -e "${RED}Не вдалося визначити панель управління сайтами.${RESET}"
+        return 1
+    fi
+
+    # Створити копію v-add-database якщо не існує
+    if [ ! -f "/usr/local/$control_panel_install/bin/v-add-database-PrefixON" ]; then
+        cp "/usr/local/$control_panel_install/bin/v-add-database" "/usr/local/$control_panel_install/bin/v-add-database-PrefixON"
+        # Змінити database та dbuser в v-add-database
+        sed -i 's/database="$user"_"$2"/database=$2/' "/usr/local/$control_panel_install/bin/v-add-database"
+        sed -i 's/dbuser="$user"_"$3"/dbuser=$3/' "/usr/local/$control_panel_install/bin/v-add-database"
+    fi
+
+    # Видалити копію v-add-database, якщо існує
+    if [ -f "/usr/local/$control_panel_install/bin/v-add-database-PrefixON" ]; then
+        rm "/usr/local/$control_panel_install/bin/v-add-database-PrefixON"
+        # Змінити database та dbuser в v-add-database
+        sed -i 's/database=$2/database="$user"_"$2"/' "/usr/local/$control_panel_install/bin/v-add-database"
+        sed -i 's/dbuser=$3/dbuser="$user"_"$3"/' "/usr/local/$control_panel_install/bin/v-add-database"
+    fi
 }
 
 2_install_CMS_wordpress() {
