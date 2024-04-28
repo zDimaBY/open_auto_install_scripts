@@ -8,6 +8,7 @@ function 2_site_control_panel() {
         echo -e "2. Встановлення ${RED}CMS${RESET} ${RED}(test)${RESET}"
         echo -e "3. Заміна IP-адреси з old на new ${RED}(test)${RESET}"
         echo -e "4. Відключення префікса ${GREEN}\"admin_\"${RESET}"
+        echo -e "5. Очистка логів ${GREEN}\"логів\"${RESET}"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -18,6 +19,7 @@ function 2_site_control_panel() {
         2) 2_install_list_CMS ;;
         3) v_sys_change_ip ;;
         4) 2_disable_prefix_on_VestaCP_HestiaCP ;;
+        4) 2_logs_clear ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -99,17 +101,30 @@ function 2_updateIoncube() {
     fi
 
     # Створити копію v-add-database якщо не існує
-    if [ ! -f "/usr/local/$control_panel_install/bin/v-add-database-PrefixON" ]; then
+    if [ ! -f "/usr/local/$control_panel_install/bin/v-add-database-prefix-on" ]; then
         echo -e "${RED}Вимкнення ${YELLOW}префікса баз даних для панелі керування $control_panel_install.${RESET}"
-        cp "/usr/local/$control_panel_install/bin/v-add-database" "/usr/local/$control_panel_install/bin/v-add-database-PrefixON"
+        cp "/usr/local/$control_panel_install/bin/v-add-database" "/usr/local/$control_panel_install/bin/v-add-database-prefix-on"
         sed -i 's/database="$user"_"$2"/database=$2/' "/usr/local/$control_panel_install/bin/v-add-database"
         sed -i 's/dbuser="$user"_"$3"/dbuser=$3/' "/usr/local/$control_panel_install/bin/v-add-database"
     else # Видалити копію v-add-database, якщо існує
         echo -e "${GREEN}Вмикаємо ${YELLOW}префікс баз даних для панелі керування $control_panel_install.${RESET}"
-        rm "/usr/local/$control_panel_install/bin/v-add-database-PrefixON"
+        rm "/usr/local/$control_panel_install/bin/v-add-database-prefix-on"
         sed -i 's/database=$2/database="$user"_"$2"/' "/usr/local/$control_panel_install/bin/v-add-database"
         sed -i 's/dbuser=$3/dbuser="$user"_"$3"/' "/usr/local/$control_panel_install/bin/v-add-database"
     fi
+}
+
+2_logs_clear() {
+    if [ -d "/etc/apache2" ]; then
+        DIR_APACHE="/etc/apache2"
+        COMMAND_WEB_SERVER="apache2"
+    elif [ -d "/etc/httpd" ]; then
+        DIR_APACHE="/etc/httpd"
+        COMMAND_WEB_SERVER="httpd"
+    fi
+    rm -rf /var/log/$COMMAND_WEB_SERVER/domains/*.log-*
+    truncate -s 0 /var/log/$COMMAND_WEB_SERVER/domains/*.log
+    du -ahx /var/log/$COMMAND_WEB_SERVER/domains/ | grep "\.access\.log" | sort -rh
 }
 
 2_install_CMS_wordpress() {
@@ -237,10 +252,16 @@ function 2_updateIoncube() {
     # Налаштовуємо файл wp-config.php
     echo -e "${YELLOW}Налаштовуємо файл wp-config.php...${RESET}"
     cp wp-config-sample.php wp-config.php
-    sed -i "s|database_name_here|${CONTROLPANEL_USER}_${DB_NAME}|" wp-config.php
-    sed -i "s|username_here|${CONTROLPANEL_USER}_${DB_USER}|" wp-config.php
-    sed -i "s|password_here|$DB_PASSWORD|" wp-config.php
-
+    if [ ! -f "/usr/local/$control_panel_install/bin/v-add-database-prefix-on" ]; then
+        sed -i "s|database_name_here|${DB_NAME}|" wp-config.php
+        sed -i "s|username_here|${DB_USER}|" wp-config.php
+        sed -i "s|password_here|$DB_PASSWORD|" wp-config.php
+    else
+        echo -e "${GREEN}Вмикаємо ${YELLOW}префікс баз даних для панелі керування $control_panel_install.${RESET}"
+        sed -i "s|database_name_here|${CONTROLPANEL_USER}_${DB_NAME}|" wp-config.php
+        sed -i "s|username_here|${CONTROLPANEL_USER}_${DB_USER}|" wp-config.php
+        sed -i "s|password_here|$DB_PASSWORD|" wp-config.php
+    fi
     sed -i -e "/put your unique phrase here/{
     s|put your unique phrase here|$(openssl rand -base64 64 | tr -d '\n' | tr -d '\r')|;
     n;
