@@ -8,6 +8,7 @@ function 1_list_install_programs() {
         echo -e "2. Встановлення ${BROWN}Docker${RESET}"
         echo -e "3. Встановлення ${BLUE}RouterOS від Mikrotik${RESET}"
         echo -e "4. Встановлення ${BLUE}Elasticsearch${RESET} ${RED}(test)${RESET}"
+        echo -e "5. Встановлення ${BLUE}Nginx proxy server${RESET} портів 80 та 443 з ${RED}${server_IP}${RESET} на ххх.ххх.ххх.ххх"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -18,6 +19,7 @@ function 1_list_install_programs() {
         2) check_docker ;;
         3) 1_installRouterOSMikrotik ;;
         4) 1_installElasticsearch ;;
+        4) 1_installNginxProxyServer ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -299,5 +301,68 @@ EOF
         echo -e "${GREEN}Доступно достатньо вільної пам'яті, більше: ${YELLOW}${free_swap_end_ram_gb} ГБ (${free_swap_end_ram} МБ)${RESET}"
         systemctl enable elasticsearch && systemctl start elasticsearch
     fi
+
+}
+
+1_installNginxProxyServer() {
+    
+read -p "Введіть ІР-адресу сервера на який будуть надходити запити через цей $server_IP сервер:" proxy_address
+
+# Перевірити, чи встановлений nginx
+if [ ! -x "$(command -v nginx)" ]; then
+    # Оновити список пакетів та встановити nginx
+    apt update && apt-get install -y nginx
+fi
+
+ssl_dir="/etc/nginx/ssl"
+if [ ! -d "$ssl_dir" ]; then
+    mkdir -p "$ssl_dir"
+fi
+
+# Створити SSL-сертифікат та приватний ключ, якщо вони відсутні
+if [ ! -f "$ssl_dir/certificate.crt" ] || [ ! -f "$ssl_dir/privatekey.key" ]; then
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout "$ssl_dir/privatekey.key" -out "$ssl_dir/certificate.crt" \
+    -subj "/C=NL/ST=North Holland/L=Amsterdam/O=MyCompany/OU=IT Department/CN=example.com/emailAddress=admin@example.com"
+fi
+
+# Налаштувати конфігурацію для Nginx
+cat <<EOF > /etc/nginx/sites-available/default
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    
+    location / {
+        proxy_pass http://$proxy_address;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+
+    ssl_certificate /etc/nginx/ssl/certificate.crt;
+    ssl_certificate_key /etc/nginx/ssl/privatekey.key;
+
+    location / {
+        proxy_pass http://$proxy_address;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+EOF
+
+nginx -t
+# Перезапустити nginx, якщо конфігурація коректна
+if [ $? -eq 0 ]; then
+    systemctl restart nginx
+else
+    echo "Помилка: конфігурація nginx некоректна. Перевірте конфігураційний файл."
+fi
 
 }

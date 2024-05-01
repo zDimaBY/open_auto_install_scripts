@@ -77,7 +77,7 @@ function selectionFunctions() {
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
-        echo -e "1. Встановлення ПЗ (${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET}, ${BLUE}RouterOS 7.5${RESET}, ${BLUE}Elasticsearch${RESET})"
+        echo -e "1. Встановлення ПЗ (${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET}, ${BLUE}RouterOS 7.5${RESET}, ${BLUE}Elasticsearch${RESET}, proxy nginx)"
         echo -e "2. Функції для панелей керування сайтами ${RED}(test)${RESET}"
         echo -e "3. DDos"
         echo -e "4. Організування ${MAGENTA}VPN${RESET} серверів"

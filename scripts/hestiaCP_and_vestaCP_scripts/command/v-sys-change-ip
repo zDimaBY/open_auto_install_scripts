@@ -108,6 +108,4 @@ v_sys_change_ip() {
 
     echo -e "\n\nПошук старої адреси: grep -r "$OLD_IP" /usr/local/$control_panel_install/data/users ------------------------------------"
     grep -r "$OLD_IP" /usr/local/$control_panel_install/data/users
-
-    echo -e "\nЯкщо адреса не була замінена коректно, спробуйте виправити її вручну. Після цього напишіть в slack а67, що Ви зробили для цього."
 }

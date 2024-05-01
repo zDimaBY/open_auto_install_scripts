@@ -8,7 +8,7 @@ function 2_site_control_panel() {
         echo -e "2. Встановлення ${RED}CMS${RESET} ${RED}(test)${RESET}"
         echo -e "3. Заміна IP-адреси з old на new ${RED}(test)${RESET}"
         echo -e "4. Відключення префікса ${GREEN}\"admin_\"${RESET}"
-        echo -e "5. Очистка логів ${GREEN}\"логів\"${RESET}"
+        echo -e "5. Очистка логів ${GREEN}\"логів\"${RESET} ${RED}(test)${RESET}"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -19,7 +19,7 @@ function 2_site_control_panel() {
         2) 2_install_list_CMS ;;
         3) v_sys_change_ip ;;
         4) 2_disable_prefix_on_VestaCP_HestiaCP ;;
-        4) 2_logs_clear ;;
+        5) 2_logs_clear ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -323,5 +323,9 @@ function 2_updateIoncube() {
 }
 
 2_install_CMS_DLE() {
+    echo -e "В розробці: ..."
+}
+
+2_logs_clear() {
     echo -e "В розробці: ..."
 }
