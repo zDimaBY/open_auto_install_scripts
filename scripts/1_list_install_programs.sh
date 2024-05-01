@@ -325,8 +325,15 @@ if [ ! -f "$ssl_dir/certificate.crt" ] || [ ! -f "$ssl_dir/privatekey.key" ]; th
     -subj "/C=NL/ST=North Holland/L=Amsterdam/O=MyCompany/OU=IT Department/CN=example.com/emailAddress=admin@example.com"
 fi
 
+nginx_default_conf="/etc/nginx/conf.d/default"
+if [ -f "$nginx_default_conf" ]; then
+    # Запит про перезапис файлу, якщо він існує
+    read -p "Файл '$nginx_default_conf' вже існує. Бажаєте перезаписати його? (y/n): " overwrite_conf
+    [[ ! "$overwrite_conf" =~ ^[Yy]$ ]] && exit 0
+fi
+
 # Налаштувати конфігурацію для Nginx
-cat <<EOF > /etc/nginx/sites-available/default
+cat <<EOF > /etc/nginx/conf.d/default
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
