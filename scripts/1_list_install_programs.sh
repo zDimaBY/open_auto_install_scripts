@@ -325,15 +325,11 @@ if [ ! -f "$ssl_dir/certificate.crt" ] || [ ! -f "$ssl_dir/privatekey.key" ]; th
     -subj "/C=NL/ST=North Holland/L=Amsterdam/O=MyCompany/OU=IT Department/CN=example.com/emailAddress=admin@example.com"
 fi
 
-nginx_default_conf="/etc/nginx/conf.d/default"
-if [ -f "$nginx_default_conf" ]; then
-    # Запит про перезапис файлу, якщо він існує
-    read -p "Файл '$nginx_default_conf' вже існує. Бажаєте перезаписати його? (y/n): " overwrite_conf
-    [[ ! "$overwrite_conf" =~ ^[Yy]$ ]] && exit 0
-fi
-
-# Налаштувати конфігурацію для Nginx
-cat <<EOF > /etc/nginx/conf.d/default
+nginx_conf="/etc/nginx/conf.d/default.conf"
+if [ -f "$nginx_conf" ]; then
+    for file in /etc/nginx/conf.d/*.conf; do echo -e "${GREEN}File: ${RED}$file${GREEN} ------------------------------------------------------------------${RESET}"; cat "$file"; done
+    read -p "Файл '$nginx_conf' вже існує. Бажаєте перезаписати його? (y/n): " overwrite_conf
+    [[ "$overwrite_conf" =~ ^[Yy]$ ]] && echo "Записуємо конфігурацію..." && cat <<EOF > "$nginx_conf"
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -350,9 +346,9 @@ server {
 server {
     listen 443 ssl default_server;
     listen [::]:443 ssl default_server;
-
-    ssl_certificate /etc/nginx/ssl/certificate.crt;
-    ssl_certificate_key /etc/nginx/ssl/privatekey.key;
+    
+    ssl_certificate $ssl_dir/certificate.crt;
+    ssl_certificate_key $ssl_dir/privatekey.key;
 
     location / {
         proxy_pass http://$proxy_address;
@@ -363,6 +359,39 @@ server {
     }
 }
 EOF
+else
+    echo "Створюємо новий файл конфігурації..."
+    cat <<EOF > "$nginx_conf"
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    
+    location / {
+        proxy_pass http://$proxy_address;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    
+    ssl_certificate $ssl_dir/certificate.crt;
+    ssl_certificate_key $ssl_dir/privatekey.key;
+
+    location / {
+        proxy_pass http://$proxy_address;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+EOF
+fi
 
 nginx -t
 # Перезапустити nginx, якщо конфігурація коректна
