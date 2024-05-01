@@ -1,24 +1,6 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 v_sys_change_ip() {
-    if [ -d "/usr/local/hestia/data/ips" ]; then
-        control_panel_install="hestia"
-    elif [ -d "/usr/local/vesta/data/ips" ]; then
-        control_panel_install="vesta"
-    else
-        echo "Не вдалося знайти папку ips для Hestia або Vesta."
-        return 1
-    fi
-
-    # Перевірка типу веб-сервера Apache2 або HTTPD
-    if [ -d "/etc/apache2" ]; then
-        DIR_APACHE="/etc/apache2"
-        RESTART_COMMAND="apache2"
-    elif [ -d "/etc/httpd" ]; then
-        DIR_APACHE="/etc/httpd"
-        RESTART_COMMAND="httpd"
-    fi
-    
     read -p "Вкажіть стару адресу сервера:" OLD_IP
     read -p "Вкажіть нову адресу сервера:" NEW_IP
 
@@ -88,7 +70,7 @@ v_sys_change_ip() {
     # Перезапуск служб
     echo -e "Перезапуск служб ---------------------------"
     if [ -n "$DIR_APACHE" ]; then
-        systemctl restart "$RESTART_COMMAND"
+        systemctl restart "$install_web_server"
     fi
 
     if [ "$HAVE_NGINX" -eq 1 ]; then

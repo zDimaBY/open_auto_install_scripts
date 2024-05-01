@@ -8,7 +8,7 @@ function 1_list_install_programs() {
         echo -e "2. Встановлення ${BROWN}Docker${RESET}"
         echo -e "3. Встановлення ${BLUE}RouterOS від Mikrotik${RESET}"
         echo -e "4. Встановлення ${BLUE}Elasticsearch${RESET} ${RED}(test)${RESET}"
-        echo -e "5. Встановлення ${BLUE}Nginx proxy server${RESET} портів 80 та 443 з ${RED}${server_IP}${RESET} на ххх.ххх.ххх.ххх"
+        echo -e "5. Встановлення ${GREEN}Nginx proxy server${RESET} портів 80 та 443 з ${RED}${server_IP}${RESET} на ххх.ххх.ххх.ххх"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -19,7 +19,7 @@ function 1_list_install_programs() {
         2) check_docker ;;
         3) 1_installRouterOSMikrotik ;;
         4) 1_installElasticsearch ;;
-        4) 1_installNginxProxyServer ;;
+        5) 1_installNginxProxyServer ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;

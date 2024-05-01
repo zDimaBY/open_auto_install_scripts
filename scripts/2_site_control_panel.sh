@@ -1,6 +1,27 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 2_site_control_panel() {
+    #Перевіряємо яка панель керування встановлена
+    if [ -e "/usr/local/vesta" ]; then
+        control_panel_install="vesta"
+    elif [ -e "/usr/local/hestia" ]; then
+        control_panel_install="hestia"
+    else
+        echo -e "${RED}Не вдалося визначити панель управління сайтами.${RESET}"
+        return 1
+    fi
+    # Перевірка типу веб-сервера Apache2 або HTTPD
+    if [ -d "/etc/apache2" ]; then
+        DIR_APACHE="/etc/apache2"
+        install_web_server="apache2"
+    elif [ -d "/etc/httpd" ]; then
+        DIR_APACHE="/etc/httpd"
+        install_web_server="httpd"
+    else
+        echo -e "${RED}Не вдалося визначити тип веб-сервера Apache2 або HTTPD.${RESET}"
+        return 1
+    fi
+    
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
@@ -90,16 +111,6 @@ function 2_updateIoncube() {
 }
 
 2_disable_prefix_on_VestaCP_HestiaCP() {
-    #Перевіряємо яка панель керування встановлена
-    if [ -e "/usr/local/vesta" ]; then
-        control_panel_install="vesta"
-    elif [ -e "/usr/local/hestia" ]; then
-        control_panel_install="hestia"
-    else
-        echo -e "${RED}Не вдалося визначити панель управління сайтами.${RESET}"
-        return 1
-    fi
-
     # Створити копію v-add-database якщо не існує
     if [ ! -f "/usr/local/$control_panel_install/bin/v-add-database-prefix-on" ]; then
         echo -e "${RED}Вимкнення ${YELLOW}префікса баз даних для панелі керування $control_panel_install.${RESET}"
