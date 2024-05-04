@@ -26,6 +26,36 @@ function 6_manage_docker_databases() {
 # Встановлення та робота з Docker образами баз даних
 function install_database() {
     local db_name="$1"
+
+    while true; do
+        echo "Виберіть опцію:"
+        echo "1. Встановити образ"
+        echo "2. Видалити образ"
+        echo "3. Налаштувати Docker"
+        echo "4. Перелік запущених контейнерів"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант:" choice
+
+        case $choice in
+        1) select_tag_and_install "$db_name" ;;
+        2) remove_images ;;
+        3) echo "Налаштування Docker..." ;;
+        4) docker ps -a ;;
+        0) break ;;
+        00) 0_funExit ;;
+
+        *)
+            echo "Недійсна опція. Будь ласка, виберіть ще раз."
+            ;;
+        esac
+    done
+}
+
+# Вибір та встановлення образу з вибраним тегом
+function select_tag_and_install() {
+    local db_name="$1"
     local tags=()
 
     read -p "Вкажіть, скільки версій баз даних вивести (за замовчуванням 100): " list_docker_tags_databases
@@ -49,38 +79,6 @@ function install_database() {
         exit 1
         ;;
     esac
-
-    while true; do
-        echo "Виберіть опцію:"
-        echo "1. Встановити образ"
-        echo "2. Видалити образ"
-        echo "3. Налаштувати Docker"
-        echo "4. Перелік запущених контейнерів"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
-
-        read -p "Виберіть варіант:" choice
-
-        case $choice in
-        1) select_tag_and_install "$db_name" "${tags[@]}" ;;
-        2) remove_images ;;
-        3) echo "Налаштування Docker..." ;;
-        4) docker ps -a ;;
-        0) break ;;
-        00) 0_funExit ;;
-
-        *)
-            echo "Недійсна опція. Будь ласка, виберіть ще раз."
-            ;;
-        esac
-    done
-}
-
-# Вибір та встановлення образу з вибраним тегом
-function select_tag_and_install() {
-    local db_name="$1"
-    shift
-    local tags=("$@")
 
     echo -e "\n${BLUE}latest${RESET}: Цей тег вказує на найновішу версію образу, доступну на Docker Hub."
     echo -e "${YELLOW}oraclelinux8${RESET}: Це означає, що образ побудований на базі Oracle Linux 8."
