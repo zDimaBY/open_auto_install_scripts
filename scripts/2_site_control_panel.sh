@@ -135,7 +135,7 @@ function 2_updateIoncube() {
     fi
     rm -rf /var/log/$COMMAND_WEB_SERVER/domains/*.log-*
     truncate -s 0 /var/log/$COMMAND_WEB_SERVER/domains/*.log
-    du -ahx /var/log/$COMMAND_WEB_SERVER/domains/ | grep "\.access\.log" | sort -rh
+    du -ahx /var/log/$COMMAND_WEB_SERVER/domains/ | grep "\.log" | sort -rh
 }
 
 2_install_CMS_wordpress() {
@@ -334,9 +334,5 @@ function 2_updateIoncube() {
 }
 
 2_install_CMS_DLE() {
-    echo -e "В розробці: ..."
-}
-
-2_logs_clear() {
     echo -e "В розробці: ..."
 }

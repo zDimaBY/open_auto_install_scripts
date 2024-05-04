@@ -28,19 +28,21 @@ function install_database() {
     local db_name="$1"
     local tags=()
 
+    read -p "Вкажіть, скільки версій баз даних вивести (за замовчуванням 100): " list_docker_tags_databases
+    list_docker_tags_databases=${list_docker_tags_databases:-100}
     # Отримання списку тегів для вибраної бази даних
     case $db_name in
     "mariadb")
-        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/mariadb/tags/" | jq -r '.results[].name'))
+        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/mariadb/tags/?page_size=$list_docker_tags_databases" | jq -r '.results[].name' | sort -r))
         ;;
     "mysql")
-        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/mysql/tags/" | jq -r '.results[].name'))
+        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/mysql/tags/?page_size=$list_docker_tags_databases" | jq -r '.results[].name' | sort -r))
         ;;
     "mongodb")
-        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/mongo/tags/" | jq -r '.results[].name'))
+        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/mongo/tags/?page_size=$list_docker_tags_databases" | jq -r '.results[].name' | sort -r))
         ;;
     "postgresql")
-        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/postgres/tags/" | jq -r '.results[].name'))
+        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/postgres/tags/?page_size=$list_docker_tags_databases" | jq -r '.results[].name' | sort -r))
         ;;
     *)
         echo "${RED}Помилка: Невідома база даних: $db_name${RESET}"
@@ -79,6 +81,13 @@ function select_tag_and_install() {
     local db_name="$1"
     shift
     local tags=("$@")
+
+    echo -e "\n${BLUE}latest${RESET}: Цей тег вказує на найновішу версію образу, доступну на Docker Hub."
+    echo -e "${YELLOW}oraclelinux8${RESET}: Це означає, що образ побудований на базі Oracle Linux 8."
+    echo -e "${GREEN}lts${RESET}: LTS означає Long-Term Support, це для версій з довгостроковою підтримкою."
+    echo -e "${LIGHT_GREEN}8.0.37-debian${RESET}, ${LIGHT_GREEN}8.0.37-bookworm${RESET}, ${LIGHT_GREEN}8.0.37-oraclelinux8${RESET}: Ці теги вказують на версії MySQL, побудовані на конкретних операційних системах (наприклад, Debian, Oracle Linux 8)."
+    echo -e "${RED}innovation${RESET}: Це спеціальна версія з новими функціями або експериментальні версії.\n"
+
     echo "Виберіть образ для встановлення:"
     select tag in "${tags[@]}"; do
         if [[ -n "$tag" ]]; then
@@ -111,7 +120,7 @@ function run_container() {
 # Вибір типу прослуховування
 function select_listen_address() {
     echo "Обрати тип прослуховування:"
-    echo "1. Локальний - 127.0.0.1 (у конфігураціях не рекомендується вказувати localhost)"
+    echo "1. Локальний - 127.0.0.1"
     echo "2. Для всіх інтерфейсів - 0.0.0.0"
     read -p "Виберіть опцію (1 або 2): " option
 
@@ -133,7 +142,8 @@ function enter_port_and_password() {
     read -p "Введіть порт прослуховування для контейнера (за замовчуванням 3306): " port
     port=${port:-3306}
 
-    read -p "Введіть пароль для кореневого користувача: " password
+    generate_random_password_show
+    read -p "Введіть пароль для root користувача бази даних: " password
 }
 
 # Запуск контейнера з введеними параметрами
@@ -150,12 +160,12 @@ function start_container() {
     "mariadb")
         docker pull mariadb:"$tag"
         docker run --name mariadb-container-"$tag" -e MYSQL_ROOT_PASSWORD="$password" -p "$listen_address:$port":3306 -d mariadb:"$tag"
-        echo -e "\n\nmariadb:$tag встановлено!\nДля перевірки використовуйте:\nmysql -h $listen_address -P $port -u root -p\nПароль: $password"
+        echo -e "\n\nmariadb:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h $listen_address -P $port -u root -p\nПароль: $password\n\n"
         ;;
     "mysql")
         docker pull mysql:"$tag"
         docker run --name mysql-container-"$tag" -e MYSQL_ROOT_PASSWORD="$password" -p "$listen_address:$port":3306 -d mysql:"$tag"
-        echo -e "\n\mysql:$tag встановлено!\nДля перевірки використовуйте:\nmysql -h $listen_address -P $port -u root -p\nПароль: $password"
+        echo -e "\n\nmysql:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h $listen_address -P $port -u root -p\nПароль: $password\n\n"
         ;;
     "mongodb")
         docker pull mongo:"$tag"
