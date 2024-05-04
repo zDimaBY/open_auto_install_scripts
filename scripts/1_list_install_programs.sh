@@ -16,7 +16,7 @@ function 1_list_install_programs() {
 
         case $choice in
         1) 1_installComposer ;;
-        2) check_docker ;;
+        2) check_docker_availability ;;
         3) 1_installRouterOSMikrotik ;;
         4) 1_installElasticsearch ;;
         5) 1_installNginxProxyServer ;;

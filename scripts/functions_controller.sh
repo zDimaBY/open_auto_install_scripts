@@ -146,7 +146,7 @@ generate_random_password() {
     rand_password=$(openssl rand -base64 12)
 }
 
-check_docker() {
+check_docker_availability() {
     # Перевіряємо, чи встановлений Docker
     if ! command -v docker &>/dev/null; then
         echo -e "\n${RED}Docker не встановлено на цій системі.${RESET}"

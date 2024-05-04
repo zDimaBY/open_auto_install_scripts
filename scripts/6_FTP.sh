@@ -1,7 +1,7 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 4_FTP() {
-    check_docker
+    check_docker_availability
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"

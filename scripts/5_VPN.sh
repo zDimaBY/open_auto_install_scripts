@@ -63,7 +63,7 @@ info_for_client_programs() {
 
 #_______________________________________________________________________________________________________________________________________
 menu_x_ui() {
-    check_docker
+    check_docker_availability
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
@@ -150,7 +150,7 @@ update_x_ui() {
 }
 #_______________________________________________________________________________________________________________________________________
 menu_3x_ui() {
-    check_docker
+    check_docker_availability
     echo -e "\nТакож 3x-ui стала доступна у Windows. Для запуска 3x-ui виконайте наступні кроки:"
     echo "1: Перейдіть за посиланням: https://github.com/MHSanaei/3x-ui/releases"
     echo "2: Виберіть необхідну версію і завантажте її з підменю 'Assets' -> x-ui-windows-amd64.zip"
@@ -245,7 +245,7 @@ update_3x_ui() {
 }
 #_______________________________________________________________________________________________________________________________________
 menu_wireguard_easy() {
-    check_docker
+    check_docker_availability
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
@@ -504,7 +504,7 @@ menu_openVPN_installer() {
 }
 #_______________________________________________________________________________________________________________________________________
 menu_IPsec_L2TP_IKEv2() {
-    check_docker
+    check_docker_availability
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію для налаштування контейнера IPsec/L2TP, Cisco IPsec та IKEv2:\n"
