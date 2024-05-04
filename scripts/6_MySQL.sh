@@ -1,7 +1,6 @@
-#!/bin/bash
-
-# Функція для вибору та роботи з базами даних
-function manage_databases() {
+# shellcheck disable=SC2148
+# shellcheck disable=SC2154
+function 6_manage_docker_databases() {
     check_docker_availability
     while true; do
         echo -e "\nВиберіть дію:\n"

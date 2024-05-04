@@ -1,6 +1,6 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
-function 2_DDos() {
+function 3_DDos() {
     clear
     while true; do
         checkControlPanel
@@ -17,20 +17,20 @@ function 2_DDos() {
         read -p "Виберіть опцію (1/0): " choice
 
         case $choice in
-        1) 4_AnalysisRequestsOfNetworkInterface ;;
-        2) 4_repeatsOfNetworkInterface ;;
-        3) 4_viewInterfacePacks ;;
-        4) 4_blockIPs ;;
-        5) 4_blockIPsUsingIptables ;;
+        1) 3_AnalysisRequestsOfNetworkInterface ;;
+        2) 3_repeatsOfNetworkInterface ;;
+        3) 3_viewInterfacePacks ;;
+        4) 3_blockIPs ;;
+        5) 3_blockIPsUsingIptables ;;
         0) return ;;
         *) 0_invalid ;;
         esac
     done
 }
-function 4_viewInterfacePacks() {
+function 3_viewInterfacePacks() {
     tcpdump -i $selected_adapter 'not port 22'
 }
-function 4_AnalysisRequestsOfNetworkInterface() {
+function 3_AnalysisRequestsOfNetworkInterface() {
     clear
     while true; do
         checkControlPanel
@@ -57,7 +57,7 @@ function 4_AnalysisRequestsOfNetworkInterface() {
     done
 }
 
-function 4_repeatsOfNetworkInterface() {
+function 3_repeatsOfNetworkInterface() {
     clear
     while true; do
         checkControlPanel
@@ -77,7 +77,7 @@ function 4_repeatsOfNetworkInterface() {
     done
 }
 
-function 4_blockIPs() {
+function 3_blockIPs() {
     read -p "Введіть кількість запитів, що спричиняють блокування (за замовчуванням 100): " threshold
     threshold=${threshold:-100}
 
@@ -114,7 +114,7 @@ function 4_blockIPs() {
     done
 }
 
-4_createIptablesBackup() {
+3_createIptablesBackup() {
     backup_date=$(date +"%Y-%m-%d_%H-%M")
     backup_dir="/root/backup"
     backup_file="$backup_dir/iptables_backup_$backup_date"
@@ -129,8 +129,8 @@ function 4_blockIPs() {
     echo "Створено другий бекап iptables: $second_backup_file"
 }
 
-4_blockIPsUsingIptables() {
-    4_createIptablesBackup
+3_blockIPsUsingIptables() {
+    3_createIptablesBackup
     blocked_ips_file="blocked_IPs.log"
     iptables-save
     if [ -f "$blocked_ips_file" ]; then

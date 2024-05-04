@@ -1,6 +1,6 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
-function 4_FTP() {
+function 5_FTP() {
     check_docker_availability
     while true; do
         checkControlPanel

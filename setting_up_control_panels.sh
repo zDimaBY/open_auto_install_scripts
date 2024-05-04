@@ -25,10 +25,10 @@ urls=(
     "$URL_GITHUB/$REPO/$BRANCH/scripts/0_exit.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/1_list_install_programs.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/2_site_control_panel.sh"
-    "$URL_GITHUB/$REPO/$BRANCH/scripts/4_DDos.sh"
-    "$URL_GITHUB/$REPO/$BRANCH/scripts/5_VPN.sh"
-    "$URL_GITHUB/$REPO/$BRANCH/scripts/6_FTP.sh"
-    "$URL_GITHUB/$REPO/$BRANCH/scripts/7_MySQL.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/3_DDos.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/4_VPN.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/5_FTP.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/6_MySQL.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/functions_controller.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/hestiaCP_and_vestaCP_scripts/command/v-sys-change-ip"
 )
@@ -90,10 +90,10 @@ function selectionFunctions() {
         case $choice in
         1) 1_list_install_programs ;;
         2) 2_site_control_panel ;;
-        3) 2_DDos ;;
-        4) 3_VPN ;;
-        5) 4_FTP ;;
-        6) 5_DB ;;
+        3) 3_DDos ;;
+        4) 4_VPN ;;
+        5) 5_FTP ;;
+        6) 6_manage_docker_databases ;;
         0) 0_funExit ;;
         *) 0_invalid ;;
         esac

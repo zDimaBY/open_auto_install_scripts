@@ -1,6 +1,6 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
-function 3_VPN() {
+function 4_VPN() {
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
