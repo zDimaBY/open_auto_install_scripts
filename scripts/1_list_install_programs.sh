@@ -167,8 +167,8 @@ function 1_installRouterOSMikrotik() {
             cat <<EOF >/mnt/rw/autorun.scr
 /ip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1
 /ip route add dst-address=0.0.0.0/0 gateway=${gateway}
+/user set [find name=admin] password=${passwd_routeros}
 /ip service disable telnet
-/user set 0 name=root password=${passwd_routeros}
 EOF
             #/system package update install
             if [ $? -ne 0 ]; then

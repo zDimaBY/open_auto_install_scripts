@@ -76,7 +76,7 @@ function select_tag_and_install() {
         ;;
     *)
         echo "${RED}Помилка: Невідома база даних: $db_name${RESET}"
-        exit 1
+        return 1
         ;;
     esac
 
@@ -178,7 +178,7 @@ function start_container() {
         ;;
     *)
         echo -e "${RED}Помилка: Невідома база даних: $db_name${RESET}"
-        exit 1
+        return 1
         ;;
     esac
 }

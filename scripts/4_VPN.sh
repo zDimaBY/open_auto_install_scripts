@@ -119,7 +119,7 @@ list_x_ui_versions_install() {
         install_x_ui "$(curl -s https://api.github.com/repos/alireza0/x-ui/tags | jq -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9 | sed -n "${choice}p")"
     else
         echo "Неправильний вибір. Будь ласка, виберіть номер від 1 до 9."
-        exit 1
+        return 1
     fi
 
     echo -e "${YELLOW}\n\nВстановив X-UI на сервер. Для входу в панель адміністратора, використовуйте ці дані:${RESET}"
@@ -214,7 +214,7 @@ list_3x_ui_versions_install() {
         install_3x_ui "$version"
     else
         echo "Неправильний вибір. Будь ласка, виберіть номер від 1 до 9."
-        exit 1
+        return 1
     fi
 
     echo -e "${YELLOW}\n\nВстановив X-UI на сервер. Для входу в панель адміністратора, використовуйте ці дані:${RESET}"

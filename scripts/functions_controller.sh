@@ -158,7 +158,7 @@ check_docker_availability() {
             echo -e "\n${GREEN}Docker успішно встановлено.${RESET}"
         else
             echo -e "\n${RED}Встановлення Docker скасовано. Скрипт завершується.${RESET}"
-            exit 1
+            return 1
         fi
     fi
 
@@ -222,7 +222,7 @@ mask_to_cidr() { #cidr
     local cidr=$(echo -n "${binary}" | tr -d 0 | wc -c)
     if [ "$cidr" -eq 0 ]; then
         echo "Недійсна маска підмережі"
-        exit 1
+        return 1
     fi
     echo "${cidr}"
 }
@@ -264,12 +264,12 @@ get_selected_interface() { #hostname_ip selected_adapter mask gateway
     read -p "Введіть номер адаптера (від 1 до $count): " selected_index
     if ! [[ "$selected_index" =~ ^[0-9]+$ ]]; then
         echo "Помилка: Потрібно ввести число."
-        exit 1
+        return 1
     fi
 
     if ((selected_index < 1 || selected_index > count)); then
         echo "Помилка: Некоректний номер адаптера."
-        exit 1
+        return 1
     fi
 
     selected_adapter=$(echo "$adapters" | sed -n "${selected_index}p")
@@ -337,7 +337,7 @@ add_firewall_rule() {
 
     if [ "$success" -eq 0 ]; then
         echo "Помилка: файервол не встановлено або невідомий. Перевірте порт '$port' перед використанням"
-        exit 1
+        return 1
     fi
 }
 
@@ -387,7 +387,7 @@ remove_firewall_rule() {
 
     if [ "$success" -eq 0 ]; then
         echo "Помилка: файервол не встановлено або невідомий."
-        exit 1
+        return 1
     fi
 }
 
