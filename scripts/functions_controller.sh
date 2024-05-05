@@ -82,38 +82,50 @@ install_package() {
     local package_name=$1
 
     case $operating_system in
-        debian | ubuntu)
-            if [ ! -x "$(command -v $package_name)" ]; then
-                apt update && apt-get install -y $package_name || { echo "Не вдалося встановити $package_name."; return 1; }
-            else
-                echo "$package_name вже встановлено в системі."
-            fi
-            ;;
-        fedora)
-            if [ ! -x "$(command -v $package_name)" ]; then
-                dnf install -y $package_name || { echo "Не вдалося встановити $package_name."; return 1; }
-            else
-                echo "$package_name вже встановлено в системі."
-            fi
-            ;;
-        centos | oracle)
-            if [ ! -x "$(command -v $package_name)" ]; then
-                yum install -y $package_name || { echo "Не вдалося встановити $package_name."; return 1; }
-            else
-                echo "$package_name вже встановлено в системі."
-            fi
-            ;;
-        arch | sysrescue)
-            if [ ! -x "$(command -v $package_name)" ]; then
-                pacman -Syu --noconfirm $package_name || { echo "Не вдалося встановити $package_name."; return 1; }
-            else
-                echo "$package_name вже встановлено в системі."
-            fi
-            ;;
-        *)
-            echo "Не вдалося встановити $package_name. Спробуйте будь ласка, встановити його вручну."
-            return 1
-            ;;
+    debian | ubuntu)
+        if [ ! -x "$(command -v $package_name)" ]; then
+            apt update && apt-get install -y $package_name || {
+                echo "Не вдалося встановити $package_name."
+                return 1
+            }
+        else
+            echo "$package_name вже встановлено в системі."
+        fi
+        ;;
+    fedora)
+        if [ ! -x "$(command -v $package_name)" ]; then
+            dnf install -y $package_name || {
+                echo "Не вдалося встановити $package_name."
+                return 1
+            }
+        else
+            echo "$package_name вже встановлено в системі."
+        fi
+        ;;
+    centos | oracle)
+        if [ ! -x "$(command -v $package_name)" ]; then
+            yum install -y $package_name || {
+                echo "Не вдалося встановити $package_name."
+                return 1
+            }
+        else
+            echo "$package_name вже встановлено в системі."
+        fi
+        ;;
+    arch | sysrescue)
+        if [ ! -x "$(command -v $package_name)" ]; then
+            pacman -Syu --noconfirm $package_name || {
+                echo "Не вдалося встановити $package_name."
+                return 1
+            }
+        else
+            echo "$package_name вже встановлено в системі."
+        fi
+        ;;
+    *)
+        echo "Не вдалося встановити $package_name. Спробуйте будь ласка, встановити його вручну."
+        return 1
+        ;;
     esac
 }
 
@@ -430,7 +442,7 @@ remove_firewall_rule() {
     fi
 }
 
-# Генерація випадкових 16 символів 
+# Генерація випадкових 16 символів
 generate_random_part_16() {
     echo "$(head /dev/urandom | tr -dc 'a-z' | head -c 16)"
 }
@@ -447,7 +459,7 @@ trim_to_10() {
 # Функція для перевірки направлений домен на сервер
 check_domain() { # check_domain "example.com"
     domain="$1"
-    
+
     domain_ip=$(nslookup "$domain" | awk '/^Address: / { print $2 }')
 
     if [ "$domain_ip" == "$server_IP" ]; then
@@ -457,4 +469,72 @@ check_domain() { # check_domain "example.com"
         echo "Домен $domain не спрямований на цей сервер"
         return 1
     fi
+}
+
+# Функція для вибору диска та розділу
+select_disk_and_partition() {
+    # Виведення списку дисків та їх розділів
+    disks=($(fdisk -l | grep -o '^Disk /[^:]*' | cut -d ' ' -f 2))
+    for ((i = 0; i < ${#disks[@]}; i++)); do
+        echo "$(($i + 1)). ${disks[$i]}"
+        partitions=($(fdisk -l ${disks[$i]} | awk '$1 ~ /\/dev\/[a-z]+[0-9]+$/ {print $1}'))
+        for partition in "${partitions[@]}"; do
+            echo "   └─ ${partition}"
+        done
+    done
+
+    # Запит користувача на вибір диска
+    read -p "Оберіть диск: " disk_choice
+
+    # Перевірка на правильний ввід користувача
+    if ! [[ "$disk_choice" =~ ^[0-9]+$ ]]; then
+        echo "Невірний ввід. Будь ласка, введіть номер диска."
+        return 1
+    fi
+
+    # Перевірка на існування обраного диска
+    if ((disk_choice < 1 || disk_choice > ${#disks[@]})); then
+        echo "Невірний вибір. Будь ласка, виберіть правильний номер зі списку."
+        return 1
+    fi
+
+    selected_disk=${disks[$((disk_choice - 1))]}
+
+    # Виведення обраного диска
+    echo "Обраний диск: $selected_disk"
+
+    # Виведення списку розділів обраного диска
+    partitions=($(fdisk -l $selected_disk | grep -o '^/dev/[^[:space:]]*'))
+    if [ ${#partitions[@]} -eq 0 ]; then
+        echo "На цьому диску немає розділів."
+        selected_partition=$selected_disk
+    else
+        for ((i = 0; i < ${#partitions[@]}; i++)); do
+            echo "$(($i + 1)). ${partitions[$i]}"
+        done
+
+        # Запит користувача на вибір розділу
+        read -p "Оберіть розділ (або натисніть Enter, щоб пропустити): " partition_choice
+
+        if [[ -z "$partition_choice" ]]; then
+            selected_partition=$selected_disk
+        else
+            # Перевірка на правильний ввід користувача
+            if ! [[ "$partition_choice" =~ ^[0-9]+$ ]]; then
+                echo "Невірний ввід. Будь ласка, введіть номер розділу."
+                return 1
+            fi
+
+            # Перевірка на існування обраного розділу
+            if ((partition_choice < 1 || partition_choice > ${#partitions[@]})); then
+                echo "Невірний вибір. Будь ласка, виберіть правильний номер зі списку."
+                return 1
+            fi
+
+            selected_partition=${partitions[$((partition_choice - 1))]}
+        fi
+    fi
+
+    # Виведення обраного диска та розділу
+    echo "Обраний розділ: $selected_partition"
 }
