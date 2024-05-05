@@ -28,6 +28,7 @@ urls=(
     "$URL_GITHUB/$REPO/$BRANCH/scripts/4_VPN.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/5_FTP.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/6_MySQL.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/7_list_install_OS.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/functions_controller.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/hestiaCP_and_vestaCP_scripts/command/v-sys-change-ip"
 )
@@ -82,6 +83,7 @@ function selectionFunctions() {
         echo -e "4. Організування ${MAGENTA}VPN${RESET} серверів"
         echo -e "5. Організування ${BLUE}FTP${RESET} доступу ${RED}(test)${RESET}"
         echo -e "6. Організування ${MAGENTA}баз данних ${RED}(test)${RESET}"
+        echo -e "7. Встановлення ${YELLOW}операційних систем. ${GREEN}(Тільки через SystemRescueCD) ${RED}(test)${RESET}"
         echo -e "0. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
@@ -93,6 +95,7 @@ function selectionFunctions() {
         4) 4_VPN ;;
         5) 5_FTP ;;
         6) 6_manage_docker_databases ;;
+        7) 7_Installation_operating_systems ;;
         0) 0_funExit ;;
         *) 0_invalid ;;
         esac

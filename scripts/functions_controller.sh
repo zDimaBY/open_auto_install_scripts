@@ -42,7 +42,7 @@ function check_dependency() {
                 ;;
             arch | sysrescue)
                 pacman -Sy
-                pacman -S --noconfirm "$package_name"
+                pacman -Sy "$package_name"
                 ;;
             *)
                 echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
@@ -63,7 +63,7 @@ function check_dependency() {
                 yum install -y "$package_name"
                 ;;
             arch | sysrescue)
-                pacman -S --noconfirm "$package_name"
+                pacman -Sy "$package_name"
                 ;;
             *)
                 echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
@@ -76,6 +76,45 @@ function check_dependency() {
     else
         echo -e "${GREEN}$dependency_name вже встановлено.${RESET}"
     fi
+}
+
+install_package() {
+    local package_name=$1
+
+    case $operating_system in
+        debian | ubuntu)
+            if [ ! -x "$(command -v $package_name)" ]; then
+                apt update && apt-get install -y $package_name || { echo "Не вдалося встановити $package_name."; return 1; }
+            else
+                echo "$package_name вже встановлено в системі."
+            fi
+            ;;
+        fedora)
+            if [ ! -x "$(command -v $package_name)" ]; then
+                dnf install -y $package_name || { echo "Не вдалося встановити $package_name."; return 1; }
+            else
+                echo "$package_name вже встановлено в системі."
+            fi
+            ;;
+        centos | oracle)
+            if [ ! -x "$(command -v $package_name)" ]; then
+                yum install -y $package_name || { echo "Не вдалося встановити $package_name."; return 1; }
+            else
+                echo "$package_name вже встановлено в системі."
+            fi
+            ;;
+        arch | sysrescue)
+            if [ ! -x "$(command -v $package_name)" ]; then
+                pacman -Syu --noconfirm $package_name || { echo "Не вдалося встановити $package_name."; return 1; }
+            else
+                echo "$package_name вже встановлено в системі."
+            fi
+            ;;
+        *)
+            echo "Не вдалося встановити $package_name. Спробуйте будь ласка, встановити його вручну."
+            return 1
+            ;;
+    esac
 }
 
 checkControlPanel() {

@@ -111,7 +111,7 @@ function 1_installRouterOSMikrotik() {
     arch | sysrescue)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
             echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
-            pacman -S --noconfirm qemu-utils pv
+            pacman -Sy qemu-utils pv
         fi
         ;;
     *)
@@ -144,6 +144,24 @@ function 1_installRouterOSMikrotik() {
         if [ "$disk_number" -ge 1 ] && [ "$disk_number" -le "${#disks[@]}" ]; then
             selected_disk=${disks[$(($disk_number - 1))]}
             echo -e "Обраний диск: ${RED}${selected_disk}${RESET}"
+            case $operating_system in
+            sysrescue)
+                if grep '/mnt' /proc/mounts; then
+                    umount /mnt && echo "Виконав команду розмонтування."
+                fi
+                create_folder "/mnt/disk_vm"
+                if mount ${selected_disk} /mnt/disk_vm && cd /mnt/disk_vm; then
+                    echo "Диск ${selected_disk} змонтовано."
+                else
+                    echo -e "${RED}Не вдалося монтувати диск ${selected_disk}.${RESET}"
+                    return 1
+                fi
+                ;;
+            *)
+                echo -e "${RED}Не вдалося встановити RouterOS Mikrotik. Будь ласка, встановіть його вручну.${RESET}"
+                return 1
+                ;;
+            esac
             wget https://download.mikrotik.com/routeros/${version_routeros}/chr-${version_routeros}.img.zip -O chr.img.zip
             if [ $? -ne 0 ]; then
                 echo -e "${RED}Помилка $?:${RESET} не вдалося завантажити файл chr.img.zip."
@@ -158,14 +176,15 @@ function 1_installRouterOSMikrotik() {
             qemu-img resize chr.qcow2 1073741824 && sleep "$delay_command" # Розширюєм образ диска до 1G
             modprobe nbd && qemu-nbd -c /dev/nbd0 chr.qcow2 && sleep "$delay_command"
             sleep 2 && partprobe /dev/nbd0 && sleep 5
-            mount /dev/nbd0p2 /mnt
+            create_folder "/mnt/image_vm"
+            mount /dev/nbd0p2 /mnt/image_vm
 
             # Отримання налаштувань мережі ip, mask, gateway
             get_public_interface
             #date_start_install=$(date)
 
             # Налаштування мережі та інших параметрів
-            cat <<EOF >/mnt/rw/autorun.scr
+            cat <<EOF >/mnt/image_vm/rw/autorun.scr
 /ip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1
 /ip route add dst-address=0.0.0.0/0 gateway=${gateway}
 /user set [find name=admin] password=${passwd_routeros}
@@ -177,7 +196,7 @@ EOF
             fi
 
             # Розмонтування образу
-            umount /mnt && sleep "$delay_command"
+            umount /mnt/image_vm && sleep "$delay_command"
 
             # Створення нового розділу
             echo -e 'd\n2\nn\np\n2\n65537\n\nw\n' | fdisk /dev/nbd0 && sleep "$delay_command"
@@ -186,14 +205,14 @@ EOF
             e2fsck -f -y /dev/nbd0p2 || true && resize2fs /dev/nbd0p2 && sleep "$delay_command"
 
             # Копіювання образу та збереження його на тимчасове сховище
-            pv /dev/nbd0 | gzip >/mnt/chr-extended.gz && sleep "$delay_command"
+            pv /dev/nbd0 | gzip >/mnt/image_vm/chr-extended.gz && sleep "$delay_command"
 
             # Завершення роботи qemu-nbd
             killall qemu-nbd && sleep "$delay_command"
             echo u >/proc/sysrq-trigger && sleep "$delay_command"
 
             # Розпакування образу та копіювання його на пристрій ${selected_disk}
-            zcat /mnt/chr-extended.gz | pv >${selected_disk} && sleep 10 || true
+            zcat /mnt/image_vm/chr-extended.gz | pv >${selected_disk} && sleep 10 || true
 
             #echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
             echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
@@ -307,18 +326,24 @@ EOF
 }
 
 1_installNginxProxyServer() {
-
     read -p "Введіть ІР-адресу сервера на який будуть надходити запити через цей $server_IP сервер:" proxy_address
+    install_package "nginx"
 
-    # Перевірити, чи встановлений nginx
-    if [ ! -x "$(command -v nginx)" ]; then
-        # Оновити список пакетів та встановити nginx
-        apt update && apt-get install -y nginx
+    nginx_conf="/etc/nginx/nginx.conf"
+
+    if [ ! -f "$nginx_conf" ]; then
+        echo "Файл nginx.conf не знайдено в шляху $nginx_conf"
+        return 1
     fi
 
-    ssl_dir="/etc/nginx/ssl"
-    if [ ! -d "$ssl_dir" ]; then
-        mkdir -p "$ssl_dir"
+    create_folder "/etc/nginx/ssl"
+    create_folder "/etc/nginx/conf.d"
+
+    if grep -q "include /etc/nginx/conf.d/\*.conf;" "$nginx_conf"; then
+        echo "Директива для зчитування конфігурацій з папки /etc/nginx/conf.d вже присутня у файлі nginx.conf"
+    else
+        sed -i '/}/i include /etc/nginx/conf.d/*.conf;' "$nginx_conf"
+        echo "Додано директиву для зчитування конфігурацій з папки /etc/nginx/conf.d у файл nginx.conf"
     fi
 
     # Створити SSL-сертифікат та приватний ключ, якщо вони відсутні
