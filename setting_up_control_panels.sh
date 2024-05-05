@@ -8,7 +8,6 @@ BLUE="\e[34m"
 MAGENTA="\e[35m"
 CYAN="\e[36m"
 WHITE="\e[37m"
-lIGHT_GREEN="\e[92m"
 BROWN='\033[0;33m'
 RESET="\e[0m"
 

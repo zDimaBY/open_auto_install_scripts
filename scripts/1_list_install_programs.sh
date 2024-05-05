@@ -75,6 +75,9 @@ function 1_installComposer() {
 }
 
 function 1_installRouterOSMikrotik() {
+    echo -e "Бажаєте встановити систему RouterOS від MikroTik? ${RED}Після цієї операції диск буде перезаписаний${RESET}"
+    read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (y/n): " answer
+    
     case $operating_system in
     debian | ubuntu)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
@@ -116,8 +119,6 @@ function 1_installRouterOSMikrotik() {
         return 1
         ;;
     esac
-    echo -e "Бажаєте встановити систему RouterOS від MikroTik? ${RED}Після цієї операції диск буде перезаписаний${RESET}"
-    read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (y/n): " answer
 
     if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
         echo -e "${GREEN}Встановлення системи RouterOS... https://mikrotik.com/download${RESET}"
@@ -167,7 +168,7 @@ function 1_installRouterOSMikrotik() {
 /ip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1
 /ip route add dst-address=0.0.0.0/0 gateway=${gateway}
 /ip service disable telnet
-/user set 0 name=admin password=${passwd_routeros}
+/user set 0 name=root password=${passwd_routeros}
 EOF
             #/system package update install
             if [ $? -ne 0 ]; then

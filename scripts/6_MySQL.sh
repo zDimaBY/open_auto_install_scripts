@@ -83,8 +83,11 @@ function select_tag_and_install() {
     echo -e "\n${BLUE}latest${RESET}: Цей тег вказує на найновішу версію образу, доступну на Docker Hub."
     echo -e "${YELLOW}oraclelinux8${RESET}: Це означає, що образ побудований на базі Oracle Linux 8."
     echo -e "${GREEN}lts${RESET}: LTS означає Long-Term Support, це для версій з довгостроковою підтримкою."
-    echo -e "${LIGHT_GREEN}8.0.37-debian${RESET}, ${LIGHT_GREEN}8.0.37-bookworm${RESET}, ${LIGHT_GREEN}8.0.37-oraclelinux8${RESET}: Ці теги вказують на версії MySQL, побудовані на конкретних операційних системах (наприклад, Debian, Oracle Linux 8)."
+    echo -e "${GREEN}----------------------------------------------------------------------------${RESET}"
+    echo -e "${GREEN}8.0.37-debian${RESET}, ${GREEN}8.0.37-bookworm${RESET}, ${GREEN}8.0.37-oraclelinux8${RESET},\nтакож в інших базах jammy та focal - це назви версій операційних систем Ubuntu. Вони вказують на те, для якої версії операційної системи побудовані образи Mariadb. \nЦі теги вказують на версії MySQL, побудовані на конкретних операційних системах (наприклад, Debian, Oracle Linux, Ubuntu)."
+    echo -e "${GREEN}----------------------------------------------------------------------------${RESET}"
     echo -e "${RED}innovation${RESET}: Це спеціальна версія з новими функціями або експериментальні версії.\n"
+    echo -e "${RED}11.3-rc-jammy, 11.3-rc${RESET}: це для версій, що перебувають у стадії реліз-кандидатів (RC), тобто перед остаточним релізом."
 
     echo "Виберіть образ для встановлення:"
     select tag in "${tags[@]}"; do
@@ -158,12 +161,12 @@ function start_container() {
     "mariadb")
         docker pull mariadb:"$tag"
         docker run --name mariadb-container-"$tag" -e MYSQL_ROOT_PASSWORD="$password" -p "$listen_address:$port":3306 -d mariadb:"$tag"
-        echo -e "\n\nmariadb:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h $listen_address -P $port -u root -p\nПароль: $password\n\n"
+        echo -e "\n\nmariadb:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h $server_IP -P $port -u root -p\nПароль: $password\n\n"
         ;;
     "mysql")
         docker pull mysql:"$tag"
         docker run --name mysql-container-"$tag" -e MYSQL_ROOT_PASSWORD="$password" -p "$listen_address:$port":3306 -d mysql:"$tag"
-        echo -e "\n\nmysql:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h $listen_address -P $port -u root -p\nПароль: $password\n\n"
+        echo -e "\n\nmysql:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h $server_IP -P $port -u root -p\nПароль: $password\n\n"
         ;;
     "mongodb")
         docker pull mongo:"$tag"

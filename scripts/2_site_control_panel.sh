@@ -296,7 +296,7 @@ function 2_updateIoncube() {
         echo $HTACCESS_CONTENT >.htaccess
         echo -e "${YELLOW}Створено файл .htaccess.${RESET}"
     else
-        echo -e "${lIGHT_GREEN}Файл .htaccess вже існує.${RESET}"
+        echo -e "${GREEN}Файл .htaccess вже існує.${RESET}"
     fi
 
     # Встановлюємо права доступу
@@ -328,7 +328,7 @@ function 2_updateIoncube() {
     #wp plugin install назва_плагіна
     #wp plugin activate назва_плагіна
 
-    echo -e "\n\n${lIGHT_GREEN}Wordpress встановлено: http://${WP_SITE_DOMEN}/wp-login.php${RESET}"
+    echo -e "\n\n${GREEN}Wordpress встановлено: http://${WP_SITE_DOMEN}/wp-login.php${RESET}"
     echo -e "Логін: ${WP_USER}"
     echo -e "Пароль: ${SITE_PASSWORD}\n\n"
 }
