@@ -7,7 +7,7 @@ function check_dependency() {
     if [[ -e /etc/os-release ]]; then
         source /etc/os-release
         case "$ID" in
-        debian | ubuntu | fedora | centos | oracle | arch)
+        debian | ubuntu | fedora | centos | oracle | arch | sysrescue)
             operating_system="$ID"
             ;;
         *)
@@ -40,7 +40,7 @@ function check_dependency() {
                 yum install epel-release -y
                 yum install -y "$package_name"
                 ;;
-            arch)
+            arch | sysrescue)
                 pacman -Sy
                 pacman -S --noconfirm "$package_name"
                 ;;
@@ -62,7 +62,7 @@ function check_dependency() {
             centos | oracle)
                 yum install -y "$package_name"
                 ;;
-            arch)
+            arch | sysrescue)
                 pacman -S --noconfirm "$package_name"
                 ;;
             *)

@@ -285,7 +285,7 @@ install_wg_easy() {
             dnf install epel-release kernel-modules-extra qrencode
         fi
         ;;
-    arch) ;;
+    arch | sysrescue) ;;
     *)
         echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
         return 1
@@ -365,7 +365,7 @@ install_wireguard_scriptLocal() {
     debian | ubuntu) ;;
     fedora) ;;
     centos | oracle) ;;
-    arch) ;;
+    arch | sysrescue) ;;
     *)
         echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
         return 1
@@ -442,7 +442,7 @@ avtoInstall_openVPN() {
     debian | ubuntu) ;;
     fedora) ;;
     centos | oracle) ;;
-    arch) ;;
+    arch | sysrescue) ;;
     *)
         echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
         return 1

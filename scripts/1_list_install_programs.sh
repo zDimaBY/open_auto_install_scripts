@@ -48,7 +48,7 @@ function 1_installComposer() {
             yum install php-cli
         fi
         ;;
-    arch)
+    arch | sysrescue)
         if ! command -v php &>/dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
             pacman -S php
@@ -77,7 +77,7 @@ function 1_installComposer() {
 function 1_installRouterOSMikrotik() {
     echo -e "Бажаєте встановити систему RouterOS від MikroTik? ${RED}Після цієї операції диск буде перезаписаний${RESET}"
     read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (y/n): " answer
-    
+
     case $operating_system in
     debian | ubuntu)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
@@ -108,10 +108,10 @@ function 1_installRouterOSMikrotik() {
             fi
         fi
         ;;
-    arch)
+    arch | sysrescue)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
             echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
-            pacman -S qemu-utils pv
+            pacman -S --noconfirm qemu-utils pv
         fi
         ;;
     *)
@@ -134,7 +134,8 @@ function 1_installRouterOSMikrotik() {
         echo -e "\nСписок дисків:"
         disks=($(fdisk -l | grep -o '^Disk /[^:]*' | cut -d ' ' -f 2))
         for ((i = 0; i < ${#disks[@]}; i++)); do
-            echo "$(($i + 1)). ${disks[$i]}"
+            disk_size=$(fdisk -l ${disks[$i]} | grep "Disk ${disks[$i]}" | awk '{print $3, $4}')
+            echo "$(($i + 1)). ${disks[$i]} - ${disk_size}"
         done
         read -p "Виберіть диск (1-${#disks[@]}): " disk_number
         generate_random_password_show
@@ -145,7 +146,7 @@ function 1_installRouterOSMikrotik() {
             echo -e "Обраний диск: ${RED}${selected_disk}${RESET}"
             wget https://download.mikrotik.com/routeros/${version_routeros}/chr-${version_routeros}.img.zip -O chr.img.zip
             if [ $? -ne 0 ]; then
-                echo -e "${RED}Помилка $?:${RESET} не вдалося завантажити файл chr.img.zip. Вихід зі скрипта."
+                echo -e "${RED}Помилка $?:${RESET} не вдалося завантажити файл chr.img.zip."
                 return 1
             fi
             gunzip -c chr.img.zip >chr.img
@@ -281,7 +282,7 @@ EOF
         echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
 
         ;;
-    arch)
+    arch | sysrescue)
         echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
 
         ;;
@@ -306,31 +307,34 @@ EOF
 }
 
 1_installNginxProxyServer() {
-    
-read -p "Введіть ІР-адресу сервера на який будуть надходити запити через цей $server_IP сервер:" proxy_address
 
-# Перевірити, чи встановлений nginx
-if [ ! -x "$(command -v nginx)" ]; then
-    # Оновити список пакетів та встановити nginx
-    apt update && apt-get install -y nginx
-fi
+    read -p "Введіть ІР-адресу сервера на який будуть надходити запити через цей $server_IP сервер:" proxy_address
 
-ssl_dir="/etc/nginx/ssl"
-if [ ! -d "$ssl_dir" ]; then
-    mkdir -p "$ssl_dir"
-fi
+    # Перевірити, чи встановлений nginx
+    if [ ! -x "$(command -v nginx)" ]; then
+        # Оновити список пакетів та встановити nginx
+        apt update && apt-get install -y nginx
+    fi
 
-# Створити SSL-сертифікат та приватний ключ, якщо вони відсутні
-if [ ! -f "$ssl_dir/certificate.crt" ] || [ ! -f "$ssl_dir/privatekey.key" ]; then
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout "$ssl_dir/privatekey.key" -out "$ssl_dir/certificate.crt" \
-    -subj "/C=NL/ST=North Holland/L=Amsterdam/O=MyCompany/OU=IT Department/CN=example.com/emailAddress=admin@example.com"
-fi
+    ssl_dir="/etc/nginx/ssl"
+    if [ ! -d "$ssl_dir" ]; then
+        mkdir -p "$ssl_dir"
+    fi
 
-nginx_conf="/etc/nginx/conf.d/default.conf"
-if [ -f "$nginx_conf" ]; then
-    for file in /etc/nginx/conf.d/*.conf; do echo -e "${GREEN}File: ${RED}$file${GREEN} ------------------------------------------------------------------${RESET}"; cat "$file"; done
-    read -p "Файл '$nginx_conf' вже існує. Бажаєте перезаписати його? (y/n): " overwrite_conf
-    [[ "$overwrite_conf" =~ ^[Yy]$ ]] && echo "Записуємо конфігурацію..." && cat <<EOF > "$nginx_conf"
+    # Створити SSL-сертифікат та приватний ключ, якщо вони відсутні
+    if [ ! -f "$ssl_dir/certificate.crt" ] || [ ! -f "$ssl_dir/privatekey.key" ]; then
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout "$ssl_dir/privatekey.key" -out "$ssl_dir/certificate.crt" \
+            -subj "/C=NL/ST=North Holland/L=Amsterdam/O=MyCompany/OU=IT Department/CN=example.com/emailAddress=admin@example.com"
+    fi
+
+    nginx_conf="/etc/nginx/conf.d/default.conf"
+    if [ -f "$nginx_conf" ]; then
+        for file in /etc/nginx/conf.d/*.conf; do
+            echo -e "${GREEN}File: ${RED}$file${GREEN} ------------------------------------------------------------------${RESET}"
+            cat "$file"
+        done
+        read -p "Файл '$nginx_conf' вже існує. Бажаєте перезаписати його? (y/n): " overwrite_conf
+        [[ "$overwrite_conf" =~ ^[Yy]$ ]] && echo "Записуємо конфігурацію..." && cat <<EOF >"$nginx_conf"
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -360,9 +364,9 @@ server {
     }
 }
 EOF
-else
-    echo "Створюємо новий файл конфігурації..."
-    cat <<EOF > "$nginx_conf"
+    else
+        echo "Створюємо новий файл конфігурації..."
+        cat <<EOF >"$nginx_conf"
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -392,14 +396,14 @@ server {
     }
 }
 EOF
-fi
+    fi
 
-nginx -t
-# Перезапустити nginx, якщо конфігурація коректна
-if [ $? -eq 0 ]; then
-    systemctl restart nginx
-else
-    echo "Помилка: конфігурація nginx некоректна. Перевірте конфігураційний файл."
-fi
+    nginx -t
+    # Перезапустити nginx, якщо конфігурація коректна
+    if [ $? -eq 0 ]; then
+        systemctl restart nginx
+    else
+        echo "Помилка: конфігурація nginx некоректна. Перевірте конфігураційний файл."
+    fi
 
 }
