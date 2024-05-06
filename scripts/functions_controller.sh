@@ -342,6 +342,18 @@ total_free_swap_end_ram() {
     free_swap_end_ram_gb=$((free_swap_end_ram / 1024))
 }
 
+# Функція для виведння розміру обраного диска або розділа
+calculate_size() {
+    local device=$1
+    local size=$(lsblk -b $device | awk 'END {print int($4/1024/1024)}')
+
+    if ((size > 1024)); then
+        echo -e "${YELLOW}$((size / 1024)) GB${RESET}"
+    else
+        echo -e "${YELLOW}$size MB${RESET}"
+    fi
+}
+
 # Функція для додавання правил файерволу або iptables, add_firewall_rule 80
 add_firewall_rule() {
     local port="$1"
@@ -476,10 +488,10 @@ select_disk_and_partition() {
     # Виведення списку дисків та їх розділів
     disks=($(fdisk -l | grep -o '^Disk /[^:]*' | cut -d ' ' -f 2))
     for ((i = 0; i < ${#disks[@]}; i++)); do
-        echo "$(($i + 1)). ${disks[$i]}"
+        echo "$(($i + 1)). ${disks[$i]} - $(calculate_size ${disks[$i]})"
         partitions=($(fdisk -l ${disks[$i]} | awk '$1 ~ /\/dev\/[a-z]+[0-9]+$/ {print $1}'))
         for partition in "${partitions[@]}"; do
-            echo "   └─ ${partition}"
+            echo "   └─ ${partition} - $(calculate_size ${partition})"
         done
     done
 
@@ -501,7 +513,7 @@ select_disk_and_partition() {
     selected_disk=${disks[$((disk_choice - 1))]}
 
     # Виведення обраного диска
-    echo "Обраний диск: $selected_disk"
+    echo "Обраний диск: $selected_disk ($(calculate_size $selected_disk))"
 
     # Виведення списку розділів обраного диска
     partitions=($(fdisk -l $selected_disk | grep -o '^/dev/[^[:space:]]*'))
@@ -510,7 +522,7 @@ select_disk_and_partition() {
         selected_partition=$selected_disk
     else
         for ((i = 0; i < ${#partitions[@]}; i++)); do
-            echo "$(($i + 1)). ${partitions[$i]}"
+            echo "$(($i + 1)). ${partitions[$i]} - $(calculate_size ${partitions[$i]})"
         done
 
         # Запит користувача на вибір розділу
@@ -536,5 +548,5 @@ select_disk_and_partition() {
     fi
 
     # Виведення обраного диска та розділу
-    echo "Обраний розділ: $selected_partition"
+    echo "Обраний розділ: $selected_partition ($(calculate_size $selected_partition))"
 }
