@@ -30,71 +30,29 @@ function 7_Installation_operating_systems() {
 }
 
 function 7_installRouterOSMikrotik() {
-    echo -e "Бажаєте встановити систему RouterOS від MikroTik? ${RED}Після цієї операції диск буде перезаписаний${RESET}"
+    echo -e "${RED}Бажаєте встановити систему RouterOS від MikroTik? Після цієї операції диск буде перезаписаний${RESET}"
     read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (y/n): " answer
-
-    case $operating_system in
-    debian | ubuntu)
-        if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
-            echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
-            apt install -y qemu-utils pv
-        fi
-        ;;
-    fedora)
-        if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
-            echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
-            dnf install -y qemu-img pv nbd libaio
-        fi
-        ;;
-    centos | oracle)
-        if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
-            echo -e "${RED}qemu-img або pv не знайдено. Встановлюємо...${RESET}"
-            yum install -y qemu-img pv nbd libaio
-            if modprobe nbd &>/dev/null; then
-                echo "Модуль nbd успішно завантажено"
-            else
-                echo -e "${RED}Помилка:${RESET} модуль nbd, у ядрі ${YELLOW}$(uname -r)${RESET} системи ${RED}${NAME} ${VERSION}${RESET} не увімкнено."
-                echo "Скористайтеся інструкціями та повторіть спробу:"
-                echo "https://blog.csdn.net/lv0918_qian/article/details/117651096"
-                echo "https://gist.github.com/Thodorhs/76edc2acd4d89bbb0b4d2cd4908fec97 - Перезбір модулів ядра може зайняти понад 2 години."
-                echo -e "Також вам знадобляться пакети: yum install gcc ncurses ncurses-devel elfutils-libelf-devel openssl-devel kernel-devel kernel-headers\n\n"
-                echo -e "Ви можите встановти CentOS 8, ubuntu 20.04, Debian 11 і вище, щоб виконати встановлення корректно\n\n"
-                return 1
-            fi
-        fi
-        ;;
-    arch | sysrescue)
-        if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
-            echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
-            pacman -Sy qemu-utils pv
-        fi
-        ;;
-    *)
-        echo -e "${RED}Не вдалося встановити RouterOS Mikrotik. Будь ласка, встановіть його вручну.${RESET}"
-        return 1
-        ;;
-    esac
-
     if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
         echo -e "${GREEN}Встановлення системи RouterOS... https://mikrotik.com/download${RESET}"
         read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.14): " version_routeros
         version_routeros=${version_routeros:-7.14}
     elif [[ "$answer" =~ ^[Nn]o?$ ]]; then
-        echo "Відмінено користувачем."
+        echo -e "Відмінено користувачем."
         return 1
     else
-        echo "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
+        echo -e "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
     fi
-
-    if [[ ! $version_routeros =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-        echo "Помилка: Введено неправильне значення версії. Будь ласка, введіть числове значення (наприклад 7.12, 7.14)."
-        echo "Для посилання: https://download.mikrotik.com/routeros/${version_routeros}/chr-${version_routeros}.img.zip."
-        return 1
-    fi
-
+    echo -e "${RED}Вам потрібно обрати лише диск, вибір розділів пропустити.${RESET}"
     select_disk_and_partition
+    generate_random_password_show
+    read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
     case $operating_system in
     sysrescue)
+        if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
+            echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
+            pacman -Sy qemu-utils pv
+        fi
+
         if grep '/mnt' /proc/mounts; then
             umount /mnt && echo "Виконав команду розмонтування."
         fi
@@ -140,7 +98,9 @@ function 7_installRouterOSMikrotik() {
 /ip service disable telnet
 EOF
     #/system package update install
-    if [ $? -ne 0 ]; then
+    if [ -z "$passwd_routeros" ]; then
+        passwd_routeros="не заданий"
+    elif [ -z "$(echo "$passwd_routeros" | tr -d '[:space:]')" ]; then
         passwd_routeros="не заданий"
     fi
 

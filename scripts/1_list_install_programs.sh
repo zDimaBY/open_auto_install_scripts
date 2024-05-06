@@ -82,11 +82,12 @@ function 1_installRouterOSMikrotik() {
         read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.14): " version_routeros
         version_routeros=${version_routeros:-7.14}
     elif [[ "$answer" =~ ^[Nn]o?$ ]]; then
-        echo "Відмінено користувачем."
+        echo -e "Відмінено користувачем."
         return 1
     else
-        echo "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
+        echo  -e "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
     fi
+    echo  -e "${RED}Вам потрібно обрати лише диск, вибір розділів пропустити.${RESET}"
     select_disk_and_partition
     generate_random_password_show
     read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
