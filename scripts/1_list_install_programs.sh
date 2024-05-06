@@ -75,9 +75,21 @@ function 1_installComposer() {
 }
 
 function 1_installRouterOSMikrotik() {
-    echo -e "Бажаєте встановити систему RouterOS від MikroTik? ${RED}Після цієї операції диск буде перезаписаний${RESET}"
+    echo -e "${RED}Бажаєте встановити систему RouterOS від MikroTik? Після цієї операції диск буде перезаписаний${RESET}"
     read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (y/n): " answer
-
+    if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
+        echo -e "${GREEN}Встановлення системи RouterOS... https://mikrotik.com/download${RESET}"
+        read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.14): " version_routeros
+        version_routeros=${version_routeros:-7.14}
+    elif [[ "$answer" =~ ^[Nn]o?$ ]]; then
+        echo "Відмінено користувачем."
+        return 1
+    else
+        echo "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
+    fi
+    select_disk_and_partition
+    generate_random_password_show
+    read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
     case $operating_system in
     debian | ubuntu)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
@@ -120,24 +132,12 @@ function 1_installRouterOSMikrotik() {
         ;;
     esac
 
-    if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
-        echo -e "${GREEN}Встановлення системи RouterOS... https://mikrotik.com/download${RESET}"
-        read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.14): " version_routeros
-        version_routeros=${version_routeros:-7.14}
-    elif [[ "$answer" =~ ^[Nn]o?$ ]]; then
-        echo "Відмінено користувачем."
-        return 1
-    else
-        echo "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
-    fi
-
     if [[ ! $version_routeros =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
         echo "Помилка: Введено неправильне значення версії. Будь ласка, введіть числове значення (наприклад 7.12, 7.14)."
         echo "Для посилання: https://download.mikrotik.com/routeros/${version_routeros}/chr-${version_routeros}.img.zip."
         return 1
     fi
 
-    select_disk_and_partition
     echo -e "Обраний диск: ${RED}${selected_partition}${RESET}"
     wget https://download.mikrotik.com/routeros/${version_routeros}/chr-${version_routeros}.img.zip -O chr.img.zip
     if [ $? -ne 0 ]; then
@@ -167,9 +167,6 @@ function 1_installRouterOSMikrotik() {
 /ip service disable telnet
 EOF
     #/system package update install
-    if [ $? -ne 0 ]; then
-        passwd_routeros="не заданий"
-    fi
 
     # Розмонтування образу
     umount /mnt && sleep "$delay_command"
