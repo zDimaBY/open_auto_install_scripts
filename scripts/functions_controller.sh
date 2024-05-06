@@ -148,7 +148,7 @@ checkControlPanel() {
     echo -e "Load Average: $load_average Disk Usage: $disk_usage"
 
     server_hostname=$(hostname)
-    server_IP=$(hostname -I | awk '{print $1}')
+    server_IP=$(hostname -i | awk '{print $1}')
     echo -e "Hostname:${GREEN}$server_hostname${RESET} IP: $server_IP version script: $LAST_COMMIT"
 
     case $operating_system in
@@ -206,7 +206,6 @@ check_docker_availability() {
             echo -e "${YELLOW}Встановлення Docker...${RESET}"
             curl -fsSL https://get.docker.com | sh
             sudo usermod -aG docker "$(whoami)"
-            echo -e "\n${GREEN}Docker успішно встановлено.${RESET}"
         else
             echo -e "\n${RED}Встановлення Docker скасовано. Скрипт завершується.${RESET}"
             return 1
@@ -217,10 +216,13 @@ check_docker_availability() {
     local active_status=""
     # Перевіряємо, чи Docker запущений
     if [ "$docker_status" != "active" ]; then
-        echo -e "\n${RED}Docker не запущений.${RESET}"
-        echo -e "${YELLOW}Запуск Docker...${RESET}"
-        sudo systemctl start docker
-        echo -e "\n${GREEN}Docker успішно запущений.${RESET}"
+        echo -e "\n${RED}Docker не запущений. Запуск Docker...${RESET}"
+        if sudo systemctl start docker; then
+            echo "Команда sudo systemctl start docker виконана успішно."
+        else
+            echo "Помилка: Неможливо виконати команду sudo systemctl start docker."
+            return 1
+        fi
         active_status=$(systemctl status docker | grep "Active:")
     else
         active_status=$(systemctl status docker | grep "Active:")
@@ -278,19 +280,19 @@ mask_to_cidr() { #cidr
     echo "${cidr}"
 }
 
-get_public_interface() { #hostname_ip selected_adapter mask gateway
-    hostname_ip=$(hostname -I | awk '{print $1}')
+get_public_interface() { #server_IP selected_adapter mask gateway
+    server_IP=$(hostname -i | awk '{print $1}')
     adapters=$(ip addr show | grep "^[0-9]" | awk '{print $2}' | sed 's/://')
     selected_adapter=""
     for adapter in $adapters; do
         adapter_ip=$(ip addr show dev "$adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f1)
-        if [ "$adapter_ip" == "$hostname_ip" ]; then
+        if [ "$adapter_ip" == "$server_IP" ]; then
             selected_adapter="$adapter"
             break
         fi
     done
     if [ -z "$selected_adapter" ]; then
-        echo "Не вдалося знайти адаптер з IP-адресою, яка відповідає результату команди hostname -I: $hostname_ip"
+        echo "Не вдалося знайти адаптер з IP-адресою, яка відповідає результату команди hostname -i: $server_IP"
         selected_adapter="none"
         mask="xx"
         gateway="xxx.xxx.xxx.xxx"
@@ -300,7 +302,7 @@ get_public_interface() { #hostname_ip selected_adapter mask gateway
     fi
 }
 
-get_selected_interface() { #hostname_ip selected_adapter mask gateway
+get_selected_interface() { #server_IP selected_adapter mask gateway
     adapters=$(ip addr show | grep "^[0-9]" | awk '{print $2}' | sed 's/://')
     echo "Виберіть доступний мережеви адаптер:"
     count=0

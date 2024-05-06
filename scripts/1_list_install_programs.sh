@@ -32,26 +32,26 @@ function 1_installComposer() {
     debian | ubuntu)
         if ! command -v php &>/dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            apt-get install php-cli
+            install_package php-cli
         fi
         ;;
     fedora)
         if ! command -v php &>/dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            dnf install php-cli
+            install_package php-cli
         fi
         ;;
     centos | oracle)
         if ! command -v php &>/dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            yum install epel-release
-            yum install php-cli
+            install_package epel-release
+            install_package php-cli
         fi
         ;;
     arch | sysrescue)
         if ! command -v php &>/dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            pacman -S php
+            install_package php
         fi
         ;;
     *)
@@ -85,9 +85,9 @@ function 1_installRouterOSMikrotik() {
         echo -e "Відмінено користувачем."
         return 1
     else
-        echo  -e "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
+        echo -e "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
     fi
-    echo  -e "${RED}Вам потрібно обрати лише диск, вибір розділів пропустити.${RESET}"
+    echo -e "${RED}Вам потрібно обрати лише диск, вибір розділів пропустити.${RESET}"
     select_disk_and_partition
     generate_random_password_show
     read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
@@ -121,14 +121,14 @@ function 1_installRouterOSMikrotik() {
             fi
         fi
         ;;
-    arch | sysrescue)
+    arch)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
             echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
             pacman -Sy qemu-utils pv
         fi
         ;;
     *)
-        echo -e "${RED}Не вдалося встановити RouterOS Mikrotik. Будь ласка, встановіть його вручну.${RESET}"
+        echo -e "${RED}Не вдалося встановити RouterOS Mikrotik. Не підтримувана система $operating_system. Будь ласка, встановіть його вручну.${RESET}"
         return 1
         ;;
     esac
@@ -162,7 +162,7 @@ function 1_installRouterOSMikrotik() {
 
     # Налаштування мережі та інших параметрів
     cat <<EOF >/mnt/rw/autorun.scr
-/ip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1
+/ip address add address=${server_IP}/${mask} network=${gateway} interface=ether1
 /ip route add dst-address=0.0.0.0/0 gateway=${gateway}
 /user set [find name=admin] password=${passwd_routeros}
 /ip service disable telnet
@@ -189,9 +189,9 @@ EOF
     zcat /mnt/chr-extended.gz | pv >${selected_partition} && sleep 10 || true
 
     #echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
-    echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${hostname_ip}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
+    echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${server_IP}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
     echo -e "\nВиконайте наступні команди, якщо мережа не налаштована:"
-    echo -e "ip address add address=${hostname_ip}/${mask} network=${gateway} interface=ether1"
+    echo -e "ip address add address=${server_IP}/${mask} network=${gateway} interface=ether1"
     echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
     echo -e "Перевірте мережу: \nping ${gateway} \nping 8.8.8.8"
 
@@ -265,7 +265,7 @@ EOF
         echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
 
         ;;
-    arch | sysrescue)
+    arch)
         echo -e "${RED}Функція не реалізована... \nhttps://www.elastic.co/guide/en/elasticsearch/reference/8.13/rpm.html \nhttps://www.elastic.co/guide/en/elasticsearch/reference/7.17/rpm.html${RESET}"
 
         ;;
@@ -306,8 +306,43 @@ EOF
     if grep -q "include /etc/nginx/conf.d/\*.conf;" "$nginx_conf"; then
         echo "Директива для зчитування конфігурацій з папки /etc/nginx/conf.d вже присутня у файлі nginx.conf"
     else
-        sed -i '/}/i include /etc/nginx/conf.d/*.conf;' "$nginx_conf"
-        echo "Додано директиву для зчитування конфігурацій з папки /etc/nginx/conf.d у файл nginx.conf"
+        cp $nginx_conf $nginx_conf.original_baskup
+        cat <<EOF >"$nginx_conf"
+worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include mime.types;
+    default_type application/octet-stream;
+
+    sendfile on;
+    keepalive_timeout 65;
+
+    # Збільшуємо розмір types_hash_max_size та вказуємо розмір types_hash_bucket_size
+    types_hash_max_size 4096;
+    types_hash_bucket_size 128;
+
+    server {
+        listen 80;
+        server_name localhost;
+
+        location / {
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+        }
+
+        error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+            root /usr/share/nginx/html;
+        }
+    }
+
+    include /etc/nginx/conf.d/*.conf;
+}
+EOF
     fi
 
     # Створити SSL-сертифікат та приватний ключ, якщо вони відсутні
