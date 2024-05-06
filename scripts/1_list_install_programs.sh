@@ -86,6 +86,7 @@ function 1_installRouterOSMikrotik() {
         return 1
     else
         echo -e "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
+        return 1
     fi
     echo -e "${RED}Вам потрібно обрати лише диск, вибір розділів пропустити.${RESET}"
     select_disk_and_partition
@@ -290,25 +291,25 @@ EOF
 }
 
 1_installNginxProxyServer() {
-    read -p "Введіть ІР-адресу сервера на який будуть надходити запити через цей $server_IP сервер:" proxy_address
+    read -p "Введіть ІР-адресу сервера на який будуть надходити запити через цей сервер: " proxy_address
     install_package "nginx"
-
-    nginx_conf="/etc/nginx/nginx.conf"
-
-    if [ ! -f "$nginx_conf" ]; then
-        echo "Файл nginx.conf не знайдено в шляху $nginx_conf"
-        return 1
-    fi
-
     create_folder "/etc/nginx/ssl"
     create_folder "/etc/nginx/conf.d"
 
-    if grep -q "include /etc/nginx/conf.d/\*.conf;" "$nginx_conf"; then
-        echo "Директива для зчитування конфігурацій з папки /etc/nginx/conf.d вже присутня у файлі nginx.conf"
+    nginx_conf="/etc/nginx/nginx.conf"
+
+    # Перевірка, чи існує файл nginx.conf
+    if [ -f "$nginx_conf" ]; then
+        echo "Файл nginx.conf знайдено: $nginx_conf"
+        cp "$nginx_conf" "$nginx_conf.original_backup"
     else
-        cp $nginx_conf $nginx_conf.original_baskup
-        cat <<EOF >"$nginx_conf"
-worker_processes 1;
+        echo "Файл nginx.conf не знайдено: $nginx_conf"
+        return 1
+    fi
+
+    cp "$nginx_conf" "$nginx_conf.original_backup"
+    cat <<EOF >"$nginx_conf"
+worker_processes auto;
 
 events {
     worker_connections 1024;
@@ -343,7 +344,6 @@ http {
     include /etc/nginx/conf.d/*.conf;
 }
 EOF
-    fi
 
     # Створити SSL-сертифікат та приватний ключ, якщо вони відсутні
     if [ ! -f "$ssl_dir/certificate.crt" ] || [ ! -f "$ssl_dir/privatekey.key" ]; then

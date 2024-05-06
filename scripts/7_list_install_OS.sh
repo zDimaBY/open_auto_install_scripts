@@ -41,6 +41,7 @@ function 7_installRouterOSMikrotik() {
         return 1
     else
         echo -e "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
+        return 1
     fi
     echo -e "${RED}Вам потрібно обрати лише диск, вибір розділів пропустити.${RESET}"
     select_disk_and_partition
