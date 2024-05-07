@@ -123,7 +123,7 @@ list_x_ui_versions_install() {
     fi
 
     echo -e "${YELLOW}\n\nВстановив X-UI на сервер. Для входу в панель адміністратора, використовуйте ці дані:${RESET}"
-    echo -e "http://${server_IP}:54321"
+    echo -e "http://${server_IPv4[0]}:54321"
     echo -e "Користувач: admin"
     echo -e "Пароль: admin\n"
 
@@ -218,7 +218,7 @@ list_3x_ui_versions_install() {
     fi
 
     echo -e "${YELLOW}\n\nВстановив X-UI на сервер. Для входу в панель адміністратора, використовуйте ці дані:${RESET}"
-    echo -e "http://${server_IP}:2053"
+    echo -e "http://${server_IPv4[0]}:2053"
     echo -e "Користувач: admin"
     echo -e "Пароль: admin\n"
 
@@ -235,7 +235,7 @@ remove_3x_ui() {
     #docker rmi "$name_docker_container"
     echo "${name_docker_container} видалено."
     docker ps -a
-    
+
     # Функція для видалення правил з файервола з скриптів functions_controller.sh
     remove_firewall_rule 2053
 }
@@ -281,7 +281,7 @@ install_wg_easy() {
     centos | oracle)
         if [[ "$VERSION" == "7" ]]; then
             yum install epel-release elrepo-release yum-plugin-elrepo kmod-wireguard wireguard-tools
-        elif (("$VERSION" > 8)); then
+        elif [[ "$VERSION" -gt 8 ]]; then
             dnf install epel-release kernel-modules-extra qrencode
         fi
         ;;
@@ -291,7 +291,7 @@ install_wg_easy() {
         return 1
         ;;
     esac
-    
+
     name_docker_container="wg-easy"
 
     docker run -d \

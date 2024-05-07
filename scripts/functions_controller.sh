@@ -148,8 +148,7 @@ checkControlPanel() {
     echo -e "Load Average: $load_average Disk Usage: $disk_usage"
 
     server_hostname=$(hostname)
-    server_IP=$(hostname -i | awk '{print $1}')
-    echo -e "Hostname:${GREEN}$server_hostname${RESET} IP: $server_IP version script: $LAST_COMMIT"
+    echo -e "Hostname:${GREEN}$server_hostname${RESET} IP: ${server_IPv4[0]} version script: $LAST_COMMIT"
 
     case $operating_system in
     "debian" | "ubuntu" | "fedora" | "centos" | "oracle" | "arch")
@@ -280,19 +279,39 @@ mask_to_cidr() { #cidr
     echo "${cidr}"
 }
 
-get_public_interface() { #server_IP selected_adapter mask gateway
-    server_IP=$(hostname -i | awk '{print $1}')
+# Функція для розподілу IP-адрес
+distribute_ips() { # ${server_IPv4[0]} ${server_IPv6[0]}
+    local ip_output=$(hostname -i)
+
+    # Розділяємо IP-адреси за пробілами та зберігаємо їх в масиві
+    IFS=' ' read -r -a ip_addresses <<< "$ip_output"
+
+    # масиви для IPv4 та IPv6
+    server_IPv4=()
+    server_IPv6=()
+
+    for ip in "${ip_addresses[@]}"
+    do
+        if [[ $ip == *:* ]]; then
+            server_IPv6+=("$ip")
+        else
+            server_IPv4+=("$ip")
+        fi
+    done
+}
+
+get_public_interface() { #server_IPv4[0] selected_adapter mask gateway
     adapters=$(ip addr show | grep "^[0-9]" | awk '{print $2}' | sed 's/://')
     selected_adapter=""
     for adapter in $adapters; do
         adapter_ip=$(ip addr show dev "$adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f1)
-        if [ "$adapter_ip" == "$server_IP" ]; then
+        if [ "${adapter_ip}" == "${server_IPv4[0]}" ]; then
             selected_adapter="$adapter"
             break
         fi
     done
     if [ -z "$selected_adapter" ]; then
-        echo "Не вдалося знайти адаптер з IP-адресою, яка відповідає результату команди hostname -i: $server_IP"
+        echo "Не вдалося знайти адаптер з IP-адресою, яка відповідає результату команди hostname -i: ${server_IPv4[0]}"
         selected_adapter="none"
         mask="xx"
         gateway="xxx.xxx.xxx.xxx"
@@ -476,8 +495,8 @@ check_domain() { # check_domain "example.com"
 
     domain_ip=$(nslookup "$domain" | awk '/^Address: / { print $2 }')
 
-    if [ "$domain_ip" == "$server_IP" ]; then
-        echo "Домен $domain спрямований на цей сервер ($server_IP)"
+    if [ "${domain_ip}" == "${server_IPv4[0]}" ]; then
+        echo "Домен $domain спрямований на цей сервер (${server_IPv4[0]})"
         return 0
     else
         echo "Домен $domain не спрямований на цей сервер"

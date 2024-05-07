@@ -8,7 +8,7 @@ function 1_list_install_programs() {
         echo -e "2. Встановлення ${BROWN}Docker${RESET}"
         echo -e "3. Встановлення ${BLUE}RouterOS від Mikrotik${RESET}"
         echo -e "4. Встановлення ${BLUE}Elasticsearch${RESET} ${RED}(test)${RESET}"
-        echo -e "5. Встановлення ${GREEN}Nginx proxy server${RESET} портів 80 та 443 з ${RED}${server_IP}${RESET} на ххх.ххх.ххх.ххх"
+        echo -e "5. Встановлення ${GREEN}Nginx proxy server${RESET} портів 80 та 443 з ${RED}${server_IPv4[0]}${RESET} на ххх.ххх.ххх.ххх"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -149,21 +149,21 @@ function 1_installRouterOSMikrotik() {
     gunzip -c chr.img.zip >chr.img
 
     delay_command=3
-
+    fdisk -l
     # Монтування образу
     qemu-img convert chr.img -O qcow2 chr.qcow2 && sleep "$delay_command"
     qemu-img resize chr.qcow2 1073741824 && sleep "$delay_command" # Розширюєм образ диска до 1G
     modprobe nbd && qemu-nbd -c /dev/nbd0 chr.qcow2 && sleep "$delay_command"
     sleep 2 && partprobe /dev/nbd0 && sleep 5
     mount /dev/nbd0p2 /mnt
-
+    fdisk -l
     # Отримання налаштувань мережі ip, mask, gateway
     get_public_interface
     #date_start_install=$(date)
 
     # Налаштування мережі та інших параметрів
     cat <<EOF >/mnt/rw/autorun.scr
-/ip address add address=${server_IP}/${mask} network=${gateway} interface=ether1
+/ip address add address=${server_IPv4[0]}/${mask} network=${gateway} interface=ether1
 /ip route add dst-address=0.0.0.0/0 gateway=${gateway}
 /user set [find name=admin] password=${passwd_routeros}
 /ip service disable telnet
@@ -190,9 +190,9 @@ EOF
     zcat /mnt/chr-extended.gz | pv >${selected_partition} && sleep 10 || true
 
     #echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
-    echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${server_IP}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
+    echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${server_IPv4[0]}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
     echo -e "\nВиконайте наступні команди, якщо мережа не налаштована:"
-    echo -e "ip address add address=${server_IP}/${mask} network=${gateway} interface=ether1"
+    echo -e "ip address add address=${server_IPv4[0]}/${mask} network=${gateway} interface=ether1"
     echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
     echo -e "Перевірте мережу: \nping ${gateway} \nping 8.8.8.8"
 
@@ -310,6 +310,8 @@ EOF
     cp "$nginx_conf" "$nginx_conf.original_backup"
     cat <<EOF >"$nginx_conf"
 worker_processes auto;
+error_log /var/log/nginx/error.log;
+pid /run/nginx.pid;
 
 events {
     worker_connections 1024;

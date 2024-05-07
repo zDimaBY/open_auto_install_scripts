@@ -161,12 +161,12 @@ function start_container() {
     "mariadb")
         docker pull mariadb:"$tag"
         docker run --name mariadb-container-"$tag" -e MYSQL_ROOT_PASSWORD="$password" -p "$listen_address:$port":3306 -d mariadb:"$tag"
-        echo -e "\n\nmariadb:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h $server_IP -P $port -u root -p\nПароль: $password\n\n"
+        echo -e "\n\nmariadb:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h ${server_IPv4[0]} -P $port -u root -p\nПароль: $password\n\n"
         ;;
     "mysql")
         docker pull mysql:"$tag"
         docker run --name mysql-container-"$tag" -e MYSQL_ROOT_PASSWORD="$password" -p "$listen_address:$port":3306 -d mysql:"$tag"
-        echo -e "\n\nmysql:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h $server_IP -P $port -u root -p\nПароль: $password\n\n"
+        echo -e "\n\nmysql:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h ${server_IPv4[0]} -P $port -u root -p\nПароль: $password\n\n"
         ;;
     "mongodb")
         docker pull mongo:"$tag"
