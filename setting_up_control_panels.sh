@@ -73,6 +73,7 @@ done
 LAST_COMMIT=$(curl -s "https://api.github.com/repos/$REPO/commits/$BRANCH" | jq -r '.commit.message')
 #  ================= Start Script ==================
 function selectionFunctions() {
+    distribute_ips
     clear
     while true; do
         checkControlPanel
