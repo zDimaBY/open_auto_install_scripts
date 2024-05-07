@@ -155,7 +155,7 @@ function 1_installRouterOSMikrotik() {
     qemu-img resize chr.qcow2 1073741824 && sleep "$delay_command" # Розширюєм образ диска до 1G
     modprobe nbd && qemu-nbd -c /dev/nbd0 chr.qcow2 && sleep "$delay_command"
     sleep 2 && partprobe /dev/nbd0 && sleep 5
-    mount /dev/nbd0p2 /mnt
+    mount /dev/nbd0p2 /mnt && sleep "$delay_command"
     fdisk -l
     # Отримання налаштувань мережі ip, mask, gateway
     get_public_interface
@@ -163,10 +163,10 @@ function 1_installRouterOSMikrotik() {
 
     # Налаштування мережі та інших параметрів
     cat <<EOF >/mnt/rw/autorun.scr
-/ip address add address=${server_IPv4[0]}/${mask} network=${gateway} interface=ether1
-/ip route add dst-address=0.0.0.0/0 gateway=${gateway}
 /user set [find name=admin] password=${passwd_routeros}
 /ip service disable telnet
+/ip address add address=${server_IPv4[0]}/${mask} network=${gateway} interface=ether1
+/ip route add dst-address=0.0.0.0/0 gateway=${gateway}
 EOF
     #/system package update install
 

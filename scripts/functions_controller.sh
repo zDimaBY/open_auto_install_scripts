@@ -281,10 +281,31 @@ mask_to_cidr() { #cidr
 
 # Функція для розподілу IP-адрес
 distribute_ips() { # ${server_IPv4[0]} ${server_IPv6[0]}
-    local ip_output=$(hostname -i)
+    # Отримуємо IP-адреси з hostname -I та hostname -i
+    local ip_output_i=$(hostname -i)
+    local ip_output_I=$(hostname -I)
+
+    # Розділяємо IP-адреси за пробілами та зберігаємо їх в масивах
+    IFS=' ' read -r -a ip_addresses_i <<< "$ip_output_i"
+    IFS=' ' read -r -a ip_addresses_I <<< "$ip_output_I"
+
+    # Перевіряємо наявність спільних IP-адрес у hostname -i та hostname -I
+    for ip_i in "${ip_addresses_i[@]}"
+    do
+        for ip_I in "${ip_addresses_I[@]}"
+        do
+            if [[ "$ip_i" == "$ip_I" ]]; then
+                # Якщо адреси співпадають, видаляємо її з hostname -i
+                ip_addresses_i=("${ip_addresses_i[@]/$ip_i}")
+            fi
+        done
+    done
+
+    # Об'єднуємо IP-адреси знову та записуємо у hostname -I
+    local merged_ip_addresses="${ip_addresses_I[*]} ${ip_addresses_i[*]}"
 
     # Розділяємо IP-адреси за пробілами та зберігаємо їх в масиві
-    IFS=' ' read -r -a ip_addresses <<< "$ip_output"
+    IFS=' ' read -r -a ip_addresses <<< "$merged_ip_addresses"
 
     # масиви для IPv4 та IPv6
     server_IPv4=()

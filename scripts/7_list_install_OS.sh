@@ -93,10 +93,10 @@ function 7_installRouterOSMikrotik() {
 
     # Налаштування мережі та інших параметрів
     cat <<EOF >/mnt/image_vm/rw/autorun.scr
-/ip address add address=${server_IPv4[0]}/${mask} network=${gateway} interface=ether1
-/ip route add dst-address=0.0.0.0/0 gateway=${gateway}
 /user set [find name=admin] password=${passwd_routeros}
 /ip service disable telnet
+/ip address add address=${server_IPv4[0]}/${mask} network=${gateway} interface=ether1
+/ip route add dst-address=0.0.0.0/0 gateway=${gateway}
 EOF
     #/system package update install
     if [ -z "$passwd_routeros" ]; then
@@ -125,12 +125,13 @@ EOF
     zcat /mnt/image_vm/chr-extended.gz | pv >${selected_partition} && sleep 10 || true
 
     #echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${server_IPv4[0]}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
     echo -e "\nВиконайте наступні команди, якщо мережа не налаштована:"
     echo -e "ip address add address=${server_IPv4[0]}/${mask} network=${gateway} interface=ether1"
     echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
     echo -e "Перевірте мережу: \nping ${gateway} \nping 8.8.8.8"
-
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     # Синхронізація даних на диску і перезавантаження системи
     echo "sync disk" && sleep "$delay_command" && echo s >/proc/sysrq-trigger && sleep "$delay_command" && echo b >/proc/sysrq-trigger
 
