@@ -77,21 +77,19 @@ function 1_installComposer() {
 function 1_installRouterOSMikrotik() {
     echo -e "${RED}Бажаєте встановити систему RouterOS від MikroTik? Після цієї операції диск буде перезаписаний${RESET}"
     read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (y/n): " answer
-    if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
+    if [[ "$answer" =~ ^(yes|Yes|y|Y)$ ]]; then
         echo -e "${GREEN}Встановлення системи RouterOS... https://mikrotik.com/download${RESET}"
         read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.14): " version_routeros
         version_routeros=${version_routeros:-7.14}
-    elif [[ "$answer" =~ ^[Nn]o?$ ]]; then
-        echo -e "Відмінено користувачем."
-        return 1
     else
-        echo -e "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
+        echo -e "\n${RED}Встановлення RouterOS від MikroTik скасовано.${RESET}"
         return 1
     fi
     echo -e "${RED}Вам потрібно обрати лише диск, вибір розділів пропустити.${RESET}"
     select_disk_and_partition
     generate_random_password_show
     read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
+    passwd_routeros=${passwd_routeros:-$rand_password}
     case $operating_system in
     debian | ubuntu)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
@@ -150,6 +148,7 @@ function 1_installRouterOSMikrotik() {
 
     delay_command=3
     fdisk -l
+    echo -e "${RED}______________________________________________________________________________________________________________1${RESET}"
     # Монтування образу
     qemu-img convert chr.img -O qcow2 chr.qcow2 && sleep "$delay_command"
     qemu-img resize chr.qcow2 1073741824 && sleep "$delay_command" # Розширюєм образ диска до 1G
@@ -157,6 +156,7 @@ function 1_installRouterOSMikrotik() {
     sleep 2 && partprobe /dev/nbd0 && sleep 5
     mount /dev/nbd0p2 /mnt && sleep "$delay_command"
     fdisk -l
+    echo -e "${RED}______________________________________________________________________________________________________________2${RESET}"
     # Отримання налаштувань мережі ip, mask, gateway
     get_public_interface
     #date_start_install=$(date)
@@ -173,22 +173,28 @@ EOF
     # Розмонтування образу
     umount /mnt && sleep "$delay_command"
 
+    fdisk -l
+    echo -e "${RED}______________________________________________________________________________________________________________3${RESET}"
     # Створення нового розділу
     echo -e 'd\n2\nn\np\n2\n65537\n\nw\n' | fdisk /dev/nbd0 && sleep "$delay_command"
+    fdisk -l
+    echo -e "${RED}______________________________________________________________________________________________________________4${RESET}"
 
     # Виконання перевірки файлової системи і зміна її розміру
     e2fsck -f -y /dev/nbd0p2 || true && resize2fs /dev/nbd0p2 && sleep "$delay_command"
-
+    fdisk -l
+    echo -e "${RED}______________________________________________________________________________________________________________5${RESET}"
     # Копіювання образу та збереження його на тимчасове сховище
     pv /dev/nbd0 | gzip >/mnt/chr-extended.gz && sleep "$delay_command"
-
+    fdisk -l
+    echo -e "${RED}______________________________________________________________________________________________________________6${RESET}"
     # Завершення роботи qemu-nbd
     killall qemu-nbd && sleep "$delay_command"
     echo u >/proc/sysrq-trigger && sleep "$delay_command"
-
     # Розпакування образу та копіювання його на пристрій ${selected_partition}
-    zcat /mnt/chr-extended.gz | pv >${selected_partition} && sleep 10 || true
-
+    zcat /mnt/chr-extended.gz | pv >${selected_partition} && sleep "$delay_command"
+    fdisk -l
+    echo -e "${RED}______________________________________________________________________________________________________________7${RESET}"
     #echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
     echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${server_IPv4[0]}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
     echo -e "\nВиконайте наступні команди, якщо мережа не налаштована:"
@@ -292,7 +298,9 @@ EOF
 
 1_installNginxProxyServer() {
     read -p "Введіть ІР-адресу сервера на який будуть надходити запити через цей сервер: " proxy_address
-    install_package "nginx"
+    if ! install_package "nginx"; then
+        return 1
+    fi
     create_folder "/etc/nginx/ssl"
     create_folder "/etc/nginx/conf.d"
 
@@ -382,7 +390,7 @@ server {
     ssl_certificate_key $ssl_dir/privatekey.key;
 
     location / {
-        proxy_pass http://$proxy_address;
+        proxy_pass https://$proxy_address;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;

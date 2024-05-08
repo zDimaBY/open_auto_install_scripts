@@ -1,7 +1,9 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 5_FTP() {
-    check_docker_availability
+    if ! check_docker_availability; then
+        return 1
+    fi
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
@@ -54,7 +56,7 @@ docker run -d \
 
 
     if [ $? -eq 0 ]; then
-        echo -e "\n${GREEN}alpine-ftp-server успішно встановлено. Дані доступу до FTP:\nHost: ${YELLOW}$ip${RESET}\nUser: ${YELLOW}$ftp_user${RESET}\nPassword: ${YELLOW}$ftp_password${RESET}"
+        echo -e "\n${GREEN}alpine-ftp-server успішно встановлено. Дані доступу до FTP:\nHost: ${YELLOW}$selected_ip_address${RESET}\nUser: ${YELLOW}$ftp_user${RESET}\nPassword: ${YELLOW}$ftp_password${RESET}"
     else
         echo -e "\n${RED}Сталася помилка під час встановлення alpine-ftp-server. Перевірте налаштування і спробуйте ще раз.${RESET}"
     fi

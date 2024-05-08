@@ -85,45 +85,45 @@ install_package() {
     debian | ubuntu)
         if [ ! -x "$(command -v $package_name)" ]; then
             apt update && apt-get install -y $package_name || {
-                echo "Не вдалося встановити $package_name."
+                echo -e "${RED}Не вдалося встановити ${YELLOW}$package_name${RESET}."
                 return 1
             }
         else
-            echo "$package_name вже встановлено в системі."
+            echo -e "$package_name вже встановлено в системі."
         fi
         ;;
     fedora)
         if [ ! -x "$(command -v $package_name)" ]; then
             dnf install -y $package_name || {
-                echo "Не вдалося встановити $package_name."
+                echo -e "${RED}Не вдалося встановити ${YELLOW}$package_name${RESET}."
                 return 1
             }
         else
-            echo "$package_name вже встановлено в системі."
+            echo -e "$package_name вже встановлено в системі."
         fi
         ;;
     centos | oracle)
         if [ ! -x "$(command -v $package_name)" ]; then
             yum install -y $package_name || {
-                echo "Не вдалося встановити $package_name."
+                echo -e "${RED}Не вдалося встановити ${YELLOW}$package_name${RESET}."
                 return 1
             }
         else
-            echo "$package_name вже встановлено в системі."
+            echo -e "$package_name вже встановлено в системі."
         fi
         ;;
     arch | sysrescue)
         if [ ! -x "$(command -v $package_name)" ]; then
             pacman -Syu --noconfirm $package_name || {
-                echo "Не вдалося встановити $package_name."
+                echo -e "${RED}Не вдалося встановити ${YELLOW}$package_name${RESET}."
                 return 1
             }
         else
-            echo "$package_name вже встановлено в системі."
+            echo -e "$package_name вже встановлено в системі."
         fi
         ;;
     *)
-        echo "Не вдалося встановити $package_name. Спробуйте будь ласка, встановити його вручну."
+        echo -e "${RED}Не вдалося встановити ${YELLOW}$package_name${RED}. Спробуйте будь ласка, встановити його вручну.${RESET}"
         return 1
         ;;
     esac
@@ -199,14 +199,14 @@ generate_random_password() {
 check_docker_availability() {
     # Перевіряємо, чи встановлений Docker
     if ! command -v docker &>/dev/null; then
-        echo -e "\n${RED}Docker не встановлено на цій системі.${RESET}"
+        echo -e "\n${RED}Docker не встановлено у цій системі.${RESET}"
         read -p "Бажаєте встановити Docker? (y/n): " install_docker
         if [[ "$install_docker" =~ ^(yes|Yes|y|Y)$ ]]; then
             echo -e "${YELLOW}Встановлення Docker...${RESET}"
             curl -fsSL https://get.docker.com | sh
             sudo usermod -aG docker "$(whoami)"
         else
-            echo -e "\n${RED}Встановлення Docker скасовано. Скрипт завершується.${RESET}"
+            echo -e "\n${RED}Встановлення Docker скасовано.${RESET}"
             return 1
         fi
     fi
@@ -240,6 +240,7 @@ check_docker_availability() {
     fi
 
     echo -e "\n${YELLOW}Статус Docker:${RESET}\n${GREEN}$active_status${RESET}"
+    return 0
 }
 
 create_folder() {
@@ -366,14 +367,14 @@ get_selected_interface() { #server_IP selected_adapter mask gateway
     fi
 
     selected_adapter=$(echo "$adapters" | sed -n "${selected_index}p")
-    ip=$(ip addr show dev "$selected_adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f1)
-    mask=$(ip addr show dev "$selected_adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f2)
-    gateway=$(ip route show dev "$selected_adapter" | grep "default via" | awk '{print $3}')
+    selected_ip_address=$(ip addr show dev "$selected_adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f1)
+    selected_ip_mask=$(ip addr show dev "$selected_adapter" | grep "inet " | awk '{print $2}' | cut -d'/' -f2)
+    selected_ip_gateway=$(ip route show dev "$selected_adapter" | grep "default via" | awk '{print $3}')
 
     echo "Інформація про мережний адаптер $selected_adapter:"
-    echo "IP адреса: $ip"
-    echo "Маска: $mask"
-    echo "Шлюз: $gateway"
+    echo "IP адреса: $selected_ip_address"
+    echo "Маска: $selected_ip_mask"
+    echo "Шлюз: $selected_ip_gateway"
 }
 
 total_free_swap_end_ram() {
@@ -518,7 +519,7 @@ check_domain() { # check_domain "example.com"
 
     if [ "${domain_ip}" == "${server_IPv4[0]}" ]; then
         echo "Домен $domain спрямований на цей сервер (${server_IPv4[0]})"
-        return 0
+        return 1
     else
         echo "Домен $domain не спрямований на цей сервер"
         return 1

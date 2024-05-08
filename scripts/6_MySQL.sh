@@ -1,7 +1,10 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 6_manage_docker_databases() {
-    check_docker_availability
+    if ! check_docker_availability; then
+        return 1
+    fi
+
     while true; do
         echo -e "\nВиберіть дію:\n"
         echo -e "1. MySQL"
@@ -26,7 +29,6 @@ function 6_manage_docker_databases() {
 # Встановлення та робота з Docker образами баз даних
 function install_database() {
     local db_name="$1"
-
     while true; do
         echo "Виберіть опцію:"
         echo "1. Встановити образ"
@@ -84,7 +86,7 @@ function select_tag_and_install() {
     echo -e "${YELLOW}oraclelinux8${RESET}: Це означає, що образ побудований на базі Oracle Linux 8."
     echo -e "${GREEN}lts${RESET}: LTS означає Long-Term Support, це для версій з довгостроковою підтримкою."
     echo -e "${GREEN}----------------------------------------------------------------------------${RESET}"
-    echo -e "${GREEN}8.0.37-debian${RESET}, ${GREEN}8.0.37-bookworm${RESET}, ${GREEN}8.0.37-oraclelinux8${RESET},\nтакож в інших базах jammy та focal - це назви версій операційних систем Ubuntu. Вони вказують на те, для якої версії операційної системи побудовані образи Mariadb. \nЦі теги вказують на версії MySQL, побудовані на конкретних операційних системах (наприклад, Debian, Oracle Linux, Ubuntu)."
+    echo -e "${GREEN}8.0.37-debian${RESET}, ${GREEN}8.0.37-bookworm${RESET}, ${GREEN}8.0.37-oraclelinux8${RESET},також в інших базах jammy та focal - це\nназви версій операційних систем Ubuntu. Вони вказують на те, для якої версії операційної системи побудовані образи Mariadb. \nВзагалі ці теги вказують на версії MySQL, побудовані на конкретних операційних системах (наприклад, Debian, Oracle Linux, Ubuntu)."
     echo -e "${RED}11.3-rc-jammy, 11.3-rc${RESET}: це для версій, що перебувають у стадії реліз-кандидатів (RC), тобто перед остаточним релізом."
     echo -e "${GREEN}----------------------------------------------------------------------------${RESET}"
     echo -e "${RED}innovation${RESET}: Це спеціальна версія з новими функціями або експериментальні версії.\n"
@@ -108,32 +110,16 @@ function run_container() {
 
     echo "Встановлення образу з тегом: $tag"
 
-    # Вибір типу прослуховування
-    select_listen_address
+    # Вибір адаптера для прослуховування
+    get_selected_interface
 
     # Введення порту прослуховування та паролю
     enter_port_and_password
 
     # Запуск контейнера з введеними параметрами
-    start_container "$db_name" "$tag" "$listen_address" "$port" "$password"
+    start_container "$db_name" "$tag" "$selected_ip_address" "$port" "$password"
 }
 
-# Вибір типу прослуховування
-function select_listen_address() {
-    echo "Обрати тип прослуховування:"
-    echo "1. Локальний - 127.0.0.1"
-    echo "2. Для всіх інтерфейсів - 0.0.0.0"
-    read -p "Виберіть опцію (1 або 2): " option
-
-    if [[ "$option" == "1" ]]; then
-        listen_address="127.0.0.1"
-    elif [[ "$option" == "2" ]]; then
-        listen_address="0.0.0.0"
-    else
-        echo -e "${RED}Неправильний вибір${RESET}"
-        return 1
-    fi
-}
 
 # Введення порту прослуховування та паролю
 function enter_port_and_password() {
@@ -161,12 +147,12 @@ function start_container() {
     "mariadb")
         docker pull mariadb:"$tag"
         docker run --name mariadb-container-"$tag" -e MYSQL_ROOT_PASSWORD="$password" -p "$listen_address:$port":3306 -d mariadb:"$tag"
-        echo -e "\n\nmariadb:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h ${server_IPv4[0]} -P $port -u root -p\nПароль: $password\n\n"
+        echo -e "\n\nmariadb:$tag встановлено!\nДля перевірки використовуйте команду:\nmysql -h ${selected_ip_address} -P $port -u root -p\nПароль: $password\n\n"
         ;;
     "mysql")
         docker pull mysql:"$tag"
         docker run --name mysql-container-"$tag" -e MYSQL_ROOT_PASSWORD="$password" -p "$listen_address:$port":3306 -d mysql:"$tag"
-        echo -e "\n\nmysql:$tag встановлено!\nДля перевірки використовуйте підключення:\nmysql -h ${server_IPv4[0]} -P $port -u root -p\nПароль: $password\n\n"
+        echo -e "\n\nmysql:$tag встановлено!\nДля перевірки використовуйте команду:\nmysql -h ${selected_ip_address} -P $port -u root -p\nПароль: $password\n\n"
         ;;
     "mongodb")
         docker pull mongo:"$tag"
@@ -184,8 +170,13 @@ function start_container() {
 }
 
 remove_images() {
+    if ! docker images --format '{{.Repository}}' | grep -q "$db_name"; then
+        echo "Не знайдено контейнера баз даних з іменем системи ${RED}$db_name${RESET}"
+        return 1
+    fi
+    
     echo "Виберіть образ для видалення:"
-    select image in $(docker images --format "{{.Repository}}:{{.Tag}}"); do
+    select image in $(docker images --format "{{if eq .Repository \"$db_name\"}}{{.Repository}}:{{.Tag}}{{end}}"); do
         if [[ -n "$image" ]]; then
             echo "Видалення образу: $image"
             # Зупинити всі контейнери, які використовують образ
@@ -199,3 +190,4 @@ remove_images() {
         break
     done
 }
+

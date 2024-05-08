@@ -63,7 +63,9 @@ info_for_client_programs() {
 
 #_______________________________________________________________________________________________________________________________________
 menu_x_ui() {
-    check_docker_availability
+    if ! check_docker_availability; then
+        return 1
+    fi
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
@@ -150,7 +152,9 @@ update_x_ui() {
 }
 #_______________________________________________________________________________________________________________________________________
 menu_3x_ui() {
-    check_docker_availability
+    if ! check_docker_availability; then
+        return 1
+    fi
     echo -e "\nТакож 3x-ui стала доступна у Windows. Для запуска 3x-ui виконайте наступні кроки:"
     echo "1: Перейдіть за посиланням: https://github.com/MHSanaei/3x-ui/releases"
     echo "2: Виберіть необхідну версію і завантажте її з підменю 'Assets' -> x-ui-windows-amd64.zip"
@@ -245,7 +249,9 @@ update_3x_ui() {
 }
 #_______________________________________________________________________________________________________________________________________
 menu_wireguard_easy() {
-    check_docker_availability
+    if ! check_docker_availability; then
+        return 1
+    fi
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
@@ -296,7 +302,7 @@ install_wg_easy() {
 
     docker run -d \
         --name ${name_docker_container} \
-        -e WG_HOST="$ip" \
+        -e WG_HOST="$selected_ip_address" \
         -e PASSWORD="$admin_password" \
         -v ~/.wg-easy:/etc/wireguard \
         -p 51820:51820/udp \
@@ -310,7 +316,7 @@ install_wg_easy() {
 
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}WireGuard Easy успішно встановлено. ${YELLOW}Документація за посиланням: https://github.com/wg-easy/wg-easy${RESET}"
-        echo -e "Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}http://$ip:51821${RESET}"
+        echo -e "Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}http://$selected_ip_address:51821${RESET}"
         echo -e "${GREEN}Пароль для доступу до інтерфейсу:${RESET} ${YELLOW}$admin_password${RESET}"
         echo -e "Для діагностики використовуйте команди:"
         echo -e "  ${YELLOW}docker logs wg-easy${RESET} - перегляд журналів контейнера"
@@ -504,7 +510,9 @@ menu_openVPN_installer() {
 }
 #_______________________________________________________________________________________________________________________________________
 menu_IPsec_L2TP_IKEv2() {
-    check_docker_availability
+    if ! check_docker_availability; then
+        return 1
+    fi
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію для налаштування контейнера IPsec/L2TP, Cisco IPsec та IKEv2:\n"

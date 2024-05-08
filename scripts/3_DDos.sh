@@ -99,9 +99,9 @@ function 3_blockIPs() {
             ip=$(echo "$line" | awk '{print $2}')
 
             # Перевірка, чи IP-адреса не належить системним або зарезервованим IP-адресам та не знаходиться в лог-файлі заблокованих IP-адрес
-            if [[ ! " ${system_IPs[*]} " =~ " $ip " ]] && [[ $count -gt $threshold ]] && ! grep -q "$ip" "$log_file"; then
-                echo "Заблоковано IP: $ip"
-                echo "$ip" >>"$log_file"
+            if [[ ! " ${system_IPs[*]} " =~ " $selected_ip_address " ]] && [[ $count -gt $threshold ]] && ! grep -q "$selected_ip_address" "$log_file"; then
+                echo "Заблоковано IP: $selected_ip_address"
+                echo "$selected_ip_address" >>"$log_file"
             fi
         done <<<"$ip_requests"
 
@@ -137,11 +137,11 @@ function 3_blockIPs() {
         # Зчитування IP-адрес з файлу та блокування їх за допомогою iptables
         while read -r ip; do
             # Блокування IP-адреси за допомогою iptables
-            iptables -t filter -I INPUT 1 -s "$ip" -j REJECT
+            iptables -t filter -I INPUT 1 -s "$selected_ip_address" -j REJECT
 
-            #iptables -t filter -I OUTPUT 1 -d "$ip" -j REJECT
-            #iptables -A INPUT -s "$ip" -j DROP
-            echo "Заблоковано IP: $ip"
+            #iptables -t filter -I OUTPUT 1 -d "$selected_ip_address" -j REJECT
+            #iptables -A INPUT -s "$selected_ip_address" -j DROP
+            echo "Заблоковано IP: $selected_ip_address"
         done <"$blocked_ips_file"
         iptables-save
         echo "IP-адреси з файлу $blocked_ips_file були заблоковані за допомогою iptables."

@@ -32,15 +32,12 @@ function 7_Installation_operating_systems() {
 function 7_installRouterOSMikrotik() {
     echo -e "${RED}Бажаєте встановити систему RouterOS від MikroTik? Після цієї операції диск буде перезаписаний${RESET}"
     read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (y/n): " answer
-    if [[ "$answer" =~ ^[Yy](es)?$ ]]; then
+    if [[ "$answer" =~ ^(yes|Yes|y|Y)$ ]]; then
         echo -e "${GREEN}Встановлення системи RouterOS... https://mikrotik.com/download${RESET}"
         read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.14): " version_routeros
         version_routeros=${version_routeros:-7.14}
-    elif [[ "$answer" =~ ^[Nn]o?$ ]]; then
-        echo -e "Відмінено користувачем."
-        return 1
     else
-        echo -e "Невірний ввід. Будь ласка, введіть ${RED}'yes'${RESET} або ${GREEN}'no'${RESET}."
+        echo -e "\n${RED}Встановлення RouterOS від MikroTik скасовано.${RESET}"
         return 1
     fi
     echo -e "${RED}Вам потрібно обрати лише диск, вибір розділів пропустити.${RESET}"
