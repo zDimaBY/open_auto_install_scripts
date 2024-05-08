@@ -46,9 +46,9 @@ function 7_installRouterOSMikrotik() {
     read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
     case $operating_system in
     sysrescue)
-        if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
-            echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
-            pacman -Sy qemu-utils pv
+        if !  command -v pv &>/dev/null; then
+            echo -e "${RED} pv не знайдено. Встановлюємо...${RESET}"
+            install_package "pv"
         fi
 
         if grep '/mnt' /proc/mounts; then

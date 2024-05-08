@@ -519,7 +519,7 @@ check_domain() { # check_domain "example.com"
 
     if [ "${domain_ip}" == "${server_IPv4[0]}" ]; then
         echo "Домен $domain спрямований на цей сервер (${server_IPv4[0]})"
-        return 1
+        return 0
     else
         echo "Домен $domain не спрямований на цей сервер"
         return 1

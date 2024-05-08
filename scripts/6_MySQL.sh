@@ -171,7 +171,8 @@ function start_container() {
 
 remove_images() {
     if ! docker images --format '{{.Repository}}' | grep -q "$db_name"; then
-        echo "Не знайдено контейнера баз даних з іменем системи ${RED}$db_name${RESET}"
+        echo "Не знайдено контейнера баз даних з іменем системи ${RED}$db_name${RESET}, про те є інші:"
+        docker images --format '{{.Repository}}' | grep -q ":"
         return 1
     fi
     
