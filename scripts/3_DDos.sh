@@ -84,7 +84,7 @@ function 3_blockIPs() {
     log_file="blocked_IPs.log" # Шлях до лог-файлу для зберігання заблокованих IP-адрес
 
     # Масив системних та зарезервованих IP-адрес
-    system_IPs=("${server_IPv4[0]}" "$hostname" "127.0.0.1" "localhost" "0.0.0.0" "255.255.255.255")
+    system_IPs=("${server_IPv4[0]}" "$server_hostname" "127.0.0.1" "localhost" "0.0.0.0" "255.255.255.255")
 
     clear
     while true; do

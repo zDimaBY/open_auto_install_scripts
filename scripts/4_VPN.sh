@@ -4,7 +4,7 @@ function 4_VPN() {
     while true; do
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
-        echo -e "1. 3X-UI (WEB, on docker install) https://github.com/MHSanaei/3x-ui (OS - Windows 64)"
+        echo -e "1. 3X-UI (WEB, on docker install) https://github.com/MHSanaei/3x-ui ${GREEN}(OS - Windows 64)${RESET}"
         echo -e "2. X-UI (WEB, on docker install) https://github.com/alireza0/x-ui/pkgs/container/x-ui"
         echo -e "3. WireGuard Easy (WEB, on docker install) https://github.com/wg-easy/wg-easy"
         echo -e "4. IPsec/L2TP, Cisco IPsec and IKEv2 (on docker install) https://github.com/hwdsl2/docker-ipsec-vpn-server"
@@ -53,6 +53,7 @@ info_for_client_programs() {
     echo -e "${YELLOW}   - Або скористайтесь QR-кодом. Скопіюйте QR-код і вставте його в програму Nekoray, перейдіть у меню 'Program' -> 'Scan QR code'.${RESET}"
     echo -e "${YELLOW}3. Увімкніть налаштування 'Tune Mode' і 'System Proxy' в головному меню програми.${RESET}"
     echo -e "${YELLOW}4. Запустіть підключення: перейдіть у меню 'Program' -> 'Active server' і виберіть ваше підключення. VPN має стати активним.${RESET}"
+    echo -e "Якщо виникає помилка відсутности бібліотек MSVCP140.dll. та інші, то скачайте і встановіть Microsoft Visual C++ 2015-2022: \nhttps://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022"
     echo -e "Linux - nekoray:"
     echo -e "-"
     echo -e "MacOS (Intel + Apple) - nekoray:"
@@ -457,7 +458,10 @@ avtoInstall_openVPN() {
 
     create_folder "/root/VPN/openVPN"
 
-    curl -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh
+    if ! curl -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh; then
+        echo "Failed to download and install openvpn-install.sh"
+        return 1
+    fi
     sed -i 's|"$homeDir|"/root/VPN/openVPN|g' /root/VPN/openvpn-install.sh
     chmod +x /root/VPN/openvpn-install.sh && export AUTO_INSTALL=y
     bash /root/VPN/openvpn-install.sh
@@ -503,7 +507,10 @@ avtoInstall_openVPN() {
 }
 
 menu_openVPN_installer() {
-    curl -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh
+    if ! curl -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh; then
+        echo "Failed to download and install openvpn-install.sh"
+        return 1
+    fi
     sed -i 's|"$homeDir|"/root/VPN/openVPN|g' /root/VPN/openvpn-install.sh
     chmod +x /root/VPN/openvpn-install.sh && export AUTO_INSTALL=n
     bash /root/VPN/openvpn-install.sh

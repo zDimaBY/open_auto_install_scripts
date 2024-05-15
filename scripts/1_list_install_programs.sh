@@ -94,7 +94,7 @@ function 1_installRouterOSMikrotik() {
     debian | ubuntu)
         if ! command -v qemu-img &>/dev/null || ! command -v pv &>/dev/null; then
             echo -e "${RED}qemu-utils або pv не знайдено. Встановлюємо...${RESET}"
-            apt install -y qemu-utils pv
+            apt install -y qemu-utils pv parted
         fi
         ;;
     fedora)
@@ -153,7 +153,7 @@ function 1_installRouterOSMikrotik() {
     qemu-img convert chr.img -O qcow2 chr.qcow2 && sleep "$delay_command"
     qemu-img resize chr.qcow2 1073741824 && sleep "$delay_command" # Розширюєм образ диска до 1G
     modprobe nbd && qemu-nbd -c /dev/nbd0 chr.qcow2 && sleep "$delay_command"
-    sleep 2 && partprobe /dev/nbd0 && sleep 5
+    partprobe /dev/nbd0 && sleep "$delay_command"
     mount /dev/nbd0p2 /mnt && sleep "$delay_command"
     fdisk -l
     echo -e "${RED}______________________________________________________________________________________________________________2${RESET}"

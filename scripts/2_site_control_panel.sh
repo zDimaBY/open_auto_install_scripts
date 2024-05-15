@@ -7,7 +7,7 @@ function 2_site_control_panel() {
     elif [ -e "/usr/local/hestia" ]; then
         control_panel_install="hestia"
     else
-        echo -e "${RED}Не вдалося визначити панель управління сайтами.${RESET}"
+        echo -e "${RED}Не вдалося визначити панель керування сайтами.${RESET}"
         return 1
     fi
     # Перевірка типу веб-сервера Apache2 або HTTPD
@@ -173,7 +173,7 @@ function 2_updateIoncube() {
         source $HESTIA/func/main.sh
         source $HESTIA/conf/hestia.conf
     else
-        echo -e "${RED}Не вдалося визначити панель управління сайтами.${RESET}"
+        echo -e "${RED}Не вдалося визначити панель керування сайтами.${RESET}"
         return 1
     fi
 

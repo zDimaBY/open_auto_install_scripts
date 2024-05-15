@@ -7,11 +7,11 @@ function check_dependency() {
     if [[ -e /etc/os-release ]]; then
         source /etc/os-release
         case "$ID" in
-        debian | ubuntu | fedora | centos | oracle | arch | sysrescue)
+        debian | ubuntu | fedora | centos | oracle | arch | sysrescue | almalinux | rockylinux)
             operating_system="$ID"
             ;;
         *)
-            echo "Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle або Arch Linux. Ваша система: $ID"
+            echo "Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle, AlmaLinux, Rocky Linux або Arch Linux. Ваша система: $ID"
             exit 1
             ;;
         esac
@@ -35,7 +35,7 @@ function check_dependency() {
                 dnf update
                 dnf install -y "$package_name"
                 ;;
-            centos | oracle)
+            centos | oracle | almalinux | rockylinux)
                 yum update
                 yum install epel-release -y
                 yum install -y "$package_name"
@@ -59,7 +59,7 @@ function check_dependency() {
             fedora)
                 dnf install -y "$package_name"
                 ;;
-            centos | oracle)
+            centos | oracle | almalinux | rockylinux)
                 yum install -y "$package_name"
                 ;;
             arch | sysrescue)
@@ -102,7 +102,7 @@ install_package() {
             echo -e "$package_name вже встановлено в системі."
         fi
         ;;
-    centos | oracle)
+    centos | oracle | almalinux | rockylinux)
         if [ ! -x "$(command -v $package_name)" ]; then
             yum install -y $package_name || {
                 echo -e "${RED}Не вдалося встановити ${YELLOW}$package_name${RESET}."
@@ -131,6 +131,31 @@ install_package() {
 
 checkControlPanel() {
     echo -e "\n${YELLOW}Information: ${RED}$operating_system${RESET} ${CYAN}$VERSION${RESET}"
+    # Хостнейм та IP
+    server_hostname=$(hostname)
+    echo -e "Hostname:${GREEN}$server_hostname${RESET} IP: ${server_IPv4[0]}"
+
+    # Мережеві інтерфейси
+    echo -e "\n${YELLOW}Network Interfaces:${RESET}"
+    ip -o link show | awk -F': ' '{print $2}' | while read -r iface; do
+        ipaddr=$(ip -o -4 addr list $iface | awk '{print $4}')
+        if [ -n "$ipaddr" ]; then
+            echo -e "Interface: ${CYAN}$iface${RESET} IP: ${GREEN}$ipaddr${RESET}"
+        fi
+    done
+
+    # Файлові системи
+    largest_disk=$(df -h | grep '^/dev/' | sort -k 4 -hr | head -n 1)
+    disk_usage=$(echo "$largest_disk" | awk '{print $5}') # Використання місця на найбільшому диску
+    echo -e "\n${YELLOW}File Systems:${RESET} Disk Usage: $disk_usage"
+    df -hT | grep '^/dev/'
+
+    # Оперативна пам'ять
+    echo -e "\n${YELLOW}Memory:${RESET}"
+    read -r mem_total mem_used mem_free mem_shared mem_buff_cache mem_available < <(free -m | awk '/^Mem:/ {print $2, $3, $4, $5, $6, $7}')
+    echo -e "Total Memory: ${GREEN}${mem_total}MB${RESET} Used Memory: ${RED}${mem_used}MB${RESET} Free Memory: ${CYAN}${mem_free}MB${RESET} Shared Memory: ${PURPLE}${mem_shared}MB${RESET} Buff/Cache Memory: ${BLUE}${mem_buff_cache}MB${RESET} Available Memory: ${ORANGE}${mem_available}MB${RESET}"
+
+    # Завантаження системи
     load_average=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}')
     load_average=${load_average%,*}
     load_average=${load_average//,/.}
@@ -142,16 +167,16 @@ checkControlPanel() {
     else
         load_average="${RED}$load_average (!)${RESET}"
     fi
+    echo -e "\n${YELLOW}CPU:${RESET} Load Average: $load_average"
 
-    largest_disk=$(df -h | grep '^/dev/' | sort -k 4 -hr | head -n 1)
-    disk_usage=$(echo "$largest_disk" | awk '{print $5}') # Використання місця на найбільшому диску
-    echo -e "Load Average: $load_average Disk Usage: $disk_usage"
-
-    server_hostname=$(hostname)
-    echo -e "Hostname:${GREEN}$server_hostname${RESET} IP: ${server_IPv4[0]} version script: $LAST_COMMIT"
+    # Процесор
+    cpu_info=$(lscpu)
+    cpu_model=$(echo "$cpu_info" | awk -F': ' '/Model name/ {gsub(/^[ \t]+/, "", $2); print $2}')
+    cpu_cores=$(echo "$cpu_info" | awk -F': ' '/^CPU\(s\)/ {gsub(/^[ \t]+/, "", $2); print $2}')
+    echo -e "Model: ${CYAN}${cpu_model}${RESET} Cores: ${GREEN}${cpu_cores}${RESET}\n"
 
     case $operating_system in
-    "debian" | "ubuntu" | "fedora" | "centos" | "oracle" | "arch")
+    debian | ubuntu | centos | almalinux | rockylinux)
         if [ -d "/usr/local/hestia" ]; then
             hestia_info=$(/usr/local/hestia/bin/v-list-sys-info)
 
