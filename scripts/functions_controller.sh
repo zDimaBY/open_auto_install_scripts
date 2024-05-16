@@ -130,6 +130,7 @@ install_package() {
 }
 
 checkControlPanel() {
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     echo -e "\n${YELLOW}Information: ${RED}$operating_system${RESET} ${CYAN}$VERSION${RESET}"
     # Хостнейм та IP
     server_hostname=$(hostname)

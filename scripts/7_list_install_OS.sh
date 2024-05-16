@@ -5,6 +5,17 @@ function 7_Installation_operating_systems() {
     arch | sysrescue) ;;
     *)
         echo -e "${RED}Встановлення систем відбувається лише через ${YELLOW}SystemRescueCd -> ${GREEN}https://www.system-rescue.org/Download/${RESET}"
+        # Отримання налаштувань мережі ip, mask, gateway
+        get_public_interface
+        echo -e "${RED}Завантажтесь у ${YELLOW}SystemRescueCd${RESET} Виконайте наступні команди, якщо мережа та SSH не налаштовані:"
+        echo -e "passwd root"
+        echo -e "ifconfig ${selected_adapter} ${server_IPv4[0]}/${mask}"
+        echo -e "route add default gw ${gateway}"
+        echo -e 'echo "nameserver 8.8.8.8" >/etc/resolv.conf'
+        echo -e "iptables -I INPUT 1 -p tcp -m tcp --dport 22 -j ACCEPT"
+        echo -e "iptables-legacy-save >/etc/iptables/iptables.rules"
+        echo -e "sysctl -w net.ipv6.conf.all.disable_ipv6=1"
+        echo -e "#Після чого перевірте, будь ласка, мережу: \nping ${gateway} \nping 8.8.8.8"
         return 1
         ;;
     esac
@@ -128,7 +139,7 @@ EOF
     #echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
     echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     echo -e "${YELLOW}Система RouterOS встановлена.${RED} Відключіть .iso образ з системою ${GREEN}SystemRescueCD${RED} для корректного перезавантаження в ${GREEN}RouterOS від MikroTik${RESET}"
-    echo -e "${YELLOW}Потім перейдіть за посиланням http://${server_IPv4[0]}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
+    echo -e "${YELLOW}Перейдіть за посиланням http://${server_IPv4[0]}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
     echo -e "\nВиконайте наступні команди, якщо мережа не налаштована:"
     echo -e "ip address add address=${server_IPv4[0]}/${mask} network=${gateway} interface=ether1"
     echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
