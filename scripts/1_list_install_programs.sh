@@ -85,10 +85,10 @@ function 1_installRouterOSMikrotik() {
         echo -e "\n${RED}Встановлення RouterOS від MikroTik скасовано.${RESET}"
         return 1
     fi
-    echo -e "${RED}Вам потрібно обрати лише диск, вибір розділів пропустити.${RESET}"
-    select_disk_and_partition
     generate_random_password_show
     read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
+    echo -e "${RED}Вам потрібно обрати лише диск, вибір розділів пропустити.${RESET}"
+    select_disk_and_partition
     passwd_routeros=${passwd_routeros:-$rand_password}
     case $operating_system in
     debian | ubuntu)
@@ -195,16 +195,17 @@ EOF
     zcat /mnt/chr-extended.gz | pv >${selected_partition} && sleep "$delay_command"
     fdisk -l
     echo -e "${RED}______________________________________________________________________________________________________________7${RESET}"
-    #echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${server_IPv4[0]}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
     echo -e "\nВиконайте наступні команди, якщо мережа не налаштована:"
     echo -e "ip address add address=${server_IPv4[0]}/${mask} network=${gateway} interface=ether1"
     echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
     echo -e "Перевірте мережу: \nping ${gateway} \nping 8.8.8.8"
-
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+    
     # Синхронізація даних на диску і перезавантаження системи
-    echo "sync disk" && sleep "$delay_command" && echo s >/proc/sysrq-trigger && sleep "$delay_command" && echo b >/proc/sysrq-trigger
-
+    echo "sync disk" && sleep "$delay_command" && echo s >/proc/sysrq-trigger && sleep "$delay_command"
+    echo b >/proc/sysrq-trigger
 }
 
 1_installElasticsearch() {
@@ -277,7 +278,7 @@ EOF
 
         ;;
     *)
-        echo -e "${RED}Не вдалося встановити Composer. Будь ласка, встановіть його вручну.${RESET}"
+        echo -e "${RED}Не вдалося встановити Elasticsearch. Будь ласка, встановіть його вручну. Перевірте, будь ласка, чи сумісна ваша система${RESET}"
         return 1
         ;;
     esac

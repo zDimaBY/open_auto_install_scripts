@@ -84,7 +84,7 @@ function selectionFunctions() {
         echo -e "4. Організування ${MAGENTA}VPN${RESET} серверів"
         echo -e "5. Організування ${BLUE}FTP${RESET} доступу ${RED}(test)${RESET}"
         echo -e "6. Організування ${MAGENTA}баз данних ${RED}(test)${RESET}"
-        echo -e "7. Встановлення ${YELLOW}операційних систем. ${GREEN}(Тільки через SystemRescueCD) ${RED}(test)${RESET}"
+        echo -e "7. Встановлення ${YELLOW}операційних систем. ${RED}(test)${RESET}"
         echo -e "0. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice

@@ -40,13 +40,14 @@ function 7_installRouterOSMikrotik() {
         echo -e "\n${RED}Встановлення RouterOS від MikroTik скасовано.${RESET}"
         return 1
     fi
-    echo -e "${RED}Вам потрібно обрати лише диск, вибір розділів пропустити.${RESET}"
-    select_disk_and_partition
     generate_random_password_show
     read -p "Вкажіть пароль користувача admin для RouterOS: " passwd_routeros
+    echo -e "${RED}На цьому етапі вам потрібно обрати розділ на диску, де найбільше памяті.${RESET}"
+    echo -e "${RED}Оберіть, будь ласка, диск, а потім розділ:${RESET}"
+    select_disk_and_partition
     case $operating_system in
     sysrescue)
-        if !  command -v pv &>/dev/null; then
+        if ! command -v pv &>/dev/null; then
             echo -e "${RED} pv не знайдено. Встановлюємо...${RESET}"
             install_package "pv"
         fi
@@ -67,20 +68,23 @@ function 7_installRouterOSMikrotik() {
         return 1
         ;;
     esac
-    wget https://download.mikrotik.com/routeros/${version_routeros}/chr-${version_routeros}.img.zip -O chr.img.zip
+    echo -e "${RED}На цьому етапі вам потрібно обрати лише диск, вибір розділу пропустити.${RESET}"
+    echo -e "${RED}Оберіть, будь ласка, диск в який потрібно встановити систему:${RESET}"
+    select_disk_and_partition
+
+    wget https://download.mikrotik.com/routeros/${version_routeros}/chr-${version_routeros}.img.zip -O /mnt/disk_vm/chr.img.zip
     if [ $? -ne 0 ]; then
         echo -e "${RED}Помилка $?:${RESET} не вдалося завантажити файл chr.img.zip."
         return 1
     fi
-    gunzip -c chr.img.zip >chr.img
-
+    gunzip -c /mnt/disk_vm/chr.img.zip >/mnt/disk_vm/chr.img && rm -f /mnt/disk_vm/chr.img.zip
     delay_command=3
 
     # Монтування образу
-    qemu-img convert chr.img -O qcow2 chr.qcow2 && sleep "$delay_command"
+    qemu-img convert /mnt/disk_vm/chr.img -O qcow2 /mnt/disk_vm/chr.qcow2 && sleep "$delay_command" && rm -f /mnt/disk_vm/chr.img
     qemu-img resize chr.qcow2 1073741824 && sleep "$delay_command" # Розширюєм образ диска до 1G
-    modprobe nbd && qemu-nbd -c /dev/nbd0 chr.qcow2 && sleep "$delay_command"
-    sleep 2 && partprobe /dev/nbd0 && sleep 5
+    modprobe nbd && qemu-nbd -c /dev/nbd0 /mnt/disk_vm/chr.qcow2 && sleep "$delay_command"
+    partprobe /dev/nbd0 && sleep "$delay_command"
     create_folder "/mnt/image_vm"
     mount /dev/nbd0p2 /mnt/image_vm
 
@@ -112,26 +116,27 @@ EOF
     e2fsck -f -y /dev/nbd0p2 || true && resize2fs /dev/nbd0p2 && sleep "$delay_command"
 
     # Копіювання образу та збереження його на тимчасове сховище
-    pv /dev/nbd0 | gzip >/mnt/image_vm/chr-extended.gz && sleep "$delay_command"
+    pv /dev/nbd0 | gzip >/mnt/disk_vm/chr-extended.gz && sleep "$delay_command"
 
     # Завершення роботи qemu-nbd
     killall qemu-nbd && sleep "$delay_command"
     echo u >/proc/sysrq-trigger && sleep "$delay_command"
 
     # Розпакування образу та копіювання його на пристрій ${selected_partition}
-    zcat /mnt/image_vm/chr-extended.gz | pv >${selected_partition} && sleep 10 || true
+    zcat /mnt/disk_vm/chr-extended.gz | pv >${selected_partition} && sleep 10 || true
 
     #echo -e "${RED}Перевірте, будь ласка, роботу RouterOS. На даний момент ${YELLOW}\"${date_start_install}\"${RED} в системі запущене оновлення.${RESET}"
     echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
-    echo -e "${YELLOW}Система RouterOS встановлена. Перейдіть за посиланням http://${server_IPv4[0]}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
+    echo -e "${YELLOW}Система RouterOS встановлена.${RED} Відключіть .iso образ з системою ${GREEN}SystemRescueCD${RED} для корректного перезавантаження в ${GREEN}RouterOS від MikroTik${RESET}"
+    echo -e "${YELLOW}Потім перейдіть за посиланням http://${server_IPv4[0]}/webfig/ для доступу до WEB-інтерфейсу.\nЛогін: admin\nПароль: ${passwd_routeros}${RESET}"
     echo -e "\nВиконайте наступні команди, якщо мережа не налаштована:"
     echo -e "ip address add address=${server_IPv4[0]}/${mask} network=${gateway} interface=ether1"
     echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
     echo -e "Перевірте мережу: \nping ${gateway} \nping 8.8.8.8"
     echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     # Синхронізація даних на диску і перезавантаження системи
-    echo "sync disk" && sleep "$delay_command" && echo s >/proc/sysrq-trigger && sleep "$delay_command" && echo b >/proc/sysrq-trigger
-
+    echo "sync disk" && sleep "$delay_command" && echo s >/proc/sysrq-trigger && sleep "$delay_command"
+    echo b >/proc/sysrq-trigger
 }
 
 7_installUbuntu() {

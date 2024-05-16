@@ -150,7 +150,7 @@ function 2_updateIoncube() {
     centos | oracle)
         echo -e "${RED}$operating_system ...${RESET}"
         ;;
-    arch | sysrescue)
+    arch)
         echo -e "${RED}$operating_system ...${RESET}"
         ;;
     *)
