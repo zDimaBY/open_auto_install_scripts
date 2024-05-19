@@ -151,5 +151,58 @@ EOF
 }
 
 7_installUbuntu() {
-    echo -e "\nВ розробці ...\n"
+
+    # Базовий URL для завантаження Ubuntu
+    BASE_URL="https://releases.ubuntu.com"
+
+    # Тимчасовий файл для збереження HTML-коду
+    TMP_FILE=$(mktemp)
+    wget -q -O "$TMP_FILE" "$BASE_URL/"
+
+    # Витягнення списку доступних версій
+    VERSIONS=$(grep -oP '(?<=href=")[0-9]+\.[0-9]+(\.[0-9]+)?(?=/")' "$TMP_FILE" | sort -u)
+    rm "$TMP_FILE"
+    
+    # Перетворення списку версій у масив
+    VERSIONS_ARRAY=($VERSIONS)
+
+    if [ ${#VERSIONS_ARRAY[@]} -eq 0 ]; then
+        echo "Не вдалося знайти жодної доступної версії."
+        exit 1
+    fi
+
+    # Варіанти образів для завантаження
+    IMAGES=(
+        "desktop"
+        "live-server"
+    )
+
+    echo "Доступні образи:"
+    select IMAGE in "${IMAGES[@]}"; do
+        if [[ -n "$IMAGE" ]]; then
+            echo "Ви вибрали образ: $IMAGE"
+            break
+        else
+            echo "Недійсний вибір. Будь ласка, спробуйте ще раз."
+        fi
+    done
+
+    # Формування імені файлу на основі вибраної версії та образу
+    if [ "$IMAGE" == "desktop" ]; then
+        FILE="ubuntu-$VERSION-desktop-amd64.iso"
+    else
+        FILE="ubuntu-$VERSION-live-server-amd64.iso"
+    fi
+
+    # Каталог для зберігання завантажених файлів
+    DEST_DIR="./downloads/ubuntu-$VERSION"
+
+    # Створення каталогу, якщо він не існує
+    create_folder "$DEST_DIR"
+
+    # Завантаження файлів
+    wget -P "$DEST_DIR" "$BASE_URL/$VERSION/$FILE"
+
+    echo "Завантаження завершено. Файли збережені в $DEST_DIR"
+
 }
