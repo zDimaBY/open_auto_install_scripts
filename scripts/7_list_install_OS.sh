@@ -24,7 +24,7 @@ function 7_Installation_operating_systems() {
         checkControlPanel
         echo -e "\nВиберіть дію:\n"
         echo -e "1. Встановлення ${BLUE}RouterOS від Mikrotik${RESET}"
-        echo -e "2. Встановлення ${BLUE}Ubuntu${RESET}"
+        echo -e "2. Встановлення ${BLUE}Ubuntu${RESET} ${RED}(test)${RESET}"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -151,32 +151,53 @@ EOF
 }
 
 7_installUbuntu() {
+    echo -e "${RED}На цьому етапі вам потрібно обрати розділ на диску, де найбільше пам'яті.${RESET}"
+    echo -e "${RED}Оберіть, будь ласка, диск, а потім розділ:${RESET}"
+    select_disk_and_partition
 
-    # Базовий URL для завантаження Ubuntu
+    if [ "$operating_system" == "sysrescue" ]; then
+        install_package "pv"
+
+        if grep '/mnt' /proc/mounts; then
+            umount /mnt && echo "Виконав команду розмонтування."
+        fi
+
+        create_folder "/mnt/disk_vm"
+        if mount "${selected_partition}" /mnt/disk_vm && cd /mnt/disk_vm; then
+            echo "Диск ${selected_partition} змонтовано."
+        else
+            echo -e "${RED}Не вдалося монтувати диск ${selected_partition}.${RESET}"
+            return 1
+        fi
+    else
+        echo -e "${RED}Не вдалося встановити Ubuntu. Будь ласка, встановіть його вручну.${RESET}"
+        return 1
+    fi
+
     BASE_URL="https://releases.ubuntu.com"
-
-    # Тимчасовий файл для збереження HTML-коду
     TMP_FILE=$(mktemp)
     wget -q -O "$TMP_FILE" "$BASE_URL/"
 
-    # Витягнення списку доступних версій
     VERSIONS=$(grep -oP '(?<=href=")[0-9]+\.[0-9]+(\.[0-9]+)?(?=/")' "$TMP_FILE" | sort -u)
     rm "$TMP_FILE"
-    
-    # Перетворення списку версій у масив
     VERSIONS_ARRAY=($VERSIONS)
 
     if [ ${#VERSIONS_ARRAY[@]} -eq 0 ]; then
         echo "Не вдалося знайти жодної доступної версії."
-        exit 1
+        return 1
     fi
 
-    # Варіанти образів для завантаження
-    IMAGES=(
-        "desktop"
-        "live-server"
-    )
+    echo "Доступні версії:"
+    select VERSION in "${VERSIONS_ARRAY[@]}"; do
+        if [[ -n "$VERSION" ]]; then
+            echo "Ви вибрали версію: $VERSION"
+            break
+        else
+            echo "Недійсний вибір. Будь ласка, спробуйте ще раз."
+        fi
+    done
 
+    IMAGES=("desktop" "live-server")
     echo "Доступні образи:"
     select IMAGE in "${IMAGES[@]}"; do
         if [[ -n "$IMAGE" ]]; then
@@ -187,22 +208,59 @@ EOF
         fi
     done
 
-    # Формування імені файлу на основі вибраної версії та образу
     if [ "$IMAGE" == "desktop" ]; then
         FILE="ubuntu-$VERSION-desktop-amd64.iso"
     else
         FILE="ubuntu-$VERSION-live-server-amd64.iso"
     fi
 
-    # Каталог для зберігання завантажених файлів
-    DEST_DIR="./downloads/ubuntu-$VERSION"
-
-    # Створення каталогу, якщо він не існує
+    DEST_DIR="/mnt/disk_vm/downloads/ubuntu-$VERSION"
     create_folder "$DEST_DIR"
 
-    # Завантаження файлів
-    wget -P "$DEST_DIR" "$BASE_URL/$VERSION/$FILE"
+    wget -P "$DEST_DIR" -O "$DEST_DIR/SHA256SUMS" "$BASE_URL/$VERSION/SHA256SUMS"
 
-    echo "Завантаження завершено. Файли збережені в $DEST_DIR"
+    if [ ! -e "$DEST_DIR/$FILE" ] || ! (cd "$DEST_DIR" && sha256sum -c "SHA256SUMS" --ignore-missing | grep "$FILE" | grep "OK"); then
+        if wget -P "$DEST_DIR" -O "$DEST_DIR/$FILE" "$BASE_URL/$VERSION/$FILE"; then
+            echo "Файл успішно завантажено до $DEST_DIR/$FILE"
+        else
+            echo "Завантажити файл образу не вдалося."
+            return 1
+        fi
+    else
+        echo "Файл уже існує та має правильну контрольну суму. Пропускаємо завантаження."
+    fi
 
+    echo "Завантаження завершено. Файли збережені в $DEST_DIR, образ системи за шляхом $DEST_DIR/$FILE"
+
+    ISODIR="/mnt/iso"
+    create_folder "$ISODIR"
+    if grep '/mnt/iso' /proc/mounts; then
+        umount "$ISODIR" && echo "Виконав команду розмонтування директорії $ISODIR."
+    fi
+    if mount "${DEST_DIR}/${FILE}" "$ISODIR" && cd "$ISODIR"; then
+        echo "Образ ${DEST_DIR}/${FILE} змонтовано."
+    else
+        echo -e "${RED}Не вдалося монтувати образ $DEST_DIR/$FILE.${RESET}"
+        return 1
+    fi
+
+    BUILDDIR="$DEST_DIR/build_iso"
+    create_folder "$BUILDDIR"
+    echo "----- Копіюємо файли -----"
+    rsync -a --info=progress2 --stats "$ISODIR/" "$BUILDDIR"
+    chmod -R u+w "$BUILDDIR"
+    umount "$ISODIR"
+    echo "----- Файли скопійовано -----"
+
+    cat <<EOF >>"$BUILDDIR/boot/grub/grub.cfg"
+
+menuentry "Install ubuntu CUSTOM" {
+    set gfxpayload=keep
+    linux   /casper/vmlinuz  file=/cdrom/preseed/lubuntu-1804.seed auto=true priority=critical debian-installer/locale=ru_RU keyboard-configuration/layoutcode=us ubiquity/reboot=true languagechooser/language-name=English countrychooser/shortlist=US localechooser/supported-locales=ru_RU.UTF-8 boot=casper automatic-ubiquity initrd=/casper/initrd quiet splash noprompt noshell ---
+    initrd  /casper/initrd
+}
+EOF
+
+    echo "Новий GRUB запис додано."
+    echo "Готово! Ви можете перевірити результат у $BUILDDIR."
 }
