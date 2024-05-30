@@ -29,6 +29,7 @@ urls=(
     "$URL_GITHUB/$REPO/$BRANCH/scripts/5_FTP.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/6_MySQL.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/7_list_install_OS.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/8_server_testing.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/functions_controller.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/hestiaCP_and_vestaCP_scripts/command/v-sys-change-ip"
 )
@@ -85,6 +86,7 @@ function selectionFunctions() {
         echo -e "5. Організування ${BLUE}FTP${RESET} доступу ${RED}(test)${RESET}"
         echo -e "6. Організування ${MAGENTA}баз данних ${RED}(test)${RESET}"
         echo -e "7. Встановлення ${YELLOW}операційних систем. ${RED}(test)${RESET}"
+        echo -e "8. Тестування серверів: ${YELLOW}швидкості порта,${BLUE} пошти${RED} (test)${RESET}"
         echo -e "0. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
@@ -97,6 +99,7 @@ function selectionFunctions() {
         5) 5_FTP ;;
         6) 6_manage_docker_databases ;;
         7) 7_Installation_operating_systems ;;
+        8) 8_server_testing ;;
         0) 0_funExit ;;
         *) 0_invalid ;;
         esac
