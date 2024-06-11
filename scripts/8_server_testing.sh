@@ -21,8 +21,49 @@ function 8_server_testing() {
     done
 }
 
+install_speedtest() {
+    system_arch=$(uname -m)
+    # Якщо архітектура не визначена, використовуємо іншу команду для її отримання
+    [ -z "$system_arch" ] && system_arch=$(arch)
+
+    # Визначаємо системну архітектуру та задаємо відповідну змінну
+    case "$system_arch" in
+    x86_64) system_arch_bit="x86_64" ;;
+    i386 | i686) system_arch_bit="i386" ;;
+    armv8 | armv8l | aarch64 | arm64) system_arch_bit="aarch64" ;;
+    armv7 | armv7l) system_arch_bit="armhf" ;;
+    armv6) system_arch_bit="armel" ;;
+    *)
+        echo "Помилка: Непідтримувана архітектура системи ($system_arch)." >&2
+        return 1
+        ;;
+    esac
+
+    download_url1="https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-linux-${system_arch_bit}.tgz"
+    download_url2="https://dl.lamp.sh/files/ookla-speedtest-1.2.0-linux-${system_arch_bit}.tgz"
+
+    # Завантажуємо файл з першого URL, якщо не вдалося - пробуємо з другого URL
+    wget --no-check-certificate -q -T10 -O /root/speedtest_cli.tgz $download_url1 ||
+        wget --no-check-certificate -q -T10 -O /root/speedtest_cli.tgz $download_url2 || {
+        # Якщо завантаження не вдалося з обох URL, виводимо помилку і завершуємо скрипт
+        echo "Помилка: Не вдалося завантажити speedtest-cli." >&2
+        return 1
+    }
+
+    create_folder "/root/speedtest-cli" && tar -zxf speedtest_cli.tgz -C /root/speedtest-cli/ && chmod +x /root/speedtest-cli/speedtest && rm -f /root/speedtest_cli.tgz
+}
+
+speed_test() {
+    local log_file="/root/speedtest-cli/speedtest.log"
+    /root/speedtest-cli/speedtest --progress=no --accept-license --accept-gdpr >"$log_file"
+    cat $log_file
+}
+
 8_server_testing_speed() {
-    echo "В розробці.."
+    if [ ! -e "/root/speedtest-cli/speedtest" ]; then
+        install_speedtest
+    fi
+    speed_test
 }
 
 8_server_testing_mail() {
