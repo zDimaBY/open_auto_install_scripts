@@ -2,7 +2,8 @@
 # shellcheck disable=SC2154
 function 4_VPN() {
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo -e "1. 3X-UI (WEB, on docker install) https://github.com/MHSanaei/3x-ui ${GREEN}(OS - Windows 64)${RESET}"
         echo -e "2. X-UI (WEB, on docker install) https://github.com/alireza0/x-ui/pkgs/container/x-ui"
@@ -68,7 +69,8 @@ menu_x_ui() {
         return 1
     fi
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo "1. Встановлення X-UI"
         echo "2. Зупинка X-UI"
@@ -165,7 +167,8 @@ menu_3x_ui() {
     echo "6: Для видачі SSL сертифіката встановіть Win64OpenSSL_Light-3_2_1.exe з папки 'SSL'"
     echo "Примітка: Для в такому випадку потрібно відкривати порти для кожного нового клієнта, або відключати фаєрвол"
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo "1. Встановлення 3X-UI"
         echo "2. Зупинка 3X-UI"
@@ -254,7 +257,8 @@ menu_wireguard_easy() {
         return 1
     fi
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo "1. Встановлення WireGuard Easy"
         echo "2. Зупинка WireGuard Easy"
@@ -348,7 +352,8 @@ update_wg_easy() {
 #_______________________________________________________________________________________________________________________________________
 menu_wireguard_scriptLocal() {
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nWireGuard installer. Виберіть дію:\n"
         echo "1. Автоматичне встановлення WireGuard"
         echo "2. Меню керування WireGuard та ручне встановлення"
@@ -426,7 +431,8 @@ menu_wireguard_installer() {
 #_______________________________________________________________________________________________________________________________________
 menu_openVPNLocal() {
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nOpenVPN installer. Виберіть дію:\n"
         echo "1. Автоматичне встановлення OpenVPN"
         echo "2. Меню керування OpenVPN та ручне встановлення"
@@ -521,7 +527,8 @@ menu_IPsec_L2TP_IKEv2() {
         return 1
     fi
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію для налаштування контейнера IPsec/L2TP, Cisco IPsec та IKEv2:\n"
         echo "1. Встановлення ipsec-vpn-server"
         echo "2. Створити нову конфігурацію для клієнта ipsec-vpn-server"

@@ -5,7 +5,8 @@ function 5_FTP() {
         return 1
     fi
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo "1. Встановлення alpine-ftp-server"
         echo "2. Зупинка alpine-ftp-server"
@@ -34,26 +35,25 @@ install_alpine_ftp_server() {
     read -r -p "> " ftp_user
     echo "Введіть пароль користувача FTP:"
     generate_random_password_show
-    read -r -p "> " ftp_password  # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
+    read -r -p "> " ftp_password # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
 
     docker run -d \
-    --name=alpine-ftp-server \
-    -p 21:21 \
-    -p 21000-21010:21000-21010 \
-    -e USERS="$ftp_user|$ftp_password|/|10000" \
-    -e ADDRESS=localhost \
-    -v /home:/ \
-    delfer/alpine-ftp-server
-    
-docker run -d \
-    --name=alpine-ftp-server \
-    -p 21:21 \
-    -p 21000-21010:21000-21010 \
-    -e USERS="user|1234|/home|10000" \
-    -e ADDRESS=localhost \
-    -v /home:/home \
-    delfer/alpine-ftp-server
+        --name=alpine-ftp-server \
+        -p 21:21 \
+        -p 21000-21010:21000-21010 \
+        -e USERS="$ftp_user|$ftp_password|/|10000" \
+        -e ADDRESS=localhost \
+        -v /home:/ \
+        delfer/alpine-ftp-server
 
+    docker run -d \
+        --name=alpine-ftp-server \
+        -p 21:21 \
+        -p 21000-21010:21000-21010 \
+        -e USERS="user|1234|/home|10000" \
+        -e ADDRESS=localhost \
+        -v /home:/home \
+        delfer/alpine-ftp-server
 
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}alpine-ftp-server успішно встановлено. Дані доступу до FTP:\nHost: ${YELLOW}$selected_ip_address${RESET}\nUser: ${YELLOW}$ftp_user${RESET}\nPassword: ${YELLOW}$ftp_password${RESET}"

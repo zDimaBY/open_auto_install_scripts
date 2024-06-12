@@ -111,14 +111,15 @@ check_info_server() {
 
     # Мережеві інтерфейси
     echo -e "\n$(print_color_message 255 255 0 "Network Interfaces:")"
-    network_type="$(wget -T 5 -qO- http://ip6.me/api/ | cut -d, -f1)"
-    ipv4_check=$( (ping -4 -c 1 -W 4 ipv4.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -4 icanhazip.com 2>/dev/null)
-    ipv6_check=$( (ping -6 -c 1 -W 4 ipv6.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -6 icanhazip.com 2>/dev/null)
+    if [[ "$1" == "full" ]]; then
+        network_type="$(wget -T 5 -qO- http://ip6.me/api/ | cut -d, -f1)"
+        ipv4_check=$( (ping -4 -c 1 -W 4 ipv4.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -4 icanhazip.com 2>/dev/null)
+        ipv6_check=$( (ping -6 -c 1 -W 4 ipv6.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -6 icanhazip.com 2>/dev/null)
 
-    [[ -n "$ipv6_check" ]] && ipv6_status=$(echo "IPv6: $(print_color_message 0 200 0 "Online")") || ipv6_status=$(echo "IPv6: $(print_color_message 200 0 0 "Offline")")
-    [[ -n "$ipv4_check" ]] && ipv4_status=$(echo "IPv4: $(print_color_message 0 200 0 "Online")") || ipv4_status=$(echo "IPv4: $(print_color_message 200 0 0 "Offline")")
-    [[ -n "$network_type" ]] && echo "Primary Network: $(print_color_message 0 200 0 "$network_type") | $(print_color_message 255 255 0 "Status Network:") ${ipv6_status}, ${ipv4_status}"
-
+        [[ -n "$ipv6_check" ]] && ipv6_status=$(echo "IPv6: $(print_color_message 0 200 0 "Online")") || ipv6_status=$(echo "IPv6: $(print_color_message 200 0 0 "Offline")")
+        [[ -n "$ipv4_check" ]] && ipv4_status=$(echo "IPv4: $(print_color_message 0 200 0 "Online")") || ipv4_status=$(echo "IPv4: $(print_color_message 200 0 0 "Offline")")
+        [[ -n "$network_type" ]] && echo "Primary Network: $(print_color_message 0 200 0 "$network_type") | $(print_color_message 255 255 0 "Status Network:") ${ipv6_status}, ${ipv4_status}"
+    fi
     ip -o link show | awk -F': ' '{print $2}' | while read -r iface; do
         ipaddr=$(ip -o -4 addr list $iface | awk '{print $4}')
         if [ -n "$ipaddr" ]; then
@@ -164,11 +165,25 @@ check_info_control_panel() { # Функція перевірки панелі к
             case $panel_dir in
             "/usr/local/hestia")
                 source "$panel_dir/conf/hestia.conf"
+                hestia_info=$(/usr/local/hestia/bin/v-list-sys-info)
+                hestia_version=$(echo "$hestia_info" | awk 'NR==3{print $5}')
+                cp_hostname=$(echo "$hestia_info" | awk 'NR==3{print $1}')
+                cp_operating_system_panel=$(echo "$hestia_info" | awk 'NR==3{print $2}')
+                cp_os_version=$(echo "$hestia_info" | awk 'NR==3{print $3}')
+
                 print_color_message 0 102 204 "${APP_NAME} $(print_color_message 51 153 102 "$VERSION") backend: $(print_color_message 200 200 0 "$WEB_SYSTEM")"
+                source /etc/os-release
                 ;;
             "/usr/local/vesta")
                 source "$panel_dir/conf/vesta.conf"
+                vesta_info=$(/usr/local/vesta/bin/v-list-sys-info)
+                vesta_version=$(echo "$VERSION")
+                cp_hostname=$(echo "$vesta_info" | awk 'NR==3{print $1}')
+                cp_operating_system_panel=$(echo "$vesta_info" | awk 'NR==3{print $2}')
+                cp_os_version=$(echo "$vesta_info" | awk 'NR==3{print $3}')
+
                 print_color_message 0 200 200 "Vesta Control Panel $(print_color_message 200 0 200 "$VERSION") backend: $(print_color_message 200 200 0 "$WEB_SYSTEM")"
+                source /etc/os-release
                 ;;
             "/usr/local/mgr5")
                 print_color_message 0 200 0 "ISPmanager is installed."

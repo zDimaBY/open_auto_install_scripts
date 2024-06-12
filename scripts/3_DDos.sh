@@ -3,7 +3,8 @@
 function 3_DDos() {
     clear
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         get_selected_interface
         read -p "Введіть тривалість таймауту tcpdump (у секундах, стандартне значення: 5): " duration
         duration=${duration:-5}
@@ -33,7 +34,8 @@ function 3_viewInterfacePacks() {
 function 3_AnalysisRequestsOfNetworkInterface() {
     clear
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\e[93mВи у пункті: "1. Аналіз IP-запитів мережевого інтерфейса за "$duration"/сек"${RESET}"
         echo -e "\e[93mЩоб повернутися до попереднього меню натисніть${RED} 0 та Enter${RESET}\n"
         output=$(timeout "$duration" tcpdump -nn -i "$selected_adapter")
@@ -60,7 +62,8 @@ function 3_AnalysisRequestsOfNetworkInterface() {
 function 3_repeatsOfNetworkInterface() {
     clear
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\e[93mВи у пункті: "2. Аналіз IP усіх повторень мережевого інтерфейса за "$duration"/сек"${RESET}"
         echo -e "\e[93mЩоб повернутися до попереднього меню натисніть${RED} 0 та Enter${RESET}\n"
         output=$(timeout "$duration" tcpdump -nn -i "$selected_adapter")
@@ -88,7 +91,8 @@ function 3_blockIPs() {
 
     clear
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\e[93mВи у пункті: "2. Блокування IP-адрес з підозрілими запитами"${RESET}"
         echo -e "\e[93mЩоб повернутися до попереднього меню натисніть${RED} 0 та Enter${RESET}\n"
         output=$(timeout "$duration" tcpdump -nn -i "$selected_adapter")

@@ -21,7 +21,8 @@ function 7_Installation_operating_systems() {
     esac
 
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo -e "1. Встановлення ${BLUE}RouterOS від Mikrotik${RESET}"
         echo -e "2. Встановлення ${BLUE}Ubuntu${RESET} ${RED}(test)${RESET}"

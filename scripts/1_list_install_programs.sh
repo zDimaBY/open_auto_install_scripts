@@ -2,7 +2,8 @@
 # shellcheck disable=SC2154
 function 1_list_install_programs() {
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo -e "1. Встановлення ${BROWN}Composer${RESET}"
         echo -e "2. Встановлення ${BROWN}Docker${RESET}"
@@ -202,7 +203,7 @@ EOF
     echo -e "ip route add dst-address=0.0.0.0/0 gateway=${gateway}"
     echo -e "Перевірте мережу: \nping ${gateway} \nping 8.8.8.8"
     echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
-    
+
     # Синхронізація даних на диску і перезавантаження системи
     echo "sync disk" && sleep "$delay_command" && echo s >/proc/sysrq-trigger && sleep "$delay_command"
     echo b >/proc/sysrq-trigger

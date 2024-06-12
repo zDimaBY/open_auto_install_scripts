@@ -2,7 +2,8 @@
 # shellcheck disable=SC2154
 function 8_server_testing() {
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo -e "1. Тестування ${BROWN}швидкості інтерфейсу${RESET}"
         echo -e "2. Тестування ${BLUE}пошти${RESET}"

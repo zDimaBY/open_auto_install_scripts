@@ -38,7 +38,10 @@ urls=(
 # Завантаження та розгортання скриптів
 for url in "${urls[@]}"; do
     filename=$(basename "$url")
-    wget -qO "$folder_script_path/$filename" "$url" || { echo -e "${RED}Не вдалося завантажити $filename${RESET}"; exit 1; }
+    wget -qO "$folder_script_path/$filename" "$url" || {
+        echo -e "${RED}Не вдалося завантажити $filename${RESET}"
+        exit 1
+    }
 done
 
 # Підключення усіх файлів з папки
@@ -72,13 +75,18 @@ for dependency in "${dependencies[@]}"; do
     check_dependency $dependency
 done
 
-LAST_COMMIT=$(curl -s "https://api.github.com/repos/$REPO/commits/$BRANCH" | jq -r '.commit.message')
+COMMIT=$(curl -s "https://api.github.com/repos/$REPO/commits/$BRANCH")
+LAST_COMMIT=$($COMMIT | jq -r '.commit.message')
+LAST_COMMIT_DATE=$($COMMIT | jq -r '.commit.author.date')
+
 #  ================= Start Script ==================
 function selectionFunctions() {
     distribute_ips
     clear
+    echo -e "Останнє повідомлення коміту: ${YELLOW}${LAST_COMMIT}${RESET}, дата останньої фіксації:${RED}${LAST_COMMIT_DATE}${RESET}"
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo -e "1. Встановлення ПЗ (${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET}, ${BLUE}RouterOS 7.5${RESET}, ${BLUE}Elasticsearch${RESET}, proxy nginx)"
         echo -e "2. Функції для панелей керування сайтами ${RED}(test)${RESET}"

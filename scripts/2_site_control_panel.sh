@@ -21,9 +21,10 @@ function 2_site_control_panel() {
         echo -e "${RED}Не вдалося визначити тип веб-сервера Apache2 або HTTPD.${RESET}"
         return 1
     fi
-    
+
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo -e "1. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + php-fpm) ${RED}(test)${RESET}"
         echo -e "2. Встановлення ${RED}CMS${RESET} ${RED}(test)${RESET}"
@@ -91,7 +92,8 @@ function 2_updateIoncube() {
 
 2_install_list_CMS() {
     while true; do
-        checkControlPanel
+        check_info_server
+        check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo -e "1. WordPress ${RED}(test)${RESET}"
         echo -e "2. DLE ${RED}(test)${RESET}"
