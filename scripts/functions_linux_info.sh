@@ -1,5 +1,5 @@
-#!/bin/bash
-
+# shellcheck disable=SC2148
+# shellcheck disable=SC2154
 # Функція відображення кольорових повідомлень
 print_color_message() {
     local red=$1
@@ -31,7 +31,7 @@ distribute_ips() { # ${server_IPv4[0]} ${server_IPv6[0]}
 
     # Об'єднуємо IP-адреси знову та записуємо у hostname -I
     local merged_ip_addresses="${ip_addresses_I[*]} ${ip_addresses_i[*]}"
-    
+
     # Розділяємо IP-адреси за пробілами та зберігаємо їх в масиві
     IFS=' ' read -r -a ip_addresses <<<"$merged_ip_addresses"
 
@@ -47,48 +47,49 @@ distribute_ips() { # ${server_IPv4[0]} ${server_IPv6[0]}
         fi
     done
 }
-distribute_ips
 
-if [ "$(id -u)" -ne 0 ]; then
-    print_color_message 200 0 0 'Error: This script is not run as root.'
-fi
+check_compatibility_script() {
+    if [ "$(id -u)" -ne 0 ]; then
+        print_color_message 200 0 0 'Error: This script is not run as root.'
+    fi
 
-if [ -e "/etc/os-release" ]; then
-    source "/etc/os-release"
-else
-    print_color_message 200 0 0 "Error: /etc/os-release not found"
-    print_color_message 200 0 0 "lsb_release is currently not installed, please install it:"
+    if [ -e "/etc/os-release" ]; then
+        source "/etc/os-release"
+    else
+        print_color_message 200 0 0 "Error: /etc/os-release not found"
+        print_color_message 200 0 0 "lsb_release is currently not installed, please install it:"
 
-    case "$(uname -s)" in
-    Linux)
-        if [ -x "$(command -v apt-get)" ]; then
-            print_color_message 200 0 0 "On $(print_color_message 200 165 0 "Debian or Ubuntu:")"
-            print_color_message 200 0 0 "sudo apt-get update && sudo apt-get install lsb-release"
-        elif [ -x "$(command -v yum)" ]; then
-            print_color_message 200 0 0 "On $(print_color_message 200 165 0 "Red Hat-based systems:")"
-            print_color_message 200 0 0 "sudo yum install redhat-lsb-core"
-        elif [ -x "$(command -v dnf)" ]; then
-            print_color_message 200 0 0 "On $(print_color_message 200 165 0 "AlmaLinux:")"
-            print_color_message 200 0 0 "sudo dnf install redhat-lsb-core"
-        elif [ -x "$(command -v zypper)" ]; then
-            print_color_message 200 0 0 "On $(print_color_message 200 165 0 "SUSE:")"
-            print_color_message 200 0 0 "sudo zypper install lsb-release"
-        elif [ -x "$(command -v pacman)" ]; then
-            print_color_message 200 0 0 "On $(print_color_message 200 165 0 "Arch Linux:")"
-            print_color_message 200 0 0 "sudo pacman -Sy lsb-release"
-        else
-            print_color_message 200 0 0 "Unsupported package manager. Please install lsb-release manually."
-        fi
-        ;;
-    *)
-        print_color_message 200 0 0 "Unsupported operating system. Please install lsb-release manually."
-        ;;
-    esac
+        case "$(uname -s)" in
+        Linux)
+            if [ -x "$(command -v apt-get)" ]; then
+                print_color_message 200 0 0 "On $(print_color_message 200 165 0 "Debian or Ubuntu:")"
+                print_color_message 200 0 0 "sudo apt-get update && sudo apt-get install lsb-release"
+            elif [ -x "$(command -v yum)" ]; then
+                print_color_message 200 0 0 "On $(print_color_message 200 165 0 "Red Hat-based systems:")"
+                print_color_message 200 0 0 "sudo yum install redhat-lsb-core"
+            elif [ -x "$(command -v dnf)" ]; then
+                print_color_message 200 0 0 "On $(print_color_message 200 165 0 "AlmaLinux:")"
+                print_color_message 200 0 0 "sudo dnf install redhat-lsb-core"
+            elif [ -x "$(command -v zypper)" ]; then
+                print_color_message 200 0 0 "On $(print_color_message 200 165 0 "SUSE:")"
+                print_color_message 200 0 0 "sudo zypper install lsb-release"
+            elif [ -x "$(command -v pacman)" ]; then
+                print_color_message 200 0 0 "On $(print_color_message 200 165 0 "Arch Linux:")"
+                print_color_message 200 0 0 "sudo pacman -Sy lsb-release"
+            else
+                print_color_message 200 0 0 "Unsupported package manager. Please install lsb-release manually."
+            fi
+            ;;
+        *)
+            print_color_message 200 0 0 "Unsupported operating system. Please install lsb-release manually."
+            ;;
+        esac
 
-    exit 1
-fi
+        exit 1
+    fi
+}
 
-checkInfoServer() {
+check_info_server() {
     case "${ID}" in
     "debian" | "ubuntu")
         echo -e "\n$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (based system)")"
@@ -111,8 +112,8 @@ checkInfoServer() {
     # Мережеві інтерфейси
     echo -e "\n$(print_color_message 255 255 0 "Network Interfaces:")"
     network_type="$(wget -T 5 -qO- http://ip6.me/api/ | cut -d, -f1)"
-    ipv4_check=$( (ping -4 -c 1 -W 4 ipv4.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -4 icanhazip.com 2> /dev/null)
-    ipv6_check=$( (ping -6 -c 1 -W 4 ipv6.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -6 icanhazip.com 2> /dev/null)
+    ipv4_check=$( (ping -4 -c 1 -W 4 ipv4.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -4 icanhazip.com 2>/dev/null)
+    ipv6_check=$( (ping -6 -c 1 -W 4 ipv6.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -6 icanhazip.com 2>/dev/null)
 
     [[ -n "$ipv6_check" ]] && ipv6_status=$(echo "IPv6: $(print_color_message 0 200 0 "Online")") || ipv6_status=$(echo "IPv6: $(print_color_message 200 0 0 "Offline")")
     [[ -n "$ipv4_check" ]] && ipv4_status=$(echo "IPv4: $(print_color_message 0 200 0 "Online")") || ipv4_status=$(echo "IPv4: $(print_color_message 200 0 0 "Offline")")
@@ -157,9 +158,7 @@ checkInfoServer() {
     echo -e "Model: $(print_color_message 0 255 255 "$cpu_model") Cores: $(print_color_message 0 255 0 "$cpu_cores")\n"
 }
 
-# Функція перевірки інформації про сервер і панелі керування
-checkInfoControlPanel() {
-
+check_info_control_panel() { # Функція перевірки панелі керування
     for panel_dir in "/usr/local/hestia" "/usr/local/vesta" "/usr/local/mgr5" "/usr/local/cpanel" "/usr/local/fastpanel2" "/usr/local/brainycp"; do
         if [ -d "$panel_dir" ]; then
             case $panel_dir in
@@ -215,12 +214,7 @@ checkInfoControlPanel() {
         fi
     done
     print_color_message 200 0 0 "Control panel not found."
-
 }
-
-# Відобразити інформацію про ОС і перевірити панель керування
-checkInfoServer
-checkInfoControlPanel
 
 check_command_version() {
     local command=$1
@@ -237,42 +231,44 @@ check_command_version() {
     fi
 }
 
-# Check MySQL, MariaDB, PostgreSQL, SQLite
-if ! command -v mysql >/dev/null 2>&1 && ! command -v mariadb >/dev/null 2>&1 && ! command -v psql >/dev/null 2>&1 && ! command -v sqlite3 >/dev/null 2>&1; then
-    print_color_message 200 0 0 "MySQL or MariaDB, PostgreSQL or SQLite is not installed."
-else
-    check_command_version mysql "MySQL"
-    check_command_version mariadb "MariaDB"
-    check_command_version psql "PostgreSQL"
-    check_command_version sqlite3 "SQLite"
-fi
-
-# Check PHP, Python, Node.js
-if ! command -v php >/dev/null 2>&1 && ! command -v python3 >/dev/null 2>&1 && ! command -v node >/dev/null 2>&1; then
-    print_color_message 200 0 0 "PHP, Python or Node.js is not installed."
-else
-    check_command_version php "PHP"
-    check_command_version python3 "Python"
-    check_command_version node "Node.js"
-fi
-
-# Check Composer
-check_command_version composer "Composer"
-
-# Check Docker
-if command -v docker >/dev/null 2>&1; then
-    print_color_message 0 102 204 "$(docker -v)"
-    docker ps -a
-else
-    print_color_message 200 0 0 "Docker is not installed."
-fi
-
-ports=$(ss -tuln | awk 'NR>1 {print $5}' | cut -d ':' -f 2 | sort -n | uniq)
-for port in $ports; do
-    count=$(ss -an | grep ":$port " | wc -l)
-    if [[ $count -ge 3 ]]; then
-        echo -e "Port $port: $(print_color_message 200 165 0 "$count")"
+check_available_services() {
+    # Check MySQL, MariaDB, PostgreSQL, SQLite
+    if ! command -v mysql >/dev/null 2>&1 && ! command -v mariadb >/dev/null 2>&1 && ! command -v psql >/dev/null 2>&1 && ! command -v sqlite3 >/dev/null 2>&1; then
+        print_color_message 200 0 0 "MySQL or MariaDB, PostgreSQL or SQLite is not installed."
+    else
+        check_command_version mysql "MySQL"
+        check_command_version mariadb "MariaDB"
+        check_command_version psql "PostgreSQL"
+        check_command_version sqlite3 "SQLite"
     fi
-done
-ss -plns
-ss -utnpl | awk '{printf "%-6s %-6s %-7s %-7s %-42s %-42s %-s\n", $1, $2, $3, $4, $5, $6, $7}'
+
+    # Check PHP, Python, Node.js
+    if ! command -v php >/dev/null 2>&1 && ! command -v python3 >/dev/null 2>&1 && ! command -v node >/dev/null 2>&1; then
+        print_color_message 200 0 0 "PHP, Python or Node.js is not installed."
+    else
+        check_command_version php "PHP"
+        check_command_version python3 "Python"
+        check_command_version node "Node.js"
+    fi
+
+    # Check Composer
+    check_command_version composer "Composer"
+
+    # Check Docker
+    if command -v docker >/dev/null 2>&1; then
+        print_color_message 0 102 204 "$(docker -v)"
+        docker ps -a
+    else
+        print_color_message 200 0 0 "Docker is not installed."
+    fi
+
+    ports=$(ss -tuln | awk 'NR>1 {print $5}' | cut -d ':' -f 2 | sort -n | uniq)
+    for port in $ports; do
+        count=$(ss -an | grep ":$port " | wc -l)
+        if [[ $count -ge 3 ]]; then
+            echo -e "Port $port: $(print_color_message 200 165 0 "$count")"
+        fi
+    done
+    ss -plns
+    ss -utnpl | awk '{printf "%-6s %-6s %-7s %-7s %-42s %-42s %-s\n", $1, $2, $3, $4, $5, $6, $7}'
+}

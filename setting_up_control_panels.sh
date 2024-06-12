@@ -30,8 +30,8 @@ urls=(
     "$URL_GITHUB/$REPO/$BRANCH/scripts/6_MySQL.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/7_list_install_OS.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/8_server_testing.sh"
-    "$URL_GITHUB/$REPO/$BRANCH/scripts/linuxinfo.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/functions_controller.sh"
+    "$URL_GITHUB/$REPO/$BRANCH/scripts/functions_linux_info.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/hestiaCP_and_vestaCP_scripts/command/v-sys-change-ip"
 )
 
