@@ -90,6 +90,7 @@ check_compatibility_script() {
 }
 
 check_info_server() {
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     case "${ID}" in
     "debian" | "ubuntu")
         echo -e "\n$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (based system)")"

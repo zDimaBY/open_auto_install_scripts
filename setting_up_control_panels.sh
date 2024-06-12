@@ -76,14 +76,14 @@ for dependency in "${dependencies[@]}"; do
 done
 
 COMMIT=$(curl -s "https://api.github.com/repos/$REPO/commits/$BRANCH")
-LAST_COMMIT=$($COMMIT | jq -r '.commit.message')
-LAST_COMMIT_DATE=$($COMMIT | jq -r '.commit.author.date')
+LAST_COMMIT=$(echo "$COMMIT" | jq -r '.commit.message')
+LAST_COMMIT_DATE=$(echo "$COMMIT" | jq -r '.commit.author.date')
 
 #  ================= Start Script ==================
 function selectionFunctions() {
     distribute_ips
     clear
-    echo -e "Останнє повідомлення коміту: ${YELLOW}${LAST_COMMIT}${RESET}, дата останньої фіксації:${RED}${LAST_COMMIT_DATE}${RESET}"
+    echo -e "Останнє повідомлення з комітів: ${YELLOW}${LAST_COMMIT}${RESET}, дата останньої фіксації: ${RED}${LAST_COMMIT_DATE}${RESET}"
     while true; do
         check_info_server
         check_info_control_panel
@@ -95,7 +95,7 @@ function selectionFunctions() {
         echo -e "5. Організування ${BLUE}FTP${RESET} доступу ${RED}(test)${RESET}"
         echo -e "6. Організування ${MAGENTA}баз данних ${RED}(test)${RESET}"
         echo -e "7. Встановлення ${YELLOW}операційних систем. ${RED}(test)${RESET}"
-        echo -e "8. Тестування серверів: ${YELLOW}швидкості порта,${BLUE} пошти${RED} (test)${RESET}"
+        echo -e "8. Тестування серверів: ${YELLOW}швидкості порта,${BLUE} пошти${RED}${RESET}"
         echo -e "0. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
