@@ -90,19 +90,19 @@ check_compatibility_script() {
 }
 
 check_info_server() {
-    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+    print_color_message 0 200 0 "----------------------------------------------------------------------------------------------------------------------------------------"
     case "${ID}" in
     "debian" | "ubuntu")
-        echo -e "\n$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (based system)")"
+        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (based system)")"
         ;;
     "rhel" | "almalinux" | "eurolinux" | "rocky" | "centos")
-        echo -e "\n$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Red Hat-based system)")."
+        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Red Hat-based system)")."
         ;;
     "arch" | "sysrescue" | "gentoo" | "slackware")
-        echo -e "\n$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Arch-based system)")."
+        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Arch-based system)")."
         ;;
     *)
-        echo -e "\n$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Other Linux-based system)")."
+        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Other Linux-based system)")."
         ;;
     esac
 
@@ -111,7 +111,7 @@ check_info_server() {
     echo -e "Hostname: $(print_color_message 0 255 0 "$server_hostname") IP: ${server_IPv4[0]}"
 
     # Мережеві інтерфейси
-    echo -e "\n$(print_color_message 255 255 0 "Network Interfaces:")"
+    print_color_message 255 255 0 "\nNetwork Interfaces:"
     if [[ "$1" == "full" ]]; then
         network_type="$(wget -T 5 -qO- http://ip6.me/api/ | cut -d, -f1)"
         ipv4_check=$( (ping -4 -c 1 -W 4 ipv4.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -4 icanhazip.com 2>/dev/null)

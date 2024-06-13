@@ -181,7 +181,7 @@ function 2_updateIoncube() {
 
     # Шлях до директорії з користувачами
     user_dir="/usr/local/$control_panel_install/data/users/"
-
+    CLI_dir="/usr/local/$control_panel_install/bin"
     # Виведення списку папок
     echo "Доступні користувачі панелі керування сайтами:"
     folders=($(find "$user_dir" -maxdepth 1 -mindepth 1 -type d -printf "%f\n"))
@@ -202,7 +202,7 @@ function 2_updateIoncube() {
 
     # Перевірка чи номер вибраної папки в діапазоні
     if ((choice < 1 || choice > ${#folders[@]})); then
-        echo "Недійсний номер папки."
+        echo "Недійсний номер."
         return 1
     fi
 
@@ -236,13 +236,29 @@ function 2_updateIoncube() {
     CONTROLPANEL_USER="${folders[$((choice - 1))]}"
     echo "Ви обрали користувача: $CONTROLPANEL_USER"
 
-    /usr/local/$control_panel_install/bin/v-add-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
+    $CLI_dir/v-add-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
 
     check_domain $WP_SITE_DOMEN
     if [ $? -eq 0 ]; then
-        /usr/local/$control_panel_install/bin/v-schedule-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
+        $CLI_dir/v-schedule-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
     else
-        /usr/local/$control_panel_install/bin/v-generate-ssl-cert $WP_SITE_DOMEN $SITE_ADMIN_MAIL USA California Monterey ACME.COM IT
+        WEB_DIR=/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN
+        SSL_DIR=$WEB_DIR/ssl
+        
+        create_folder "$SSL_DIR"
+
+        # Створення самопідписаного сертифіката
+        openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
+            -subj "/C=UA/ST=Kyiv/L=Kyiv/O=Example/CN=$WP_SITE_DOMEN" \
+            -keyout $SSL_DIR/$WP_SITE_DOMEN.key -out $SSL_DIR/$WP_SITE_DOMEN.crt
+        chown -R "$CONTROLPANEL_USER:$CONTROLPANEL_USER" "$SSL_DIR"
+        # Додавання сертифіката до HestiaCP
+        $CLI_dir/v-add-web-domain-ssl $CONTROLPANEL_USER $WP_SITE_DOMEN $SSL_DIR
+        
+        # Перезапуск веб-сервера
+        #$CLI_dir/v-restart-web
+
+        echo "Самопідписаний SSL сертифікат для $WP_SITE_DOMEN створено та додано до $control_panel_install."
     fi
 
     dir_wp_in_panel="/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN/public_html/"
@@ -265,7 +281,7 @@ function 2_updateIoncube() {
     # Налаштовуємо файл wp-config.php
     echo -e "${YELLOW}Налаштовуємо файл wp-config.php...${RESET}"
     cp wp-config-sample.php wp-config.php
-    if [ ! -f "/usr/local/$control_panel_install/bin/v-add-database-prefix-on" ]; then
+    if [ -f "/usr/local/$control_panel_install/bin/v-add-database-prefix-on" ]; then
         sed -i "s|database_name_here|${DB_NAME}|" wp-config.php
         sed -i "s|username_here|${DB_USER}|" wp-config.php
         sed -i "s|password_here|$DB_PASSWORD|" wp-config.php
@@ -308,7 +324,7 @@ function 2_updateIoncube() {
     # Створюємо базу даних та користувача, якщо база даних не існує
     echo -e "${YELLOW}Створюємо базу даних та користувача...${RESET}"
 
-    /usr/local/$control_panel_install/bin/v-add-database $CONTROLPANEL_USER $DB_NAME $DB_USER $DB_PASSWORD
+    $CLI_dir/v-add-database $CONTROLPANEL_USER $DB_NAME $DB_USER $DB_PASSWORD
 
     # Перевірка наявності команди wp
     if ! command -v wp &>/dev/null; then
