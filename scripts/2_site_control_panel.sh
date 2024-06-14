@@ -8,7 +8,7 @@ function 2_site_control_panel() {
         control_panel_install="hestia"
     else
         echo -e "${RED}Не вдалося визначити панель керування сайтами.${RESET}"
-        return 1
+        2_install_control_panel
     fi
     # Перевірка типу веб-сервера Apache2 або HTTPD
     if [ -d "/etc/apache2" ]; then
@@ -49,7 +49,237 @@ function 2_site_control_panel() {
     done
 }
 
-function 2_updateIoncube() {
+2_install_control_panel() {
+    while true; do
+        check_info_server
+        check_info_control_panel
+        echo -e "\nВиберіть дію:\n"
+        echo -e "1. Встановлення ${RED}HestiaCP${RESET} ${RED}(test)${RESET}"
+        echo -e "2. Встановлення ${RED}VestaCP${RESET} ${RED}(test)${RESET}"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант:" choice
+
+        case $choice in
+        1) 2_install_hestiaCP ;;
+        2) 2_install_vesta_control_panel ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+
+2_install_hestiaCP() {
+    # URL до репозиторію HestiaCP
+    HESITACP_GITHUB="https://api.github.com/repos/hestiacp/hestiacp/tags"
+
+    # Перевірка, чи встановлено curl та jq
+    if ! command -v jq &>/dev/null || ! command -v wget &>/dev/null; then
+        echo "curl, jq та/або wget не встановлено. Встановіть їх і повторіть спробу."
+        exit 1
+    fi
+
+    # Завантаження списку доступних версій
+    VERSIONS_CP=$(curl -s "$HESITACP_GITHUB" | jq -r '.[].name' | sort -Vr)
+
+    print_versions_cp() {
+        local index=1
+        for VERSION_CP in $VERSIONS_CP; do
+            echo "$index) Версія: $VERSION_CP"
+            ((index++))
+            if [ $index -gt 9 ]; then
+                break
+            fi
+        done
+    }
+
+    echo "Доступні версії HestiaCP:"
+    print_versions_cp
+
+    # Запит вибору користувача
+    read -p "Введіть номер версії для завантаження: " VERSION_NUMBER
+
+    # Перевірка введеного номера версії
+    if ! [[ "$VERSION_NUMBER" =~ ^[0-9]+$ ]] || ((VERSION_NUMBER < 1 || VERSION_NUMBER > 9)); then
+        echo "Невірний номер версії. Будь ласка, введіть номер із доступного діапазону."
+        exit 1
+    fi
+
+    # Обираємо версію за номером
+    SELECTED_VERSION_HESTIA=$(echo "$VERSIONS_CP" | sed -n "${VERSION_NUMBER}p")
+
+    # URL до скрипту встановлення для вибраної версії
+    INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/hestiacp/hestiacp/${SELECTED_VERSION_HESTIA}/install/hst-install-ubuntu.sh"
+
+    # Завантаження скрипту встановлення
+    wget --timeout=4 -qO hst-install-ubuntu.sh "$INSTALL_SCRIPT_URL"
+
+    # Перевірка чи скрипт було успішно завантажено
+    if wget --timeout=4 -qO hst-install-ubuntu.sh "$INSTALL_SCRIPT_URL"; then
+        echo "Скрипт для версії $SELECTED_VERSION_HESTIA завантажено як hst-install-ubuntu.sh"
+    else
+        echo "Не вдалося завантажити скрипт для версії $SELECTED_VERSION_HESTIA."
+        exit 1
+    fi
+
+    while true; do
+        check_info_server
+        check_info_control_panel
+        echo -e "\nВиберіть дію:\n"
+        echo -e "1. Автоматичне встановлення ${RED}HestiaCP $SELECTED_VERSION_HESTIA${RESET} ${RED}(test)${RESET}"
+        echo -e "2. Вибіркове встановлення ${RED}HestiaCP $SELECTED_VERSION_HESTIA${RESET}${RED}(test)${RESET}"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант:" choice
+
+        case $choice in
+        1) 2_avto_install_hestiaCP ;;
+        2) 2_castom_install_hestiaCP_apache ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+
+2_avto_install_hestiaCP() {
+    if validate_domain "$server_hostname"; then
+        print_color_message 0 200 0 "Домен hostname валідний."
+        cp_domen=$server_hostname
+    else
+        print_color_message 200 0 0 "Домен hostname не валідний, в такому разі буде вказано example.com."
+        cp_domen="example.com"
+    fi
+
+    total_free_swap_end_ram
+    if ((free_swap_end_ram_mb < 2048)); then
+        echo -e "Недостатньо вільної пам'яті для $(print_color_message 255 255 0 "clamav"). Вільно: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)"), в такому разі він не буде встановлений."
+        clamav_available="no"
+    else
+        echo -e "Достатньо вільної пам'яті: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)")"
+        clamav_available="yes"
+    fi
+    sed -i '/read -n 1 -s -r -p "Press any key to continue"/a \
+/usr/local/hestia/bin/v-change-user-package admin default' hst-install-ubuntu.sh
+
+    if [[ $SELECTED_VERSION_HESTIA == "1.8.11" ]]; then
+        sed -i '/read -n 1 -s -r -p "Press any key to continue"/a \
+chown -R root:www-data /etc/phpmyadmin/ \
+chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
+    fi
+    
+    sed -i '/read -n 1 -s -r -p "Press any key to continue"/d' hst-install-ubuntu.sh
+    while true; do
+        echo -e "\nВиберіть які обробники встановити:\n"
+        echo -e "1. PHP-FPM and nginx + apache ${RED}${RESET}"
+        echo -e "2. PHP-FPM and nginx ${RED}${RESET}"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант:" choice
+
+        case $choice in
+        1) bash hst-install-ubuntu.sh --hostname "hestia.$cp_domen" --email "admin@$cp_domen" --apache "yes" --clamav "$clamav_available" ;;
+        2) bash hst-install-ubuntu.sh --hostname "hestia.$cp_domen" --email "admin@$cp_domen" --apache "no" --clamav "$clamav_available" ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+
+2_castom_install_hestiaCP_apache() {
+    # Перевірка, чи встановлено curl та jq
+    if ! command -v curl &>/dev/null || ! command -v wget &>/dev/null || ! command -v jq &>/dev/null; then
+        echo "curl, wget та/або jq не встановлено. Встановіть їх і повторіть спробу."
+        return 1
+    fi
+
+    # URL до репозиторію MariaDB та API з датами закінчення підтримки
+    REPO_URL="https://mirror.mariadb.org/repo/"
+    EOL_URL="https://endoflife.date/api/mariadb.json"
+
+    # Завантаження сторінки та пошук доступних версій
+    VERSIONS_DB=$(curl -s "$REPO_URL" | grep -oP 'href="\K[0-9]+\.[0-9]+' | sort -uVr)
+    EOL_DATA=$(curl -s "$EOL_URL")
+
+    # Функція для виводу версій та дат закінчення підтримки
+    print_versions() {
+        local index=1
+        for VERSION_DB in $VERSIONS_DB; do
+            EOL_DATE=$(echo "$EOL_DATA" | jq -r --arg VERSION_DB "$VERSION_DB" '.[] | select(.cycle == $VERSION_DB) | .eol')
+            echo "$index) Версія: $(print_color_message 255 255 0 "${VERSION_DB}") - Закінчення підтримки: $(print_color_message 200 0 0 "${EOL_DATE:-не визначено}")"
+            ((index++))
+        done
+    }
+
+    # Виведення доступних версій MariaDB
+    echo "Доступні версії MariaDB:"
+    print_versions
+
+    read -p "Введіть номер версії для перевірки закінчення підтримки: " VERSION_NUMBER
+
+    # Перевірка введеного номера версії
+    if ! [[ "$VERSION_NUMBER" =~ ^[0-9]+$ ]] || ((VERSION_NUMBER < 1 || VERSION_NUMBER > $(echo "$VERSIONS_DB" | wc -l))); then
+        echo "Невірний номер версії. Будь ласка, введіть номер із доступного діапазону."
+        return 1
+    fi
+
+    # Обираємо версію за номером
+    SELECTED_VERSION_DB=$(echo "$VERSIONS_DB" | sed -n "${VERSION_NUMBER}p")
+    EOL_DATE=$(echo "$EOL_DATA" | jq -r --arg SELECTED_VERSION_DB "$SELECTED_VERSION_DB" '.[] | select(.cycle == $SELECTED_VERSION_DB) | .eol')
+
+    echo "Версія: $(print_color_message 255 255 0 "${SELECTED_VERSION_DB}") - Закінчення підтримки: $(print_color_message 200 0 0 "${EOL_DATE:-не визначено}")"
+    sed -i "s/mariadb_v=\".*\"/mariadb_v=\"$SELECTED_VERSION_DB\"/" hst-install-ubuntu.sh
+    sed -i '/read -n 1 -s -r -p "Press any key to continue"/a \
+/usr/local/hestia/bin/v-change-user-package admin default' hst-install-ubuntu.sh
+
+    if [[ $SELECTED_VERSION_HESTIA == "1.8.11" ]]; then
+        sed -i '/read -n 1 -s -r -p "Press any key to continue"/a \
+chown -R root:www-data /etc/phpmyadmin/ \
+chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
+    fi
+
+    if validate_domain "$server_hostname"; then
+        print_color_message 0 200 0 "Домен hostname валідний."
+        cp_domen=$server_hostname
+    else
+        print_color_message 200 0 0 "Домен hostname не валідний, в такому разі буде вказано example.com."
+        cp_domen="example.com"
+    fi
+
+    total_free_swap_end_ram
+    if ((free_swap_end_ram_mb < 2048)); then
+        echo -e "Недостатньо вільної пам'яті для $(print_color_message 255 255 0 "clamav"). Поточно вільно: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)"), в такому разі він не буде встановлений."
+        clamav_available="no"
+    else
+        echo -e "Достатньо вільної пам'яті: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)")"
+        clamav_available="yes"
+    fi
+
+    while true; do
+        echo -e "\nВиберіть які обробники встановити:\n"
+        echo -e "1. PHP-FPM and nginx + apache ${RED}${RESET}"
+        echo -e "2. PHP-FPM and nginx ${RED}${RESET}"
+        echo -e "\n0. Вийти з цього підменю!"
+        echo -e "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант:" choice
+
+        case $choice in
+        1) bash hst-install-ubuntu.sh --hostname "hestia.$cp_domen" --email "admin@$cp_domen" --apache "yes" --clamav "$clamav_available" ;;
+        2) bash hst-install-ubuntu.sh --hostname "hestia.$cp_domen" --email "admin@$cp_domen" --apache "no" --clamav "$clamav_available" ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+
+2_updateIoncube() {
     # Instals Ioncube on all  existing and supported php versions
     if [ -f "/etc/hestiacp/hestia.conf" ]; then
         source /etc/hestiacp/hestia.conf
@@ -244,7 +474,7 @@ function 2_updateIoncube() {
     else
         WEB_DIR=/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN
         SSL_DIR=$WEB_DIR/ssl
-        
+
         create_folder "$SSL_DIR"
 
         # Створення самопідписаного сертифіката
@@ -254,7 +484,7 @@ function 2_updateIoncube() {
         chown -R "$CONTROLPANEL_USER:$CONTROLPANEL_USER" "$SSL_DIR"
         # Додавання сертифіката до HestiaCP
         $CLI_dir/v-add-web-domain-ssl $CONTROLPANEL_USER $WP_SITE_DOMEN $SSL_DIR
-        
+
         # Перезапуск веб-сервера
         #$CLI_dir/v-restart-web
 

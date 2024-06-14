@@ -285,14 +285,14 @@ EOF
     esac
     # Перевіряємо вільну память swap та ram
     total_free_swap_end_ram
-    if ((free_swap_end_ram_gb < 2)); then
-        echo -e "${RED}Недостатньо вільної пам'яті. Поточно доступно більше: ${YELLOW}${free_swap_end_ram_gb} ГБ (${free_swap_end_ram} МБ)${RESET}"
+    if (( free_swap_end_ram_mb < 2048 )); then
+        echo -e "${RED}Недостатньо вільної пам'яті. Поточно доступно більше: ${YELLOW}${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)${RESET}"
         echo -e "Можна підключити SWAP файл, але швидкість вузла може зменшиться, з документації рекомандуть не використовувати SWAP."
         echo -e "Детальніше за посиланням: https://www.elastic.co/guide/en/elasticsearch/reference/8.13/setup-configuration-memory.html"
         echo -e "\nЩоб запустити службу Elasticsearch виконайте наступні команди: systemctl enable elasticsearch && systemctl start elasticsearch"
         echo -e "Перевірка доступності: curl -X GET \"localhost:9200\""
     else
-        echo -e "${GREEN}Доступно достатньо вільної пам'яті, більше: ${YELLOW}${free_swap_end_ram_gb} ГБ (${free_swap_end_ram} МБ)${RESET}"
+        echo -e "${GREEN}Доступно достатньо вільної пам'яті, більше: ${YELLOW}${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)${RESET}"
         systemctl enable elasticsearch && systemctl start elasticsearch
     fi
 

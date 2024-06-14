@@ -139,7 +139,7 @@ check_info_server() {
     read -r mem_total mem_used mem_free mem_shared mem_buff_cache mem_available < <(free -m | awk '/^Mem:/ {print $2, $3, $4, $5, $6, $7}')
     echo -e "Total Memory: $(print_color_message 0 255 0 "${mem_total}MB") Used Memory: $(print_color_message 255 0 0 "${mem_used}MB") Free Memory: $(print_color_message 0 255 255 "${mem_free}MB") Shared Memory: $(print_color_message 128 0 128 "${mem_shared}MB") Buff/Cache Memory: $(print_color_message 0 0 255 "${mem_buff_cache}MB") Available Memory: $(print_color_message 255 165 0 "${mem_available}MB")"
 
-    # Завантаження системи
+    # Навантаження системи
     load_average=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}')
     load_average=${load_average%,*}
     load_average=$(echo "${load_average/,/.}")

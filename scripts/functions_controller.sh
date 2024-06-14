@@ -17,6 +17,7 @@ function check_dependency() {
         esac
     else
         echo "Не вдалося визначити операційну систему."
+        exit 1
     fi
 
     # Перевірка наявності залежності
@@ -24,29 +25,39 @@ function check_dependency() {
         echo -e "${RED}$dependency_name не встановлено. Встановлюємо...${RESET}"
 
         # Перевірка чи вже було виконано оновлення системи
-        if ! "$UPDATE_DONE"; then
-            # Встановлення залежності залежно від операційної системи
+        if ! $UPDATE_DONE; then
             case $operating_system in
             debian | ubuntu)
                 apt-get update
-                apt-get install -y "$package_name"
+                if ! apt-get install -y "$package_name"; then
+                    echo -e "${RED}Не вдалося встановити $package_name. Будь ласка, встановіть його вручну.${RESET}"
+                    exit 1
+                fi
                 ;;
             fedora)
                 dnf update
-                dnf install -y "$package_name"
+                if ! dnf install -y "$package_name"; then
+                    echo -e "${RED}Не вдалося встановити $package_name. Будь ласка, встановіть його вручну.${RESET}"
+                    exit 1
+                fi
                 ;;
             centos | oracle | almalinux | rockylinux)
                 yum update
-                yum install epel-release -y
-                yum install -y "$package_name"
+                if ! yum install epel-release -y || ! yum install -y "$package_name"; then
+                    echo -e "${RED}Не вдалося встановити $package_name. Будь ласка, встановіть його вручну.${RESET}"
+                    exit 1
+                fi
                 ;;
             arch | sysrescue)
                 pacman -Sy
-                pacman -Sy "$package_name"
+                if ! pacman -Sy --noconfirm "$package_name"; then
+                    echo -e "${RED}Не вдалося встановити $package_name. Будь ласка, встановіть його вручну.${RESET}"
+                    exit 1
+                fi
                 ;;
             *)
                 echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
-                return 1
+                exit 1
                 ;;
             esac
 
@@ -54,20 +65,32 @@ function check_dependency() {
         else
             case $operating_system in
             debian | ubuntu)
-                apt-get install -y "$package_name"
+                if ! apt-get install -y "$package_name"; then
+                    echo -e "${RED}Не вдалося встановити $package_name. Будь ласка, встановіть його вручну.${RESET}"
+                    exit 1
+                fi
                 ;;
             fedora)
-                dnf install -y "$package_name"
+                if ! dnf install -y "$package_name"; then
+                    echo -e "${RED}Не вдалося встановити $package_name. Будь ласка, встановіть його вручну.${RESET}"
+                    exit 1
+                fi
                 ;;
             centos | oracle | almalinux | rockylinux)
-                yum install -y "$package_name"
+                if ! yum install -y "$package_name"; then
+                    echo -e "${RED}Не вдалося встановити $package_name. Будь ласка, встановіть його вручну.${RESET}"
+                    exit 1
+                fi
                 ;;
             arch | sysrescue)
-                pacman -Sy "$package_name"
+                if ! pacman -Sy --noconfirm "$package_name"; then
+                    echo -e "${RED}Не вдалося встановити $package_name. Будь ласка, встановіть його вручну.${RESET}"
+                    exit 1
+                fi
                 ;;
             *)
                 echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
-                return 1
+                exit 1
                 ;;
             esac
         fi
@@ -277,11 +300,8 @@ get_selected_interface() { #server_IP selected_adapter mask gateway
 }
 
 total_free_swap_end_ram() {
-    free_output=$(free)
-    free_ram=$(echo "$free_output" | awk '/^Mem:/ {print $4}')
-    free_swap=$(echo "$free_output" | awk '/^Swap:/ {print $4}')
-    free_swap_end_ram=$((free_ram / 1024 + free_swap / 1024))
-    free_swap_end_ram_gb=$((free_swap_end_ram / 1024))
+    free_swap_end_ram_mb=$(free -mt | awk '/^Total:/ {print $4}')
+    free_swap_end_ram_gb=$(echo "scale=2; $free_swap_end_ram_mb / 1024" | bc)
 }
 
 # Функція для виведння розміру обраного диска або розділа
@@ -491,4 +511,18 @@ select_disk_and_partition() {
 
     # Виведення обраного диска та розділу
     echo "Обраний розділ: $selected_partition ($(calculate_size $selected_partition))"
+}
+
+# Функція для валідації домену
+validate_domain() {
+    local domain=$1
+
+    # Регулярний вираз для валідації доменного імені
+    local regex="^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
+
+    if [[ $domain =~ $regex ]]; then
+        return 0
+    else
+        return 1
+    fi
 }
