@@ -47,7 +47,7 @@ install_speedtest() {
     wget --no-check-certificate -q -T10 -O /root/speedtest_cli.tgz $download_url1 ||
         wget --no-check-certificate -q -T10 -O /root/speedtest_cli.tgz $download_url2 || {
         # Якщо завантаження не вдалося з обох URL, виводимо помилку і завершуємо скрипт
-        echo "Помилка: Не вдалося завантажити speedtest-cli." >&2
+        print_color_message 200 0 0 "Помилка: Не вдалося завантажити speedtest-cli." >&2
         return 1
     }
 
@@ -62,13 +62,15 @@ speed_test() {
 
 8_server_testing_speed() {
     if [ ! -e "/root/speedtest-cli/speedtest" ]; then
+        print_color_message 200 0 0 "speedtest-cli не знайдено."
         install_speedtest
     fi
-    speed_test
+    if [ -e "/root/speedtest-cli/speedtest" ]; then
+        speed_test
+    fi
 }
 
 8_server_testing_mail() {
-
     read -p "Введіть домен: " DOMAIN
     read -p "Введіть IP сервера: " SERVER_IP
 

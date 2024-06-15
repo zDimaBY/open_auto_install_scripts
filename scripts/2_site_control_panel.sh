@@ -1,6 +1,11 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 2_site_control_panel() {
+    if ! [ -e "/usr/local/vesta" ] || ! [ -e "/usr/local/hestia" ]; then
+        echo -e "${RED}Не вдалося визначити панель керування сайтами, запускаю скрипт для встановлення.${RESET}"
+        2_install_control_panel
+    fi
+
     #Перевіряємо яка панель керування встановлена
     if [ -e "/usr/local/vesta" ]; then
         control_panel_install="vesta"
@@ -8,7 +13,7 @@ function 2_site_control_panel() {
         control_panel_install="hestia"
     else
         echo -e "${RED}Не вдалося визначити панель керування сайтами.${RESET}"
-        2_install_control_panel
+        return 1
     fi
     # Перевірка типу веб-сервера Apache2 або HTTPD
     if [ -d "/etc/apache2" ]; then
@@ -72,6 +77,14 @@ function 2_site_control_panel() {
 }
 
 2_install_hestiaCP() {
+    case $operating_system in
+    debian | ubuntu) ;;
+    *)
+        echo -e "${RED}Система $operating_system для встановлення HestiaCP не підтримується.${RESET}"
+        return 1
+        ;;
+    esac
+
     # URL до репозиторію HestiaCP
     HESITACP_GITHUB="https://api.github.com/repos/hestiacp/hestiacp/tags"
 
@@ -99,7 +112,7 @@ function 2_site_control_panel() {
     print_versions_cp
 
     # Запит вибору користувача
-    read -p "Введіть номер версії для завантаження: " VERSION_NUMBER
+    read -p "Виберіть варіант для завантаження: " VERSION_NUMBER
 
     # Перевірка введеного номера версії
     if ! [[ "$VERSION_NUMBER" =~ ^[0-9]+$ ]] || ((VERSION_NUMBER < 1 || VERSION_NUMBER > 9)); then
@@ -129,7 +142,7 @@ function 2_site_control_panel() {
         check_info_control_panel
         echo -e "\nВиберіть дію:\n"
         echo -e "1. Автоматичне встановлення ${RED}HestiaCP $SELECTED_VERSION_HESTIA${RESET} ${RED}(test)${RESET}"
-        echo -e "2. Вибіркове встановлення ${RED}HestiaCP $SELECTED_VERSION_HESTIA${RESET}${RED}(test)${RESET}"
+        echo -e "2. Вибіркове встановлення ${RED}HestiaCP $SELECTED_VERSION_HESTIA${RESET} ${RED}(test)${RESET}"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
@@ -170,7 +183,7 @@ function 2_site_control_panel() {
 chown -R root:www-data /etc/phpmyadmin/ \
 chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
     fi
-    
+
     sed -i '/read -n 1 -s -r -p "Press any key to continue"/d' hst-install-ubuntu.sh
     while true; do
         echo -e "\nВиберіть які обробники встановити:\n"
@@ -373,20 +386,10 @@ chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
 2_install_CMS_wordpress() {
     #Перевіряємо сумісніть системи
     case $operating_system in
-    debian | ubuntu)
-        echo -e "${RED}$operating_system ...${RESET}"
-        ;;
-    fedora)
-        echo -e "${RED}$operating_system ...${RESET}"
-        ;;
-    centos | oracle)
-        echo -e "${RED}$operating_system ...${RESET}"
-        ;;
-    arch)
-        echo -e "${RED}$operating_system ...${RESET}"
-        ;;
+    debian | ubuntu) ;;
+    centos | oracle) ;;
     *)
-        echo -e "${RED}Не вдалося визначити систему.${RESET}"
+        echo -e "${RED}Система $operating_system не підтримується.${RESET}"
         return 1
         ;;
     esac

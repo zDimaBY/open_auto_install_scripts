@@ -110,6 +110,24 @@ check_info_server() {
     server_hostname=$(hostname)
     echo -e "Hostname: $(print_color_message 0 255 0 "$server_hostname") IP: ${server_IPv4[0]}"
 
+    # Функція для виводу IP-адрес
+    print_ips() {
+        local iface="$1"
+        local ips=("${!2}")
+        local ipv6_color="$3"
+
+        echo -n "Interface: $(print_color_message 0 255 255 "$iface") IP:"
+        for ip in "${ips[@]}"; do
+            if [[ $ip == *":"* ]]; then
+                # IPv6 адреса
+                echo -n " $(print_color_message 100 100 100 "$ip")"
+            else
+                # IPv4 адреса
+                echo -n " $(print_color_message 0 255 0 "$ip")"
+            fi
+        done
+        echo
+    }
     # Мережеві інтерфейси
     print_color_message 255 255 0 "\nNetwork Interfaces:"
     if [[ "$1" == "full" ]]; then
@@ -121,11 +139,22 @@ check_info_server() {
         [[ -n "$ipv4_check" ]] && ipv4_status=$(echo "IPv4: $(print_color_message 0 200 0 "Online")") || ipv4_status=$(echo "IPv4: $(print_color_message 200 0 0 "Offline")")
         [[ -n "$network_type" ]] && echo "Primary Network: $(print_color_message 0 200 0 "$network_type") | $(print_color_message 255 255 0 "Status Network:") ${ipv6_status}, ${ipv4_status}"
     fi
-    ip -o link show | awk -F': ' '{print $2}' | while read -r iface; do
-        ipaddr=$(ip -o -4 addr list $iface | awk '{print $4}')
-        if [ -n "$ipaddr" ]; then
-            echo -e "Interface: $(print_color_message 0 255 255 "$iface") IP: $(print_color_message 0 255 0 "$ipaddr")"
-        fi
+    
+    declare -A interfaces
+    # Отримуємо всі IP-адреси (IPv4 та IPv6) для кожного інтерфейсу
+    while read -r line; do
+        iface=$(echo $line | awk '{print $2}')
+        addr=$(echo $line | awk '{print $4}')
+        interfaces[$iface]+="$addr "
+    done < <(ip -o addr show)
+
+    # Створюємо відсортований масив інтерфейсів за кількістю символів
+    sorted_interfaces=($(for iface in "${!interfaces[@]}"; do echo "$iface"; done | awk '{ print length, $0 }' | sort -n | cut -d" " -f2-))
+
+    # Виводимо IP-адреси для кожного інтерфейсу відсортованими за кількістю символів
+    for iface in "${sorted_interfaces[@]}"; do
+        ip_array=(${interfaces[$iface]})
+        print_ips "$iface" ip_array[@]
     done
 
     # Файлові системи
