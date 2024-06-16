@@ -91,24 +91,29 @@ check_compatibility_script() {
 
 check_info_server() {
     print_color_message 0 200 0 "----------------------------------------------------------------------------------------------------------------------------------------"
+
+    # URL для отримання даних про дистрибутиви Linux
+    base_url="https://endoflife.date/api/${ID}.json"
+
+    if [ -z "$data" ]; then
+        data=$(curl -s --max-time 2 "${base_url}")
+    fi
+    SUPPORT_OS_END=$(echo "$data" | jq -r --arg VERSION_ID "$VERSION_ID" '.[] | select(.cycle == $VERSION_ID) | .eol')
+    
     case "${ID}" in
     "debian" | "ubuntu")
-        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (based system)")"
+        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "End Life: $SUPPORT_OS_END")"
         ;;
     "rhel" | "almalinux" | "eurolinux" | "rocky" | "centos")
-        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Red Hat-based system)")."
+        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Red Hat-based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "End Life: $SUPPORT_OS_END")"
         ;;
     "arch" | "sysrescue" | "gentoo" | "slackware")
-        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Arch-based system)")."
+        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Arch-based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "End Life: $SUPPORT_OS_END")"
         ;;
     *)
-        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Other Linux-based system)")."
+        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Other Linux-based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "End Life: $SUPPORT_OS_END")"
         ;;
     esac
-
-    # Хостнейм та IP
-    server_hostname=$(hostname)
-    echo -e "Hostname: $(print_color_message 0 255 0 "$server_hostname") IP: ${server_IPv4[0]}"
 
     # Функція для виводу IP-адрес
     print_ips() {
@@ -130,6 +135,11 @@ check_info_server() {
     }
     # Мережеві інтерфейси
     print_color_message 255 255 0 "\nNetwork Interfaces:"
+
+    # Хостнейм та IP
+    server_hostname=$(hostname)
+    echo -e "Hostname: $(print_color_message 0 255 0 "$server_hostname") IP: ${server_IPv4[0]}"
+
     if [[ "$1" == "full" ]]; then
         network_type="$(wget -T 5 -qO- http://ip6.me/api/ | cut -d, -f1)"
         ipv4_check=$( (ping -4 -c 1 -W 4 ipv4.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -4 icanhazip.com 2>/dev/null)
@@ -139,7 +149,7 @@ check_info_server() {
         [[ -n "$ipv4_check" ]] && ipv4_status=$(echo "IPv4: $(print_color_message 0 200 0 "Online")") || ipv4_status=$(echo "IPv4: $(print_color_message 200 0 0 "Offline")")
         [[ -n "$network_type" ]] && echo "Primary Network: $(print_color_message 0 200 0 "$network_type") | $(print_color_message 255 255 0 "Status Network:") ${ipv6_status}, ${ipv4_status}"
     fi
-    
+
     declare -A interfaces
     # Отримуємо всі IP-адреси (IPv4 та IPv6) для кожного інтерфейсу
     while read -r line; do
@@ -201,7 +211,8 @@ check_info_control_panel() { # Функція перевірки панелі к
                 cp_operating_system_panel=$(echo "$hestia_info" | awk 'NR==3{print $2}')
                 cp_os_version=$(echo "$hestia_info" | awk 'NR==3{print $3}')
 
-                print_color_message 0 102 204 "${APP_NAME} $(print_color_message 51 153 102 "$VERSION") backend: $(print_color_message 200 200 0 "$WEB_SYSTEM")"
+                WEB_ADMIN_PORT=$(ss -utpln | grep "hestia-nginx" | awk '{print $5}')
+                print_color_message 0 102 204 "${APP_NAME} $(print_color_message 51 153 102 "$VERSION") backend: $(print_color_message 200 200 0 "$WEB_SYSTEM") | WEB Admin: $(print_color_message 200 200 0 "$WEB_ADMIN_PORT")"
                 source /etc/os-release
                 ;;
             "/usr/local/vesta")
@@ -277,6 +288,7 @@ check_command_version() {
 }
 
 check_available_services() {
+    echo ""
     # Check MySQL, MariaDB, PostgreSQL, SQLite
     if ! command -v mysql >/dev/null 2>&1 && ! command -v mariadb >/dev/null 2>&1 && ! command -v psql >/dev/null 2>&1 && ! command -v sqlite3 >/dev/null 2>&1; then
         print_color_message 200 0 0 "MySQL or MariaDB, PostgreSQL or SQLite is not installed."

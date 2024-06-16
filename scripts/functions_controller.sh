@@ -7,11 +7,11 @@ function check_dependency() {
     if [[ -e /etc/os-release ]]; then
         source /etc/os-release
         case "$ID" in
-        debian | ubuntu | fedora | centos | oracle | arch | sysrescue | almalinux | rockylinux)
+        debian | ubuntu | fedora | centos | oracle | arch | sysrescue | almalinux)
             operating_system="$ID"
             ;;
         *)
-            echo "Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle, AlmaLinux, Rocky Linux або Arch Linux. Ваша система: $ID"
+            echo "Схоже, ви не використовуєте цей інсталятор у системах Debian, Ubuntu, Fedora, CentOS, Oracle, AlmaLinux або Arch Linux. Ваша система: $ID"
             exit 1
             ;;
         esac
@@ -41,7 +41,7 @@ function check_dependency() {
                     exit 1
                 fi
                 ;;
-            centos | oracle | almalinux | rockylinux)
+            centos | oracle | almalinux | rocky)
                 yum update
                 if ! yum install epel-release -y || ! yum install -y "$package_name"; then
                     echo -e "${RED}Не вдалося встановити $package_name. Будь ласка, встановіть його вручну.${RESET}"
@@ -76,7 +76,7 @@ function check_dependency() {
                     exit 1
                 fi
                 ;;
-            centos | oracle | almalinux | rockylinux)
+            centos | oracle | almalinux | rocky)
                 if ! yum install -y "$package_name"; then
                     echo -e "${RED}Не вдалося встановити $package_name. Будь ласка, встановіть його вручну.${RESET}"
                     exit 1
@@ -125,7 +125,7 @@ install_package() {
             echo -e "$package_name вже встановлено в системі."
         fi
         ;;
-    centos | oracle | almalinux | rockylinux)
+    centos | oracle | almalinux | rocky)
         if [ ! -x "$(command -v $package_name)" ]; then
             yum install -y $package_name || {
                 echo -e "${RED}Не вдалося встановити ${YELLOW}$package_name${RESET}."
