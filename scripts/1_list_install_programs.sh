@@ -33,26 +33,26 @@ function 1_installComposer() {
     debian | ubuntu)
         if ! command -v php &>/dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            install_package php-cli
+            install_package "php-cli" "php"
         fi
         ;;
     fedora)
         if ! command -v php &>/dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            install_package php-cli
+            install_package "php-cli" "php"
         fi
         ;;
     centos | oracle)
         if ! command -v php &>/dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            install_package epel-release
-            install_package php-cli
+            install_package "epel-release"
+            install_package "php-cli" "php"
         fi
         ;;
     arch | sysrescue)
         if ! command -v php &>/dev/null; then
             echo -e "${RED}PHP не знайдено. Встановлюємо...${RESET}"
-            install_package php
+            install_package "php"
         fi
         ;;
     *)
@@ -215,8 +215,14 @@ EOF
         if dpkg -l | grep -q '^ii.*apt-transport-https'; then
             echo -e "${GREEN}apt-transport-https встановлено.${RESET}"
         else
-            apt-get install apt-transport-https
-            echo -e "${RED}apt-transport-https не встановлено.${RESET}"
+            echo -e "${RED}apt-transport-https не встановлений. Виконую встановлення...${RESET}"
+            apt-get -y install apt-transport-https
+        fi
+        if dpkg -l | grep -q gnupg; then
+            echo -e "${GREEN}gnupg вже встановлений.${RESET}"
+        else
+            echo -e "${RED}gnupg не встановлений. Виконую встановлення...${RESET}"
+            apt-get install -y gnupg
         fi
 
         echo -e "${GREEN}Завантаження ключа GPG Elasticsearch...${RESET}"
@@ -235,7 +241,10 @@ EOF
 
         # Отримати доступні головні версії Elasticsearch
         main_versions=$(apt policy elasticsearch | grep -E "^[[:space:]]+[0-9]+\..*\." | awk '{print $1}' | cut -d'.' -f1 | sort -ru)
-
+        if [[ -z "$main_versions" ]]; then
+            echo "Не вдалося знайти жодної версії Elasticsearch"
+            return 1
+        fi
         PS3="Оберіть версію Elasticsearch: " # змінна оболонки (shell), яка використовується в разі використання команди select в bash для введення меню.
         select main_version in $main_versions; do
             if [ -n "$main_version" ]; then
@@ -285,7 +294,7 @@ EOF
     esac
     # Перевіряємо вільну память swap та ram
     total_free_swap_end_ram
-    if (( free_swap_end_ram_mb < 2048 )); then
+    if ((free_swap_end_ram_mb < 2048)); then
         echo -e "${RED}Недостатньо вільної пам'яті. Поточно доступно більше: ${YELLOW}${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)${RESET}"
         echo -e "Можна підключити SWAP файл, але швидкість вузла може зменшиться, з документації рекомандуть не використовувати SWAP."
         echo -e "Детальніше за посиланням: https://www.elastic.co/guide/en/elasticsearch/reference/8.13/setup-configuration-memory.html"

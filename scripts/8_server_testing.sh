@@ -71,6 +71,37 @@ speed_test() {
 }
 
 8_server_testing_mail() {
+    case $operating_system in
+    debian | ubuntu)
+        if ! command -v dig &>/dev/null || ! command -v nslookup &>/dev/null; then
+            echo -e "${RED}dig або nslookup не знайдено. Встановлюємо...${RESET}"
+            install_package "dnsutils" "dig"
+        fi
+        ;;
+    fedora)
+        if ! command -v dig &>/dev/null || ! command -v nslookup &>/dev/null; then
+            echo -e "${RED}dig або nslookup не знайдено. Встановлюємо...${RESET}"
+            install_package "bind-utils" "dig"
+        fi
+        ;;
+    centos | oracle)
+        if ! command -v dig &>/dev/null || ! command -v nslookup &>/dev/null; then
+            echo -e "${RED}dig або nslookup не знайдено. Встановлюємо...${RESET}"
+            install_package "bind-utils" "dig"
+        fi
+        ;;
+    arch | sysrescue)
+        if ! command -v dig &>/dev/null || ! command -v nslookup &>/dev/null; then
+            echo -e "${RED}dig або nslookup не знайдено. Встановлюємо...${RESET}"
+            install_package "dnsutils" "dig"
+        fi
+        ;;
+    *)
+        echo -e "${RED}Не вдалося встановити dig або nslookup. Будь ласка, встановіть їх вручну.${RESET}"
+        return 1
+        ;;
+    esac
+
     read -p "Введіть домен: " DOMAIN
     read -p "Введіть IP сервера: " SERVER_IP
 

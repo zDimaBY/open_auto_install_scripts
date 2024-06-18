@@ -87,6 +87,7 @@ function 2_site_control_panel() {
 
     # URL до репозиторію HestiaCP
     HESITACP_GITHUB="https://api.github.com/repos/hestiacp/hestiacp/tags"
+    hst_backups="/root/hst_install_backups/$(date +%d%m%Y%H%M)"
 
     # Перевірка, чи встановлено curl та jq
     if ! command -v jq &>/dev/null || ! command -v wget &>/dev/null; then
@@ -150,7 +151,7 @@ function 2_site_control_panel() {
 
         case $choice in
         1) 2_avto_install_hestiaCP ;;
-        2) 2_castom_install_hestiaCP_apache ;;
+        2) 2_custom_install_hestiaCP ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -158,25 +159,29 @@ function 2_site_control_panel() {
     done
 }
 
-2_avto_install_hestiaCP() {
+2_check_install_hestiaCP() {
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+    # Перевірка та встановлення домену
     if validate_domain "$server_hostname"; then
         print_color_message 0 200 0 "Домен hostname валідний."
-        cp_domen=$server_hostname
+        cp_install_domen="$server_hostname"
     else
-        print_color_message 200 0 0 "Домен hostname не валідний, в такому разі буде вказано example.com."
-        cp_domen="example.com"
+        print_color_message 200 0 0 "Домен hostname не валідний, буде використано example.com."
+        cp_install_domen="example.com"
     fi
 
+    # Перевірка вільної пам'яті
     total_free_swap_end_ram
     if ((free_swap_end_ram_mb < 2048)); then
-        echo -e "Недостатньо вільної пам'яті для $(print_color_message 255 255 0 "clamav"). Вільно: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)"), в такому разі він не буде встановлений."
+        echo -e "Недостатньо вільної пам'яті для $(print_color_message 255 255 0 "clamav"). Вільно: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)"), а потрібно 2048мб. В такому разі він не буде встановлений."
         clamav_available="no"
     else
         echo -e "Достатньо вільної пам'яті: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)")"
         clamav_available="yes"
     fi
-    sed -i '/read -n 1 -s -r -p "Press any key to continue"/a \
-/usr/local/hestia/bin/v-change-user-package admin default' hst-install-ubuntu.sh
+
+    # Оновлення скрипта встановлення HestiaCP
+    sed -i '/read -n 1 -s -r -p "Press any key to continue"/a /usr/local/hestia/bin/v-change-user-package admin default' hst-install-ubuntu.sh
 
     if [[ $SELECTED_VERSION_HESTIA == "1.8.11" ]]; then
         sed -i '/read -n 1 -s -r -p "Press any key to continue"/a \
@@ -185,27 +190,44 @@ chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
     fi
 
     sed -i '/read -n 1 -s -r -p "Press any key to continue"/d' hst-install-ubuntu.sh
+
+    # Повідомлення про видалення користувача admin
+    if [ -n "$(grep ^admin: /etc/passwd)" ]; then
+        print_color_message 255 0 0 "Користувача $(print_color_message 255 255 0 "\"admin\"") буде видалено, а всі поточні його файли будуть перенесені у папку $(print_color_message 255 255 0 "$hst_backups")"
+    fi
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+}
+
+2_avto_install_hestiaCP() {
+    2_check_install_hestiaCP
+    # Меню вибору обробників
     while true; do
-        echo -e "\nВиберіть які обробники встановити:\n"
-        echo -e "1. PHP-FPM and nginx + apache ${RED}${RESET}"
-        echo -e "2. PHP-FPM and nginx ${RED}${RESET}"
+        print_color_message 255 255 0 "\nОберіть таблетку:\n"
+        print_color_message 30 30 255 "1. PHP-FPM and nginx + apache"
+        print_color_message 255 30 30 "2. PHP-FPM and nginx"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "Виберіть варіант: " choice
 
         case $choice in
-        1) bash hst-install-ubuntu.sh --hostname "hestia.$cp_domen" --email "admin@$cp_domen" --apache "yes" --clamav "$clamav_available" ;;
-        2) bash hst-install-ubuntu.sh --hostname "hestia.$cp_domen" --email "admin@$cp_domen" --apache "no" --clamav "$clamav_available" ;;
+        1)
+            deleting_old_admin_user
+            bash hst-install-ubuntu.sh --hostname "hestia.$cp_install_domen" --email "admin@$cp_install_domen" --apache "yes" --clamav "$clamav_available"
+            ;;
+        2)
+            deleting_old_admin_user
+            bash hst-install-ubuntu.sh --hostname "hestia.$cp_install_domen" --email "admin@$cp_install_domen" --apache "no" --clamav "$clamav_available"
+            ;;
         0) break ;;
-        00) 0_funExit ;;
-        *) 0_invalid ;;
+        00) exit 0 ;;
+        *) echo "Невірний вибір. Спробуйте ще раз." ;;
         esac
     done
 }
 
-2_castom_install_hestiaCP_apache() {
-    # Перевірка, чи встановлено curl та jq
+2_custom_install_hestiaCP() {
+    # Перевірка, чи встановлено curl, wget та jq
     if ! command -v curl &>/dev/null || ! command -v wget &>/dev/null || ! command -v jq &>/dev/null; then
         echo "curl, wget та/або jq не встановлено. Встановіть їх і повторіть спробу."
         return 1
@@ -255,41 +277,43 @@ chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
 chown -R root:www-data /etc/phpmyadmin/ \
 chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
     fi
-
-    if validate_domain "$server_hostname"; then
-        print_color_message 0 200 0 "Домен hostname валідний."
-        cp_domen=$server_hostname
-    else
-        print_color_message 200 0 0 "Домен hostname не валідний, в такому разі буде вказано example.com."
-        cp_domen="example.com"
-    fi
-
-    total_free_swap_end_ram
-    if ((free_swap_end_ram_mb < 2048)); then
-        echo -e "Недостатньо вільної пам'яті для $(print_color_message 255 255 0 "clamav"). Поточно вільно: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)"), в такому разі він не буде встановлений."
-        clamav_available="no"
-    else
-        echo -e "Достатньо вільної пам'яті: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)")"
-        clamav_available="yes"
-    fi
-
+    
+    2_check_install_hestiaCP
     while true; do
-        echo -e "\nВиберіть які обробники встановити:\n"
-        echo -e "1. PHP-FPM and nginx + apache ${RED}${RESET}"
-        echo -e "2. PHP-FPM and nginx ${RED}${RESET}"
+        print_color_message 255 255 0 "\nОберіть таблетку:\n"
+        print_color_message 30 30 255 "1. PHP-FPM and nginx + apache"
+        print_color_message 255 30 30 "2. PHP-FPM and nginx"
         echo -e "\n0. Вийти з цього підменю!"
         echo -e "00. Закінчити роботу скрипта\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "Виберіть варіант: " choice
 
         case $choice in
-        1) bash hst-install-ubuntu.sh --hostname "hestia.$cp_domen" --email "admin@$cp_domen" --apache "yes" --clamav "$clamav_available" ;;
-        2) bash hst-install-ubuntu.sh --hostname "hestia.$cp_domen" --email "admin@$cp_domen" --apache "no" --clamav "$clamav_available" ;;
+        1)
+            deleting_old_admin_user
+            bash hst-install-ubuntu.sh --hostname "hestia.$cp_install_domen" --email "admin@$cp_install_domen" --apache "yes" --clamav "$clamav_available"
+            ;;
+        2)
+            deleting_old_admin_user
+            bash hst-install-ubuntu.sh --hostname "hestia.$cp_install_domen" --email "admin@$cp_install_domen" --apache "no" --clamav "$clamav_available"
+            ;;
         0) break ;;
-        00) 0_funExit ;;
-        *) 0_invalid ;;
+        00) exit 0 ;;
+        *) echo "Невірний вибір. Спробуйте ще раз." ;;
         esac
     done
+}
+
+deleting_old_admin_user() {
+    if [ -n "$(grep ^admin: /etc/passwd)" ]; then
+        chattr -i /home/admin/conf >/dev/null 2>&1
+        userdel -f admin >/dev/null 2>&1
+        mv -f /home/admin $hst_backups/home/ >/dev/null 2>&1
+        rm -f /tmp/sess_* >/dev/null 2>&1
+    fi
+    if [ -n "$(grep ^admin: /etc/group)" ]; then
+        groupdel admin >/dev/null 2>&1
+    fi
 }
 
 2_updateIoncube() {

@@ -92,14 +92,13 @@ check_compatibility_script() {
 check_info_server() {
     print_color_message 0 200 0 "----------------------------------------------------------------------------------------------------------------------------------------"
 
-    # URL для отримання даних про дистрибутиви Linux
-    base_url="https://endoflife.date/api/${ID}.json"
-
     if [ -z "$data" ]; then
+        # URL для отримання даних про дистрибутиви Linux
+        base_url="https://endoflife.date/api/${ID}.json"
         data=$(curl -s --max-time 2 "${base_url}")
+        SUPPORT_OS_END=$(echo "$data" | grep -oP '"cycle":\s*"'${VERSION_ID}'".*?"eol":\s*".*?"' | grep -oP '"eol":\s*".*?"' | sed 's/"eol":\s*"\(.*\)"/\1/')
     fi
-    SUPPORT_OS_END=$(echo "$data" | jq -r --arg VERSION_ID "$VERSION_ID" '.[] | select(.cycle == $VERSION_ID) | .eol')
-    
+
     case "${ID}" in
     "debian" | "ubuntu")
         echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "End Life: $SUPPORT_OS_END")"
@@ -141,31 +140,59 @@ check_info_server() {
     echo -e "Hostname: $(print_color_message 0 255 0 "$server_hostname") IP: ${server_IPv4[0]}"
 
     if [[ "$1" == "full" ]]; then
-        network_type="$(wget -T 5 -qO- http://ip6.me/api/ | cut -d, -f1)"
-        ipv4_check=$( (ping -4 -c 1 -W 4 ipv4.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -4 icanhazip.com 2>/dev/null)
-        ipv6_check=$( (ping -6 -c 1 -W 4 ipv6.google.com >/dev/null 2>&1 && echo true) || wget -qO- -T 5 -6 icanhazip.com 2>/dev/null)
-
-        [[ -n "$ipv6_check" ]] && ipv6_status=$(echo "IPv6: $(print_color_message 0 200 0 "Online")") || ipv6_status=$(echo "IPv6: $(print_color_message 200 0 0 "Offline")")
-        [[ -n "$ipv4_check" ]] && ipv4_status=$(echo "IPv4: $(print_color_message 0 200 0 "Online")") || ipv4_status=$(echo "IPv4: $(print_color_message 200 0 0 "Offline")")
-        [[ -n "$network_type" ]] && echo "Primary Network: $(print_color_message 0 200 0 "$network_type") | $(print_color_message 255 255 0 "Status Network:") ${ipv6_status}, ${ipv4_status}"
+        network_type="$(curl -s --max-time 5 http://ip6.me/api/ | cut -d, -f1)"
+        if [[ $? -ne 0 || -z "$network_type" ]]; then
+            echo "Не вдалося отримати тип мережі з ip6.me"
+            network_type="Unknown"
+        fi
+        ipv4_check=$( (ping -4 -c 1 -W 4 ipv4.google.com >/dev/null 2>&1 && echo true) || curl -s --max-time 5 -4 icanhazip.com)
+        if [[ $? -ne 0 || -z "$ipv4_check" ]]; then
+            echo "Перевірка IPv4 не вдалася"
+            ipv4_check=""
+        fi
+        ipv6_check=$( (ping -6 -c 1 -W 4 ipv6.google.com >/dev/null 2>&1 && echo true) || curl -s --max-time 5 -6 icanhazip.com)
+        if [[ $? -ne 0 || -z "$ipv6_check" ]]; then
+            echo "Перевірка IPv6 не вдалася"
+            ipv6_check=""
+        fi
+        
+        [[ -n "$ipv6_check" ]] && ipv6_status=$(echo "IPv6: $(print_color_message 0 255 0 "Online")") || ipv6_status=$(echo "IPv6: $(print_color_message 200 0 0 "Offline")")
+        [[ -n "$ipv4_check" ]] && ipv4_status=$(echo "IPv4: $(print_color_message 0 255 0 "Online")") || ipv4_status=$(echo "IPv4: $(print_color_message 200 0 0 "Offline")")
+        [[ -n "$network_type" ]] && echo "Primary Network: $(print_color_message 0 255 0 "$network_type") | $(print_color_message 255 255 0 "Status Network:") ${ipv6_status}, ${ipv4_status}"
     fi
 
     declare -A interfaces
     # Отримуємо всі IP-адреси (IPv4 та IPv6) для кожного інтерфейсу
-    while read -r line; do
-        iface=$(echo $line | awk '{print $2}')
-        addr=$(echo $line | awk '{print $4}')
-        interfaces[$iface]+="$addr "
-    done < <(ip -o addr show)
+    ip_output=$(ip -o addr show)
+    if [ $? -ne 0 ]; then
+        echo "Помилка виконання команди ip"
+    else
+        while read -r line; do
+            if [ $(echo $line | awk '{print NF}') -lt 4 ]; then
+                echo "Недостатньо полів у рядку: $line"
+                continue
+            fi
 
-    # Створюємо відсортований масив інтерфейсів за кількістю символів
-    sorted_interfaces=($(for iface in "${!interfaces[@]}"; do echo "$iface"; done | awk '{ print length, $0 }' | sort -n | cut -d" " -f2-))
+            iface=$(echo $line | awk '{print $2}')
+            addr=$(echo $line | awk '{print $4}')
 
-    # Виводимо IP-адреси для кожного інтерфейсу відсортованими за кількістю символів
-    for iface in "${sorted_interfaces[@]}"; do
-        ip_array=(${interfaces[$iface]})
-        print_ips "$iface" ip_array[@]
-    done
+            if [ -z "$iface" ] || [ -z "$addr" ]; then
+                echo "Неправильний формат рядка: $line"
+                continue
+            fi
+
+            interfaces[$iface]+="$addr "
+        done <<<"$ip_output"
+
+        # Створюємо відсортований масив інтерфейсів за кількістю символів
+        sorted_interfaces=($(for iface in "${!interfaces[@]}"; do echo "$iface"; done | awk '{ print length, $0 }' | sort -n | cut -d" " -f2-))
+
+        # Виводимо IP-адреси для кожного інтерфейсу відсортованими за кількістю символів
+        for iface in "${sorted_interfaces[@]}"; do
+            ip_array=(${interfaces[$iface]})
+            print_ips "$iface" ip_array[@]
+        done
+    fi
 
     # Файлові системи
     largest_disk=$(df -h | grep '^/dev/' | sort -k 4 -hr | head -n 1)
@@ -288,7 +315,7 @@ check_command_version() {
 }
 
 check_available_services() {
-    echo ""
+    echo
     # Check MySQL, MariaDB, PostgreSQL, SQLite
     if ! command -v mysql >/dev/null 2>&1 && ! command -v mariadb >/dev/null 2>&1 && ! command -v psql >/dev/null 2>&1 && ! command -v sqlite3 >/dev/null 2>&1; then
         print_color_message 200 0 0 "MySQL or MariaDB, PostgreSQL or SQLite is not installed."

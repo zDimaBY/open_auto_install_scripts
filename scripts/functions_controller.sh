@@ -103,46 +103,46 @@ function check_dependency() {
 
 install_package() {
     local package_name=$1
-
+    local command_name=${2:-$package_name}  # Використовуємо ім'я пакету, якщо ім'я команди не вказано
     case $operating_system in
     debian | ubuntu)
-        if [ ! -x "$(command -v $package_name)" ]; then
-            apt update && apt-get install -y $package_name || {
+        if [ ! -x "$(command -v $command_name)" ]; then
+            apt-get install -y $package_name || {
                 echo -e "${RED}Не вдалося встановити ${YELLOW}$package_name${RESET}."
                 return 1
             }
         else
-            echo -e "$package_name вже встановлено в системі."
+            echo -e "$command_name вже встановлено в системі."
         fi
         ;;
     fedora)
-        if [ ! -x "$(command -v $package_name)" ]; then
+        if [ ! -x "$(command -v $command_name)" ]; then
             dnf install -y $package_name || {
                 echo -e "${RED}Не вдалося встановити ${YELLOW}$package_name${RESET}."
                 return 1
             }
         else
-            echo -e "$package_name вже встановлено в системі."
+            echo -e "$command_name вже встановлено в системі."
         fi
         ;;
     centos | oracle | almalinux | rocky)
-        if [ ! -x "$(command -v $package_name)" ]; then
+        if [ ! -x "$(command -v $command_name)" ]; then
             yum install -y $package_name || {
                 echo -e "${RED}Не вдалося встановити ${YELLOW}$package_name${RESET}."
                 return 1
             }
         else
-            echo -e "$package_name вже встановлено в системі."
+            echo -e "$command_name вже встановлено в системі."
         fi
         ;;
     arch | sysrescue)
-        if [ ! -x "$(command -v $package_name)" ]; then
+        if [ ! -x "$(command -v $command_name)" ]; then
             pacman -Syu --noconfirm $package_name || {
                 echo -e "${RED}Не вдалося встановити ${YELLOW}$package_name${RESET}."
                 return 1
             }
         else
-            echo -e "$package_name вже встановлено в системі."
+            echo -e "$command_name вже встановлено в системі."
         fi
         ;;
     *)
