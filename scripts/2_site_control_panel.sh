@@ -1,7 +1,7 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 2_site_control_panel() {
-    if ! [ -e "/usr/local/vesta" ] || ! [ -e "/usr/local/hestia" ]; then
+    if [ ! -e "/usr/local/vesta" ] && [ ! -e "/usr/local/hestia" ]; then
         echo -e "${RED}Не вдалося визначити панель керування сайтами, запускаю скрипт для встановлення.${RESET}"
         2_install_control_panel
     fi
@@ -164,7 +164,7 @@ function 2_site_control_panel() {
     # Перевірка та встановлення домену
     if validate_domain "$server_hostname"; then
         print_color_message 0 200 0 "Домен hostname валідний."
-        cp_install_domen="$server_hostname"
+        cp_install_domen="hestia.$server_hostname"
     else
         print_color_message 200 0 0 "Домен hostname не валідний, буде використано example.com."
         cp_install_domen="example.com"
@@ -185,8 +185,9 @@ function 2_site_control_panel() {
 
     if [[ $SELECTED_VERSION_HESTIA == "1.8.11" ]]; then
         sed -i '/read -n 1 -s -r -p "Press any key to continue"/a \
-chown -R root:www-data /etc/phpmyadmin/ \
-chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
+chown -R hestiamail:www-data /etc/roundcube/ \
+find /etc/roundcube/ -type f -iname "*php" -exec chmod 640 {} \; \
+chown -R root:www-data /etc/phpmyadmin/' hst-install-ubuntu.sh
     fi
 
     sed -i '/read -n 1 -s -r -p "Press any key to continue"/d' hst-install-ubuntu.sh
@@ -213,11 +214,11 @@ chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
         case $choice in
         1)
             deleting_old_admin_user
-            bash hst-install-ubuntu.sh --hostname "hestia.$cp_install_domen" --email "admin@$cp_install_domen" --apache "yes" --clamav "$clamav_available"
+            bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "yes" --clamav "$clamav_available"
             ;;
         2)
             deleting_old_admin_user
-            bash hst-install-ubuntu.sh --hostname "hestia.$cp_install_domen" --email "admin@$cp_install_domen" --apache "no" --clamav "$clamav_available"
+            bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "no" --clamav "$clamav_available"
             ;;
         0) break ;;
         00) exit 0 ;;
@@ -277,7 +278,7 @@ chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
 chown -R root:www-data /etc/phpmyadmin/ \
 chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
     fi
-    
+
     2_check_install_hestiaCP
     while true; do
         print_color_message 255 255 0 "\nОберіть таблетку:\n"
@@ -291,11 +292,11 @@ chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
         case $choice in
         1)
             deleting_old_admin_user
-            bash hst-install-ubuntu.sh --hostname "hestia.$cp_install_domen" --email "admin@$cp_install_domen" --apache "yes" --clamav "$clamav_available"
+            bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "yes" --clamav "$clamav_available"
             ;;
         2)
             deleting_old_admin_user
-            bash hst-install-ubuntu.sh --hostname "hestia.$cp_install_domen" --email "admin@$cp_install_domen" --apache "no" --clamav "$clamav_available"
+            bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "no" --clamav "$clamav_available"
             ;;
         0) break ;;
         00) exit 0 ;;
