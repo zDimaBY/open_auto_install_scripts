@@ -155,7 +155,7 @@ check_info_server() {
             echo "Перевірка IPv6 не вдалася"
             ipv6_check=""
         fi
-        
+
         [[ -n "$ipv6_check" ]] && ipv6_status=$(echo "IPv6: $(print_color_message 0 255 0 "Online")") || ipv6_status=$(echo "IPv6: $(print_color_message 200 0 0 "Offline")")
         [[ -n "$ipv4_check" ]] && ipv4_status=$(echo "IPv4: $(print_color_message 0 255 0 "Online")") || ipv4_status=$(echo "IPv4: $(print_color_message 200 0 0 "Offline")")
         [[ -n "$network_type" ]] && echo "Primary Network: $(print_color_message 0 255 0 "$network_type") | $(print_color_message 255 255 0 "Status Network:") ${ipv6_status}, ${ipv4_status}"

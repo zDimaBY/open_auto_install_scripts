@@ -1,7 +1,7 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 2_site_control_panel() {
-    if [ ! -e "/usr/local/vesta" ] && [ ! -e "/usr/local/hestia" ]; then
+    if [ ! -e "/usr/local/vesta" ] && [ ! -e "/usr/local/hestia" ] && [ ! -e "/usr/local/mgr5" ] && [ ! -e "/usr/local/cpanel" ] && [ ! -e "/usr/local/fastpanel2" ] && [ ! -e "/usr/local/brainycp" ]; then
         echo -e "${RED}Не вдалося визначити панель керування сайтами, запускаю скрипт для встановлення.${RESET}"
         2_install_control_panel
     fi
@@ -163,11 +163,11 @@ function 2_site_control_panel() {
     echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     # Перевірка та встановлення домену
     if validate_domain "$server_hostname"; then
-        print_color_message 0 200 0 "Домен hostname валідний."
+        print_color_message 0 200 0 "Домен hostname валідний. Буде застосована приставка: $(print_color_message 255 255 0 "hestia.$server_hostname")"
         cp_install_domen="hestia.$server_hostname"
     else
-        print_color_message 200 0 0 "Домен hostname не валідний, буде використано example.com."
-        cp_install_domen="example.com"
+        print_color_message 200 0 0 "Домен hostname не валідний, буде використано: $(print_color_message 255 255 0 "hestia.example.com")"
+        cp_install_domen="hestia.example.com"
     fi
 
     # Перевірка вільної пам'яті
@@ -176,7 +176,7 @@ function 2_site_control_panel() {
         echo -e "Недостатньо вільної пам'яті для $(print_color_message 255 255 0 "clamav"). Вільно: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)"), а потрібно 2048мб. В такому разі він не буде встановлений."
         clamav_available="no"
     else
-        echo -e "Достатньо вільної пам'яті: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)")"
+        echo -e "Достатньо вільної пам'яті: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)") для $(print_color_message 255 255 0 "clamav"), в такому разі він буде встановлений."
         clamav_available="yes"
     fi
 
@@ -402,10 +402,53 @@ deleting_old_admin_user() {
     elif [ -d "/etc/httpd" ]; then
         DIR_APACHE="/etc/httpd"
         COMMAND_WEB_SERVER="httpd"
+    else
+        print_color_message 255 0 0 "Каталог Apache не знайдено."
+        return 1
     fi
-    rm -rf /var/log/$COMMAND_WEB_SERVER/domains/*.log-*
-    truncate -s 0 /var/log/$COMMAND_WEB_SERVER/domains/*.log
-    du -ahx /var/log/$COMMAND_WEB_SERVER/domains/ | grep "\.log" | sort -rh
+    
+    delete_files=$(ls -1 /var/log/$COMMAND_WEB_SERVER/domains/*.log-* 2>/dev/null)
+    delete_files2=$(ls -1 /var/log/$COMMAND_WEB_SERVER/domains/*.log.* 2>/dev/null)
+    truncate_files=$(ls -1 /var/log/$COMMAND_WEB_SERVER/domains/*.log 2>/dev/null)
+
+    print_color_message 0 255 0 "Файли, які будуть видалені:"
+    if [ -n "$delete_files" ]; then
+        echo "$delete_files"
+    else
+        print_color_message 255 165 0 "Не знайдено файлів, які відповідають: rm -rf /var/log/$COMMAND_WEB_SERVER/domains/*.log-*"
+    fi
+    if [ -n "$delete_files2" ]; then
+        echo "$delete_files2"
+    else
+        print_color_message 255 165 0 "Не знайдено файлів, які відповідають: rm -rf /var/log/$COMMAND_WEB_SERVER/domains/*.log.*"
+    fi
+    
+    print_color_message 0 255 0 "Файли, які будуть очищені: truncate -s 0 /var/log/$COMMAND_WEB_SERVER/domains/*.log"
+    if [ -n "$truncate_files" ]; then
+        du -sh $truncate_files
+    else
+        print_color_message 255 165 0 "Не знайдено файлів, які відповідають *.log."
+    fi
+
+    before=$(du -ahx /var/log/$COMMAND_WEB_SERVER/domains/ | grep "\.log" | sort -rh | head -n 1 | awk '{print $1}')
+    print_color_message 0 255 0 "Поточно використане місце: $(print_color_message 255 165 0 "$before")"
+    
+    read -p "Ви впевнені, що бажаєте видалити та очистити ці файли журналів? [y/N]: " confirm
+    if [[ ! $confirm =~ ^[Yy]$ ]]; then
+        print_color_message 255 0 0 "Операція скасована."
+        return 1
+    fi
+
+    # Виконання видалення та очищення
+    if [ -n "$delete_files" ]; then
+        rm -rf /var/log/$COMMAND_WEB_SERVER/domains/*.log-*
+    fi
+    if [ -n "$delete_files2" ]; then
+        rm -rf /var/log/$COMMAND_WEB_SERVER/domains/*.log.*
+    fi
+    if [ -n "$truncate_files" ]; then
+        truncate -s 0 /var/log/$COMMAND_WEB_SERVER/domains/*.log
+    fi
 }
 
 2_install_CMS_wordpress() {

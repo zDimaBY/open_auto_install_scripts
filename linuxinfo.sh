@@ -1,6 +1,6 @@
 #!/bin/bash
 # Autorun for MobaXterm:
-# [ ! -f ~/.vimrc ] && echo -e "set number\nsyntax on" > ~/.vimrc && trap 'rm ~/.vimrc' EXIT && echo "Settings applied for the current session." || echo "File .vimrc already exists, no changes made."; (command -v curl &> /dev/null && curl -sSL https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/linuxinfo.sh | bash) || (command -v wget &> /dev/null && wget -qO- https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/linuxinfo.sh | bash) || { echo "Error: Neither 'curl' nor 'wget' found. Please install one of them to continue."; exit 1; }
+# [ ! -f ~/.vimrc ] && echo -e "set number\nsyntax on" > ~/.vimrc && trap 'rm ~/.vimrc' EXIT && echo "Settings applied for the current session." || echo "File .vimrc already exists, no changes made."; (command -v curl &> /dev/null && curl -sSL --max-time 2 -s https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/linuxinfo.sh | bash) || (command -v wget &> /dev/null && wget --timeout=2 -qO- https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/linuxinfo.sh | bash) || { echo "Error: Neither 'curl' nor 'wget' found. Please install one of them to continue."; exit 1; }
 # Run in terminal:
 # curl -sSL https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/linuxinfo.sh | bash
 # or
@@ -22,10 +22,10 @@ load_and_source_script() {
 }
 
 # Перевірка наявності wget або curl
-if command -v wget &> /dev/null; then
-    load_and_source_script "wget" "--timeout=4 -qO-"
-elif command -v curl &> /dev/null; then
+if command -v curl &>/dev/null; then
     load_and_source_script "curl" "--max-time 4 -s"
+elif command -v wget &>/dev/null; then
+    load_and_source_script "wget" "--timeout=4 -qO-"
 else
     echo "Error: Neither 'wget' nor 'curl' found. Please install one of them to continue."
     exit 1
