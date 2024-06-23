@@ -8,13 +8,13 @@ function 3_DDos() {
         get_selected_interface
         read -p "Введіть тривалість таймауту tcpdump (у секундах, стандартне значення: 5): " duration
         duration=${duration:-5}
-        echo -e "\nВиберіть дію:\n"
-        echo -e "1. Аналіз кількості IP-запитів на мережевому інтерфейсі протягом ${RED}$duration${RESET} секунд"
-        echo -e "2. Аналіз кількості унікальних IP-адрес на мережевому інтерфейсі протягом ${RED}$duration${RESET} секунд"
-        echo -e "3. Перехопити пакети з мережевого інтерфейсу ${RED}$selected_adapter${RESET} окрім ssh/22"
-        echo -e "4. Створити файл blocked_IPs.log на основі аналізу tcpdump протягом ${RED}$duration${RESET} секунд"
-        echo -e "5. Створити резервні копії iptables та заблокувати IP з файлу ${RED}blocked_IPs.log${RESET}"
-        echo -e "0. Повернутися до головного меню\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 255 "1. Аналіз кількості IP-запитів на мережевому інтерфейсі протягом $(print_color_message 255 99 71 '$duration') секунд"
+        print_color_message 255 255 255 "2. Аналіз кількості унікальних IP-адрес на мережевому інтерфейсі протягом $(print_color_message 255 99 71 '$duration') секунд"
+        print_color_message 255 255 255 "3. Перехопити пакети з мережевого інтерфейсу $(print_color_message 255 99 71 '$selected_adapter') окрім ssh/22"
+        print_color_message 255 255 255 "4. Створити файл blocked_IPs.log на основі аналізу tcpdump протягом $(print_color_message 255 99 71 '$duration') секунд"
+        print_color_message 255 255 255 "5. Створити резервні копії iptables та заблокувати IP з файлу $(print_color_message 255 99 71 'blocked_IPs.log')"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
         read -p "Виберіть опцію (1/0): " choice
 
         case $choice in

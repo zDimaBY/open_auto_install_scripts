@@ -4,11 +4,11 @@ function 8_server_testing() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
         echo -e "1. Тестування ${BROWN}швидкості інтерфейсу${RESET}"
         echo -e "2. Тестування ${BLUE}пошти${RESET}"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 

@@ -7,13 +7,13 @@ function 5_FTP() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію:\n"
-        echo "1. Встановлення alpine-ftp-server"
-        echo "2. Зупинка alpine-ftp-server"
-        echo "3. Видалення alpine-ftp-server"
-        echo "4. Оновлення alpine-ftp-server"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 255 "1. Встановлення $(print_color_message 255 215 0 'alpine-ftp-server')"
+        print_color_message 255 255 255 "2. Зупинка $(print_color_message 255 215 0 'alpine-ftp-server')"
+        print_color_message 255 255 255 "3. Видалення $(print_color_message 255 215 0 'alpine-ftp-server')"
+        print_color_message 255 255 255 "4. Оновлення $(print_color_message 255 215 0 'alpine-ftp-server')"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 

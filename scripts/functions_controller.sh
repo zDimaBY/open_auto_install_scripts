@@ -103,7 +103,7 @@ function check_dependency() {
 
 install_package() {
     local package_name=$1
-    local command_name=${2:-$package_name}  # Використовуємо ім'я пакету, якщо ім'я команди не вказано
+    local command_name=${2:-$package_name} # Використовуємо ім'я пакету, якщо ім'я команди не вказано
     case $operating_system in
     debian | ubuntu)
         if [ ! -x "$(command -v $command_name)" ]; then

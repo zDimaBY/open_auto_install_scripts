@@ -6,13 +6,13 @@ function 6_manage_docker_databases() {
     fi
 
     while true; do
-        echo -e "\nВиберіть дію:\n"
-        echo -e "1. MySQL"
-        echo -e "2. MariaDB"
-        echo -e "3. MongoDB"
-        echo -e "4. PostgreSQL"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 255 "1. $(print_color_message 255 215 0 'MySQL')"
+        print_color_message 255 255 255 "2. $(print_color_message 255 215 0 'MariaDB')"
+        print_color_message 255 255 255 "3. $(print_color_message 255 215 0 'MongoDB')"
+        print_color_message 255 255 255 "4. $(print_color_message 255 215 0 'PostgreSQL')"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
         read -p "Виберіть дію:" choice
         case $choice in
         1) install_database "mysql" ;;
@@ -35,8 +35,8 @@ function install_database() {
         echo "2. Видалити образ"
         echo "3. Налаштувати Docker"
         echo "4. Перелік запущених контейнерів"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -120,7 +120,6 @@ function run_container() {
     start_container "$db_name" "$tag" "$selected_ip_address" "$port" "$password"
 }
 
-
 # Введення порту прослуховування та паролю
 function enter_port_and_password() {
     echo -e "${GREEN}Унікальні використовані порти (TCP та UDP) у системі:${RESET}"
@@ -175,7 +174,7 @@ remove_images() {
         docker images --format '{{.Repository}}' | grep -q ":"
         return 1
     fi
-    
+
     echo "Виберіть образ для видалення:"
     select image in $(docker images --format "{{if eq .Repository \"$db_name\"}}{{.Repository}}:{{.Tag}}{{end}}"); do
         if [[ -n "$image" ]]; then
@@ -191,4 +190,3 @@ remove_images() {
         break
     done
 }
-

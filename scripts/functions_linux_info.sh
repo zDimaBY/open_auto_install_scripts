@@ -137,7 +137,7 @@ check_info_server() {
 
     # Хостнейм та IP
     server_hostname=$(hostname)
-    echo -e "Hostname: $(print_color_message 0 255 0 "$server_hostname") IP: ${server_IPv4[0]}"
+    echo -e "Hostname: $(print_color_message 0 255 0 "$server_hostname") IP: $(print_color_message 255 0 255 "${server_IPv4[0]}")"
 
     if [[ "$1" == "full" ]]; then
         network_type="$(curl -s --max-time 5 http://ip6.me/api/ | cut -d, -f1)"
@@ -203,7 +203,7 @@ check_info_server() {
     # Оперативна пам'ять
     echo -e "\n$(print_color_message 255 255 0 "Memory:")"
     read -r mem_total mem_used mem_free mem_shared mem_buff_cache mem_available < <(free -m | awk '/^Mem:/ {print $2, $3, $4, $5, $6, $7}')
-    echo -e "Total Memory: $(print_color_message 0 255 0 "${mem_total}MB") Used Memory: $(print_color_message 255 0 0 "${mem_used}MB") Free Memory: $(print_color_message 0 255 255 "${mem_free}MB") Shared Memory: $(print_color_message 128 0 128 "${mem_shared}MB") Buff/Cache Memory: $(print_color_message 0 0 255 "${mem_buff_cache}MB") Available Memory: $(print_color_message 255 165 0 "${mem_available}MB")"
+    echo -e "Total Memory: $(print_color_message 0 255 0 "${mem_total}MB") Used Memory: $(print_color_message 255 0 0 "${mem_used}MB") Free Memory: $(print_color_message 0 255 255 "${mem_free}MB") Shared Memory: $(print_color_message 128 0 128 "${mem_shared}MB") Buff/Cache Memory: $(print_color_message 100 149 237 "${mem_buff_cache}MB") Available Memory: $(print_color_message 255 165 0 "${mem_available}MB")"
 
     # Навантаження системи
     load_average=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}')

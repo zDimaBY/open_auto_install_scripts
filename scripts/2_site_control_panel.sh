@@ -30,14 +30,14 @@ function 2_site_control_panel() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію:\n"
-        echo -e "1. Встановлення/апгрейд ${RED}ioncube${RESET} для всіх php версії (Hestiacp + php-fpm) ${RED}(test)${RESET}"
-        echo -e "2. Встановлення ${RED}CMS${RESET} ${RED}(test)${RESET}"
-        echo -e "3. Заміна IP-адреси з old на new ${RED}(test)${RESET}"
-        echo -e "4. Відключення префікса ${GREEN}\"admin_\"${RESET}"
-        echo -e "5. Очистка логів ${GREEN}\"логів\"${RESET} ${RED}(test)${RESET}"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 255 "1. Встановлення/апгрейд $(print_color_message 255 215 0 'ioncube') для всіх php версій (Hestiacp + php-fpm) $(print_color_message 255 99 71 '(тест)')"
+        print_color_message 255 255 255 "2. Встановлення $(print_color_message 255 215 0 'CMS') $(print_color_message 255 99 71 '(тест)')"
+        print_color_message 255 255 255 "3. Заміна IP-адреси з old на new $(print_color_message 255 99 71 '(тест)')"
+        print_color_message 255 255 255 "4. Відключення префікса $(print_color_message 144 238 144 '\"admin_\"')"
+        print_color_message 255 255 255 "5. Очистка $(print_color_message 144 238 144 'логів') $(print_color_message 255 99 71 '(тест)')"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -58,11 +58,11 @@ function 2_site_control_panel() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
         echo -e "1. Встановлення ${RED}HestiaCP${RESET} ${RED}(test)${RESET}"
         echo -e "2. Встановлення ${RED}VestaCP${RESET} ${RED}(test)${RESET}"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -141,11 +141,11 @@ function 2_site_control_panel() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
         echo -e "1. Автоматичне встановлення ${RED}HestiaCP $SELECTED_VERSION_HESTIA${RESET} ${RED}(test)${RESET}"
         echo -e "2. Вибіркове встановлення ${RED}HestiaCP $SELECTED_VERSION_HESTIA${RESET} ${RED}(test)${RESET}"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -206,8 +206,8 @@ chown -R root:www-data /etc/phpmyadmin/' hst-install-ubuntu.sh
         print_color_message 255 255 0 "\nОберіть таблетку:\n"
         print_color_message 30 30 255 "1. PHP-FPM and nginx + apache"
         print_color_message 255 30 30 "2. PHP-FPM and nginx"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант: " choice
 
@@ -284,8 +284,8 @@ chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
         print_color_message 255 255 0 "\nОберіть таблетку:\n"
         print_color_message 30 30 255 "1. PHP-FPM and nginx + apache"
         print_color_message 255 30 30 "2. PHP-FPM and nginx"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант: " choice
 
@@ -362,11 +362,11 @@ deleting_old_admin_user() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
         echo -e "1. WordPress ${RED}(test)${RESET}"
         echo -e "2. DLE ${RED}(test)${RESET}"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -406,7 +406,7 @@ deleting_old_admin_user() {
         print_color_message 255 0 0 "Каталог Apache не знайдено."
         return 1
     fi
-    
+
     delete_files=$(ls -1 /var/log/$COMMAND_WEB_SERVER/domains/*.log-* 2>/dev/null)
     delete_files2=$(ls -1 /var/log/$COMMAND_WEB_SERVER/domains/*.log.* 2>/dev/null)
     truncate_files=$(ls -1 /var/log/$COMMAND_WEB_SERVER/domains/*.log 2>/dev/null)
@@ -422,7 +422,7 @@ deleting_old_admin_user() {
     else
         print_color_message 255 165 0 "Не знайдено файлів, які відповідають: rm -rf /var/log/$COMMAND_WEB_SERVER/domains/*.log.*"
     fi
-    
+
     print_color_message 0 255 0 "Файли, які будуть очищені: truncate -s 0 /var/log/$COMMAND_WEB_SERVER/domains/*.log"
     if [ -n "$truncate_files" ]; then
         du -sh $truncate_files
@@ -432,7 +432,7 @@ deleting_old_admin_user() {
 
     before=$(du -ahx /var/log/$COMMAND_WEB_SERVER/domains/ | grep "\.log" | sort -rh | head -n 1 | awk '{print $1}')
     print_color_message 0 255 0 "Поточно використане місце: $(print_color_message 255 165 0 "$before")"
-    
+
     read -p "Ви впевнені, що бажаєте видалити та очистити ці файли журналів? [y/N]: " confirm
     if [[ ! $confirm =~ ^[Yy]$ ]]; then
         print_color_message 255 0 0 "Операція скасована."
@@ -514,8 +514,14 @@ deleting_old_admin_user() {
         return 1
     fi
 
+    if validate_domain "$WP_SITE_DOMEN"; then
+        print_color_message 0 200 0 "Домен $WP_SITE_DOMEN валідний."
+    else
+        print_color_message 200 0 0 "Домен $WP_SITE_DOMEN не валідний."
+    fi
+
     if [ -d "/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN" ]; then
-        echo "Домен $DOMAIN уже є за шляхом /home/$CONTROLPANEL_USER/web/."
+        echo "Домен $WP_SITE_DOMEN уже є за шляхом /home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN."
         return 1
     fi
 
@@ -535,7 +541,6 @@ deleting_old_admin_user() {
 
     # Обрана папка
     CONTROLPANEL_USER="${folders[$((choice - 1))]}"
-    echo "Ви обрали користувача: $CONTROLPANEL_USER"
 
     $CLI_dir/v-add-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
 

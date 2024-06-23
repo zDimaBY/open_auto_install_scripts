@@ -4,15 +4,15 @@ function 4_VPN() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію:\n"
-        echo -e "1. 3X-UI (WEB, on docker install) https://github.com/MHSanaei/3x-ui ${GREEN}(OS - Windows 64)${RESET}"
-        echo -e "2. X-UI (WEB, on docker install) https://github.com/alireza0/x-ui/pkgs/container/x-ui"
-        echo -e "3. WireGuard Easy (WEB, on docker install) https://github.com/wg-easy/wg-easy"
-        echo -e "4. IPsec/L2TP, Cisco IPsec and IKEv2 (on docker install) https://github.com/hwdsl2/docker-ipsec-vpn-server"
-        echo -e "5. WireGuard (locall install) https://github.com/angristan/wireguard-install"
-        echo -e "6. OpenVPN (locall install) https://github.com/angristan/openvpn-install"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 255 "1. $(print_color_message 255 215 0 '3X-UI') $(print_color_message 144 238 144 '(WEB, on docker install)') $(print_color_message 135 206 235 'https://github.com/MHSanaei/3x-ui') $(print_color_message 144 238 144 '(OS - Windows 64)')"
+        print_color_message 255 255 255 "2. $(print_color_message 255 215 0 'X-UI') $(print_color_message 144 238 144 '(WEB, on docker install)') $(print_color_message 135 206 235 'https://github.com/alireza0/x-ui/pkgs/container/x-ui')"
+        print_color_message 255 255 255 "3. $(print_color_message 255 215 0 'WireGuard Easy') $(print_color_message 144 238 144 '(WEB, on docker install)') $(print_color_message 135 206 235 'https://github.com/wg-easy/wg-easy')"
+        print_color_message 255 255 255 "4. $(print_color_message 255 215 0 'IPsec/L2TP, Cisco IPsec and IKEv2') $(print_color_message 144 238 144 '(on docker install)') $(print_color_message 135 206 235 'https://github.com/hwdsl2/docker-ipsec-vpn-server')"
+        print_color_message 255 255 255 "5. $(print_color_message 255 215 0 'WireGuard') $(print_color_message 255 215 0 '(locall install)') $(print_color_message 135 206 235 'https://github.com/angristan/wireguard-install')"
+        print_color_message 255 255 255 "6. $(print_color_message 255 215 0 'OpenVPN') $(print_color_message 255 215 0 '(locall install)') $(print_color_message 135 206 235 'https://github.com/angristan/openvpn-install')"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -63,6 +63,15 @@ info_for_client_programs() {
     echo -e "-"
 }
 
+info_for_client_wireguard() {
+    echo -e "${YELLOW}Інструкція для налаштування WireGuard${RESET}"
+    echo -e "1. Завантажте клієнт WireGuard за посиланням: ${BLUE}https://www.wireguard.com/install/${RESET}"
+    echo "2. Після завантаження клієнта, встановіть його на Ваш пристрій."
+    echo "3. Перейдіть до каталогу /root/VPN/wireguard/ на Вашому сервері."
+    echo "4. Скопіюйте файл конфігурації з серверу на Ваш пристрій."
+    echo "5. Відкрийте клієнт WireGuard та імпортуйте файл конфігурації."
+    echo "6. Після імпорту, Ваш VPN-профіль буде доступний для підключення."
+}
 #_______________________________________________________________________________________________________________________________________
 menu_x_ui() {
     if ! check_docker_availability; then
@@ -71,13 +80,13 @@ menu_x_ui() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
         echo "1. Встановлення X-UI"
         echo "2. Зупинка X-UI"
         echo "3. Видалення X-UI"
         #echo "4. Оновлення X-UI"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -169,13 +178,13 @@ menu_3x_ui() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
         echo "1. Встановлення 3X-UI"
         echo "2. Зупинка 3X-UI"
         echo "3. Видалення 3X-UI"
         #echo "4. Оновлення 3X-UI"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -259,13 +268,13 @@ menu_wireguard_easy() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
         echo "1. Встановлення WireGuard Easy"
         echo "2. Зупинка WireGuard Easy"
         echo "3. Видалення WireGuard Easy"
         echo "4. Оновлення WireGuard Easy"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -320,12 +329,13 @@ install_wg_easy() {
         weejewel/wg-easy
 
     if [ $? -eq 0 ]; then
-        echo -e "\n${GREEN}WireGuard Easy успішно встановлено. ${YELLOW}Документація за посиланням: https://github.com/wg-easy/wg-easy${RESET}"
-        echo -e "Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}http://$selected_ip_address:51821${RESET}"
+        echo -e "\n${GREEN}WireGuard Easy успішно встановлено. Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}http://$selected_ip_address:51821${RESET}"
         echo -e "${GREEN}Пароль для доступу до інтерфейсу:${RESET} ${YELLOW}$admin_password${RESET}"
-        echo -e "Для діагностики використовуйте команди:"
+        info_for_client_wireguard
+        echo -e "\nДля діагностики використовуйте команди:"
         echo -e "  ${YELLOW}docker logs wg-easy${RESET} - перегляд журналів контейнера"
         echo -e "  ${YELLOW}docker exec -it wg-easy /bin/bash -c 'ls /bin'${RESET} - перегляд списку команд у контейнері"
+        echo -e "  ${YELLOW}Документація за посиланням: https://github.com/wg-easy/wg-easy${RESET}"
     else
         echo -e "\n${RED}Сталася помилка під час встановлення WireGuard Easy. Перевірте, будь ласка, налаштування і спробуйте ще раз.${RESET}"
     fi
@@ -357,8 +367,8 @@ menu_wireguard_scriptLocal() {
         echo -e "\nWireGuard installer. Виберіть дію:\n"
         echo "1. Автоматичне встановлення WireGuard"
         echo "2. Меню керування WireGuard та ручне встановлення"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -409,15 +419,8 @@ install_wireguard_scriptLocal() {
     sed -i 's|CLIENT_NAME="proxy"|#read -rp "Client name: " -e CLIENT_NAME|' /root/VPN/wireguard-install.sh
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}__________________________________________________________________________WireGuard успішно встановлено!${RESET}"
-        echo -e "${YELLOW}Інструкція для налаштування WireGuard${RESET}"
-        echo -e "1. Завантажте клієнт WireGuard за посиланням: ${BLUE}https://www.wireguard.com/install/${RESET}"
-        echo "2. Після завантаження клієнта, встановіть його на Ваш пристрій."
-        echo "3. Перейдіть до каталогу /root/VPN/wireguard/ на Вашому сервері."
-        echo "4. Скопіюйте файл конфігурації з серверу на Ваш пристрій."
-        echo "5. Відкрийте клієнт WireGuard та імпортуйте файл конфігурації."
-        echo "6. Після імпорту, Ваш VPN-профіль буде доступний для підключення."
+        info_for_client_wireguard
         echo "Документація за посиланням: https://github.com/angristan/openvpn-install"
-
     else
         echo -e "\n${RED}Сталася помилка під час встановлення WireGuard. Перевірте, будь ласка, налаштування і спробуйте ще раз.${RESET}"
     fi
@@ -436,8 +439,8 @@ menu_openVPNLocal() {
         echo -e "\nOpenVPN installer. Виберіть дію:\n"
         echo "1. Автоматичне встановлення OpenVPN"
         echo "2. Меню керування OpenVPN та ручне встановлення"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -535,8 +538,8 @@ menu_IPsec_L2TP_IKEv2() {
         echo "3. Зупинка ipsec-vpn-server"
         echo "4. Видалення ipsec-vpn-server"
         echo "5. Оновлення ipsec-vpn-server"
-        echo -e "\n0. Вийти з цього підменю!"
-        echo -e "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
@@ -558,11 +561,10 @@ install_ipsec_vpn_server() {
     generate_vpn_env_file() {
         generate_random_password
         echo "VPN_IPSEC_PSK=$rand_password" >/root/VPN/IPsec_L2TP/vpn.env
-        read -p "Введіть ім'я користувача для VPN: " vpn_username
-        echo "VPN_USER=$vpn_username" >>/root/VPN/IPsec_L2TP/vpn.env
+        echo "VPN_USER=admin" >>/root/VPN/IPsec_L2TP/vpn.env
         generate_random_password
         echo "VPN_PASSWORD=$rand_password" >>/root/VPN/IPsec_L2TP/vpn.env
-        echo -e "${GREEN}Файл vpn.env створено та налаштовано успішно.${RESET}\n"
+        echo -e "${GREEN}Файл /root/VPN/IPsec_L2TP/vpn.env створено та налаштовано успішно.${RESET}\n"
     }
 
     if [ -f /root/VPN/IPsec_L2TP/vpn.env ]; then

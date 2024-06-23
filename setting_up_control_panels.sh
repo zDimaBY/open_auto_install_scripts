@@ -87,16 +87,16 @@ function selectionFunctions() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію:\n"
-        echo -e "1. Встановлення ПЗ (${BROWN}Composer${RESET}, ${YELLOW}Docker${RESET}, ${BLUE}RouterOS 7.5${RESET}, ${BLUE}Elasticsearch${RESET}, proxy nginx)"
-        echo -e "2. Функції для панелей керування сайтами ${RED}(test)${RESET}"
-        echo -e "3. DDos"
-        echo -e "4. Організування ${MAGENTA}VPN${RESET} серверів"
-        echo -e "5. Організування ${BLUE}FTP${RESET} доступу ${RED}(test)${RESET}"
-        echo -e "6. Організування ${MAGENTA}баз данних ${RED}(test)${RESET}"
-        echo -e "7. Встановлення ${YELLOW}операційних систем. ${RED}(test)${RESET}"
-        echo -e "8. Тестування сервера: ${YELLOW}швидкості порта,${BLUE} пошти${RED}${RESET}"
-        echo -e "0. Закінчити роботу скрипта\n"
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 255 "1. Встановлення ПЗ ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx'))"
+        print_color_message 255 255 255 "2. Функції для панелей керування сайтами $(print_color_message 255 99 71 '(тест)')"
+        print_color_message 255 255 255 "3. $(print_color_message 220 20 60 'DDos')"
+        print_color_message 255 255 255 "4. Налаштування $(print_color_message 186 85 211 'VPN') серверів"
+        print_color_message 255 255 255 "5. Налаштування $(print_color_message 135 206 250 'FTP') доступу $(print_color_message 255 99 71 '(тест)')"
+        print_color_message 255 255 255 "6. Налаштування $(print_color_message 186 85 211 'баз даних') $(print_color_message 255 99 71 '(тест)')"
+        print_color_message 255 255 255 "7. Встановлення $(print_color_message 255 215 0 'операційних систем') $(print_color_message 255 99 71 '(тест)')"
+        print_color_message 255 255 255 "8. Тестування сервера: $(print_color_message 255 215 0 'швидкість порта,') $(print_color_message 100 149 237 'пошта')"
+        print_color_message 255 255 255 "0. Закінчити роботу скрипта\n"
 
         read -p "Виберіть варіант:" choice
 
