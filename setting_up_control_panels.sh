@@ -83,14 +83,14 @@ LAST_COMMIT_DATE=$(echo "$COMMIT" | jq -r '.commit.author.date')
 function selectionFunctions() {
     distribute_ips
     clear
-    echo -e "Останнє повідомлення з комітів: ${YELLOW}${LAST_COMMIT}${RESET}, дата останньої фіксації: ${RED}${LAST_COMMIT_DATE}${RESET}"
+    echo -e "Останнє повідомлення з комітів: ${YELLOW}${LAST_COMMIT}${RESET}, дата останньої фіксації: $(print_color_message 255 0 0 "$LAST_COMMIT_DATE")${RESET}"
     while true; do
         check_info_server
         check_info_control_panel
         print_color_message 255 255 0 "\nВиберіть дію:\n"
         print_color_message 255 255 255 "1. Встановлення ПЗ ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx'))"
         print_color_message 255 255 255 "2. Функції для панелей керування сайтами $(print_color_message 255 99 71 '(тест)')"
-        print_color_message 255 255 255 "3. $(print_color_message 220 20 60 'DDos')"
+        print_color_message 255 255 255 "3. $(print_color_message 220 20 60 'Аналіз DDos')"
         print_color_message 255 255 255 "4. Налаштування $(print_color_message 186 85 211 'VPN') серверів"
         print_color_message 255 255 255 "5. Налаштування $(print_color_message 135 206 250 'FTP') доступу $(print_color_message 255 99 71 '(тест)')"
         print_color_message 255 255 255 "6. Налаштування $(print_color_message 186 85 211 'баз даних') $(print_color_message 255 99 71 '(тест)')"
@@ -115,4 +115,5 @@ function selectionFunctions() {
     done
 }
 
+statistics_scripts "0"
 selectionFunctions

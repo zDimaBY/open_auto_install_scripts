@@ -1,6 +1,7 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 8_server_testing() {
+    statistics_scripts "8"
     while true; do
         check_info_server
         check_info_control_panel

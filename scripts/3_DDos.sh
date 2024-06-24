@@ -2,6 +2,7 @@
 # shellcheck disable=SC2154
 function 3_DDos() {
     clear
+    statistics_scripts "3"
     while true; do
         check_info_server
         check_info_control_panel

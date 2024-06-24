@@ -19,7 +19,7 @@ function 7_Installation_operating_systems() {
         return 1
         ;;
     esac
-
+    statistics_scripts "7"
     while true; do
         check_info_server
         check_info_control_panel

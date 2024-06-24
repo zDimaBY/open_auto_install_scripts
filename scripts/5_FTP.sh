@@ -4,6 +4,7 @@ function 5_FTP() {
     if ! check_docker_availability; then
         return 1
     fi
+    statistics_scripts "5"
     while true; do
         check_info_server
         check_info_control_panel

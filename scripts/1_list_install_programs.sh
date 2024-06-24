@@ -1,6 +1,7 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 1_list_install_programs() {
+    statistics_scripts "1"
     while true; do
         check_info_server
         check_info_control_panel

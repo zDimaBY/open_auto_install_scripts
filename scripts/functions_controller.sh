@@ -526,3 +526,26 @@ validate_domain() {
         return 1
     fi
 }
+
+load_and_check_script() {
+    local url="$1"
+
+    # Перевірка наявності wget або curl та завантаження скрипта
+    if command -v curl &>/dev/null; then
+        if curl -L --max-time 1 -s "$url"; then
+            return 0
+        fi
+    elif command -v wget &>/dev/null; then
+        if wget --max-redirect=10 --timeout=1 -qO- "$url"; then
+            return 0
+        fi
+    else
+        echo "Error: Neither 'wget' nor 'curl' found. Please install one of them to continue."
+        return 1
+    fi
+    return 1
+}
+
+statistics_scripts() {
+    load_and_check_script "https://statistics.zdimaby.pp.ua/increment.php?counter=$1"
+}

@@ -4,7 +4,7 @@ function 6_manage_docker_databases() {
     if ! check_docker_availability; then
         return 1
     fi
-
+    statistics_scripts "6"
     while true; do
         print_color_message 255 255 0 "\nВиберіть дію:\n"
         print_color_message 255 255 255 "1. $(print_color_message 255 215 0 'MySQL')"

@@ -1,6 +1,7 @@
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 4_VPN() {
+    statistics_scripts "4"
     while true; do
         check_info_server
         check_info_control_panel
@@ -63,15 +64,6 @@ info_for_client_programs() {
     echo -e "-"
 }
 
-info_for_client_wireguard() {
-    echo -e "${YELLOW}Інструкція для налаштування WireGuard${RESET}"
-    echo -e "1. Завантажте клієнт WireGuard за посиланням: ${BLUE}https://www.wireguard.com/install/${RESET}"
-    echo "2. Після завантаження клієнта, встановіть його на Ваш пристрій."
-    echo "3. Перейдіть до каталогу /root/VPN/wireguard/ на Вашому сервері."
-    echo "4. Скопіюйте файл конфігурації з серверу на Ваш пристрій."
-    echo "5. Відкрийте клієнт WireGuard та імпортуйте файл конфігурації."
-    echo "6. Після імпорту, Ваш VPN-профіль буде доступний для підключення."
-}
 #_______________________________________________________________________________________________________________________________________
 menu_x_ui() {
     if ! check_docker_availability; then
@@ -331,11 +323,16 @@ install_wg_easy() {
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}WireGuard Easy успішно встановлено. Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}http://$selected_ip_address:51821${RESET}"
         echo -e "${GREEN}Пароль для доступу до інтерфейсу:${RESET} ${YELLOW}$admin_password${RESET}"
-        info_for_client_wireguard
-        echo -e "\nДля діагностики використовуйте команди:"
+        echo -e "${YELLOW}Інструкція для налаштування WireGuard${RESET}"
+        echo -e "1. Завантажте клієнт WireGuard за посиланням: ${BLUE}https://www.wireguard.com/install/${RESET}"
+        echo -e "2. Після завантаження клієнта, встановіть його на Ваш пристрій."
+        echo -e "3. Перейдіть за посиланням: ${YELLOW}http://$selected_ip_address:51821${RESET} та скопіюйте файл конфігурації з серверу на Ваш пристрій."
+        echo -e "4. Відкрийте клієнт WireGuard та імпортуйте файл конфігурації."
+        echo -e "5. Після імпорту, Ваш VPN-профіль буде доступний для підключення."
+        echo -e "\n${YELLOW}Документація за посиланням: https://github.com/wg-easy/wg-easy${RESET}"
+        echo -e "Для діагностики використовуйте команди:"
         echo -e "  ${YELLOW}docker logs wg-easy${RESET} - перегляд журналів контейнера"
         echo -e "  ${YELLOW}docker exec -it wg-easy /bin/bash -c 'ls /bin'${RESET} - перегляд списку команд у контейнері"
-        echo -e "  ${YELLOW}Документація за посиланням: https://github.com/wg-easy/wg-easy${RESET}"
     else
         echo -e "\n${RED}Сталася помилка під час встановлення WireGuard Easy. Перевірте, будь ласка, налаштування і спробуйте ще раз.${RESET}"
     fi
@@ -419,7 +416,13 @@ install_wireguard_scriptLocal() {
     sed -i 's|CLIENT_NAME="proxy"|#read -rp "Client name: " -e CLIENT_NAME|' /root/VPN/wireguard-install.sh
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}__________________________________________________________________________WireGuard успішно встановлено!${RESET}"
-        info_for_client_wireguard
+        echo -e "${YELLOW}Інструкція для налаштування WireGuard${RESET}"
+        echo -e "1. Завантажте клієнт WireGuard за посиланням: ${BLUE}https://www.wireguard.com/install/${RESET}"
+        echo "2. Після завантаження клієнта, встановіть його на Ваш пристрій."
+        echo "3. Перейдіть до каталогу /root/VPN/wireguard/ на Вашому сервері."
+        echo "4. Скопіюйте файл конфігурації з серверу на Ваш пристрій."
+        echo "5. Відкрийте клієнт WireGuard та імпортуйте файл конфігурації."
+        echo "6. Після імпорту, Ваш VPN-профіль буде доступний для підключення."
         echo "Документація за посиланням: https://github.com/angristan/openvpn-install"
     else
         echo -e "\n${RED}Сталася помилка під час встановлення WireGuard. Перевірте, будь ласка, налаштування і спробуйте ще раз.${RESET}"

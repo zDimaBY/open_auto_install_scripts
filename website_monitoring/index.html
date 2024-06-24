@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кількість запусків скриптів</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: black; /* Чорний фон */
+        color: white; /* Білий текст */
+    }
+    .counter-block {
+        margin-bottom: 20px;
+    }
+    .counter-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: white; /* Білий текст */
+    }
+    .count {
+        font-size: 18px;
+        color: white; /* Білий текст */
+    }
+</style>
+
+</head>
+<body>
+    <!-- Блоки для відображення кількості запусків -->
+    <div class="counter-block" id="counter0">
+        <span class="counter-title">Кількість запусків скрипта:</span>
+        <span class="count" id="count0"></span>
+    </div>
+    <div class="counter-block" id="counter1">
+        <span class="counter-title">1. Встановлення ПЗ:</span>
+        <span class="count" id="count1"></span>
+    </div>
+    <div class="counter-block" id="counter2">
+        <span class="counter-title">2. Функції для панелей керування сайтами (тест):</span>
+        <span class="count" id="count2"></span>
+    </div>
+    <div class="counter-block" id="counter3">
+        <span class="counter-title">3. Аналіз DDos:</span>
+        <span class="count" id="count3"></span>
+    </div>
+    <div class="counter-block" id="counter4">
+        <span class="counter-title">4. Налаштування VPN серверів:</span>
+        <span class="count" id="count4"></span>
+    </div>
+    <div class="counter-block" id="counter5">
+        <span class="counter-title">5. Налаштування FTP доступу (тест):</span>
+        <span class="count" id="count5"></span>
+    </div>
+    <div class="counter-block" id="counter6">
+        <span class="counter-title">6. Налаштування баз даних (тест):</span>
+        <span class="count" id="count6"></span>
+    </div>
+    <div class="counter-block" id="counter7">
+        <span class="counter-title">7. Встановлення операційних систем (тест):</span>
+        <span class="count" id="count7"></span>
+    </div>
+    <div class="counter-block" id="counter8">
+        <span class="counter-title">8. Тестування сервера:</span>
+        <span class="count" id="count8"></span>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Функція для оновлення кількості запусків
+            function updateCounters() {
+                var counters = [
+                    'count0', 'count1', 'count2', 'count3', 'count4', 'count5', 'count6', 'count7', 'count8'
+                ];
+
+                // Для кожного лічильника виконуємо AJAX запит
+                counters.forEach(function(counterId, index) {
+                    $.ajax({
+                        url: 'get_count.php',
+                        type: 'GET',
+                        data: { counter: index }, // Передаємо номер лічильника на сервер
+                        success: function(response) {
+                            $('#' + counterId).text(response);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Помилка при отриманні даних:', error);
+                        }
+                    });
+                });
+            }
+
+            setInterval(function() {
+                updateCounters();
+            }, 10000);
+            updateCounters();
+        });
+    </script>
+</body>
+</html>
