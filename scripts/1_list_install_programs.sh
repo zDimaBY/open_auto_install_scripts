@@ -11,6 +11,7 @@ function 1_list_install_programs() {
         print_color_message 255 255 255 "3. Встановлення $(print_color_message 255 215 0 'RouterOS від Mikrotik')"
         print_color_message 255 255 255 "4. Встановлення $(print_color_message 255 215 0 'Elasticsearch') $(print_color_message 255 99 71 '(тест)')"
         print_color_message 255 255 255 "5. Встановлення $(print_color_message 255 215 0 'Nginx proxy server') портів 80 та 443 з $(print_color_message 255 99 71 "${server_IPv4[0]}") на $(print_color_message 255 0 255 'ххх.ххх.ххх.ххх')"
+        print_color_message 255 255 255 "6. Встановлення $(print_color_message 255 215 0 'OpenSSH')"
         print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
         print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
@@ -22,6 +23,7 @@ function 1_list_install_programs() {
         3) 1_installRouterOSMikrotik ;;
         4) 1_installElasticsearch ;;
         5) 1_installNginxProxyServer ;;
+        6) 1_installOpenSSH ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -452,4 +454,56 @@ EOF
         echo "Помилка: конфігурація nginx некоректна. Перевірте конфігураційний файл."
     fi
 
+}
+
+1_installOpenSSH() {
+    URL_OpenSSH="https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/"
+    # Завантажити список доступних версій
+    versions=$(curl -s "$URL_OpenSSH" | grep -oP 'openssh-\d+\.\d+p?\d*\.tar\.gz' | sed -r 's/openssh-(\d+\.\d+p?\d*)\.tar\.gz/\1/' | sort -Vr | uniq)
+
+    # Вивести номери версій з порядковим номером для вибору
+    echo "$versions" | nl -s ") "
+    read -p "Виберіть версію OpenSSH для встановлення: " version_number
+
+    case $operating_system in
+    debian | ubuntu)
+        apt-get update
+        apt-get install build-essential libssl-dev zlib1g-dev curl
+        ;;
+    fedora)
+        dnf update
+        dnf install make gcc openssl-devel zlib-devel curl
+        ;;
+    centos | oracle | almalinux | rocky)
+        yum update
+        yum install epel-release
+        yum install make gcc openssl-devel zlib-devel curl
+        ;;
+    arch | sysrescue)
+        pacman -Sy
+        pacman -Sy --noconfirm base-devel openssl zlib curl
+        ;;
+    *)
+        echo -e "${RED}Невідома операційна система. Будь ласка, встановіть необхідні пакети вручну.${RESET}"
+        exit 1
+        ;;
+    esac
+    # Отримати конкретну версію зі списку
+    selected_version=$(echo "$versions" | sed -n "${version_number}p")
+
+    echo "Ви обрали версію OpenSSH: $selected_version"
+
+    # Завантажити та встановити вибрану версію
+    wget "${URL_OpenSSH}${selected_version}"
+    tar -xzf "$selected_version"
+    rm -f "${selected_version}"
+    cd "${selected_version%.tar.gz}"
+    ./configure
+    make
+    make install
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Не вдалося оновити OpenSSH. Будь ласка, встановіть його вручну.${RESET}"
+        return 1
+    fi
+    systemctl restart ssh && systemctl status ssh
 }
