@@ -48,6 +48,10 @@ distribute_ips() { # ${server_IPv4[0]} ${server_IPv6[0]}
     done
 }
 
+version_gt() {
+    test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"
+}
+
 check_compatibility_script() {
     if [ "$(id -u)" -ne 0 ]; then
         print_color_message 200 0 0 'Error: This script is not run as root.'
@@ -113,6 +117,14 @@ check_info_server() {
         echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Other Linux-based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "End Life: $SUPPORT_OS_END")"
         ;;
     esac
+
+    # Перевірка уразливих версій OpenSSH
+    current_version=$(ssh -V 2>&1 | awk -F '[ ,]' '{print $1}' | awk -F '_' '{print $2}')
+    if version_gt "4.4p1" "$current_version" || (version_gt "$current_version" "8.5p1" && version_gt "9.8p1" "$current_version"); then
+        print_color_message 255 0 0 "Уразлива версія OpenSSH: $current_version"
+    else
+        print_color_message 0 255 0 "Версія OpenSSH $current_version не уразлива."
+    fi
 
     # Функція для виводу IP-адрес
     print_ips() {
