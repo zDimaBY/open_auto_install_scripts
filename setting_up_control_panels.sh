@@ -88,7 +88,7 @@ function selectionFunctions() {
         check_info_server
         check_info_control_panel
         print_color_message 255 255 0 "\nВиберіть дію:\n"
-        print_color_message 255 255 255 "1. Встановлення ПЗ ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx')) OpenSSH"
+        print_color_message 255 255 255 "1. Встановлення ПЗ ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx') OpenSSH)"
         print_color_message 255 255 255 "2. Функції для панелей керування сайтами $(print_color_message 255 99 71 '(тест)')"
         print_color_message 255 255 255 "3. $(print_color_message 220 20 60 'Аналіз DDos')"
         print_color_message 255 255 255 "4. Налаштування $(print_color_message 186 85 211 'VPN') серверів"

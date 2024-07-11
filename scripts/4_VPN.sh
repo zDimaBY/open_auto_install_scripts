@@ -62,6 +62,8 @@ info_for_client_programs() {
     echo -e "-"
     echo -e "iOS - napsternetv, v2box-v2ray-client:"
     echo -e "-"
+    
+    echo -e "https://itdog.info/klienty-vless-shadowsocks-trojan-xray-sing-box-dlya-windows-android-ios-macos-linux/"
 }
 
 #_______________________________________________________________________________________________________________________________________

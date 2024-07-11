@@ -532,11 +532,11 @@ load_and_check_script() {
 
     # Перевірка наявності wget або curl та завантаження скрипта
     if command -v curl &>/dev/null; then
-        if curl -L --max-time 1 -s "$url"; then
+        if curl -L --max-time 1 -s "$url" 2>/dev/null; then
             return 0
         fi
     elif command -v wget &>/dev/null; then
-        if wget --max-redirect=10 --timeout=1 -qO- "$url"; then
+        if wget --max-redirect=10 --timeout=1 -qO- "$url" 2>/dev/null; then
             return 0
         fi
     else
