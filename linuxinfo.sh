@@ -1,13 +1,13 @@
 #!/bin/bash
 # Autorun for MobaXterm:
-# [ ! -f ~/.vimrc ] && echo -e "set number\nsyntax on" > ~/.vimrc && trap 'rm ~/.vimrc' EXIT && echo "Settings applied for the current session." || echo "File .vimrc already exists, no changes made."; (command -v curl &> /dev/null && curl -sSL --max-time 2 -s https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/linuxinfo.sh | bash) || (command -v wget &> /dev/null && wget --timeout=2 -qO- https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/linuxinfo.sh | bash) || { echo "Error: Neither 'curl' nor 'wget' found. Please install one of them to continue."; exit 1; }
+# [ ! -f ~/.vimrc ] && echo -e "set number\nsyntax on" > ~/.vimrc && trap 'rm ~/.vimrc' EXIT && echo "Settings applied for the current session." || echo "File .vimrc already exists, no changes made."; (command -v curl &> /dev/null && curl -sSL --max-time 2 -s https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/linuxinfo.sh | bash) || (command -v wget &> /dev/null && wget --timeout=2 -qO- https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/linuxinfo.sh | bash) || { echo "Error: Neither 'curl' nor 'wget' found. Please install one of them to continue."; exit 1; }
 # Run in terminal:
-# curl -sSL https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/linuxinfo.sh | bash
+# curl -sSL https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/linuxinfo.sh | bash
 # or
-# wget -qO- https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/linuxinfo.sh | bash
+# wget -qO- https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/linuxinfo.sh | bash
 
 # URL скрипта для завантаження
-SCRIPT_URL="https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/scripts/functions_linux_info.sh"
+SCRIPT_URL="https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/scripts/functions_linux_info.sh"
 
 # Функція для завантаження скрипта і виконання його
 load_and_source_script() {
@@ -23,9 +23,9 @@ load_and_source_script() {
 
 # Перевірка наявності wget або curl
 if command -v curl &>/dev/null; then
-    load_and_source_script "curl" "--max-time 4 -s"
+    load_and_source_script "curl" "-H "Authorization: token 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" --max-time 4 -s"
 elif command -v wget &>/dev/null; then
-    load_and_source_script "wget" "--timeout=4 -qO-"
+    load_and_source_script "wget" "--header="Authorization: token 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" --timeout=4 -qO-"
 else
     echo "Error: Neither 'wget' nor 'curl' found. Please install one of them to continue."
     exit 1

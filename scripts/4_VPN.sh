@@ -1,3 +1,4 @@
+#!/bin/bash -n
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 4_VPN() {
@@ -597,8 +598,8 @@ install_ipsec_vpn_server() {
             -d --privileged \
             hwdsl2/ipsec-vpn-server
 
-        wget -N -P /root/VPN/IPsec_L2TP/ https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat
-        wget -N -P /root/VPN/IPsec_L2TP/ https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd
+        wget -N -P /root/VPN/IPsec_L2TP/ https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat
+        wget -N -P /root/VPN/IPsec_L2TP/ https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd
 
         copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.p12" "/root/VPN/IPsec_L2TP"
         copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.sswan" "/root/VPN/IPsec_L2TP"
@@ -683,8 +684,8 @@ add_client_ipsec_vpn_server() {
     copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.p12" "/root/VPN/IPsec_L2TP/$connection_name/"
     copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.sswan" "/root/VPN/IPsec_L2TP/$connection_name/"
     copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.mobileconfig" "/root/VPN/IPsec_L2TP/$connection_name/"
-    wget -N -P /root/VPN/IPsec_L2TP/${connection_name}/ https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat
-    wget -N -P /root/VPN/IPsec_L2TP/${connection_name}/ https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd
+    wget -N -P /root/VPN/IPsec_L2TP/${connection_name}/ https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat
+    wget -N -P /root/VPN/IPsec_L2TP/${connection_name}/ https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd
 
     echo -e "${GREEN}Файли конфігурації скопійовано за шляхом /root/VPN/IPsec_L2TP/$connection_name ${RESET}"
 }

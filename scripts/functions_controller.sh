@@ -1,3 +1,4 @@
+#!/bin/bash -n
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function check_dependency() {
@@ -532,15 +533,14 @@ load_and_check_script() {
 
     # Перевірка наявності wget або curl та завантаження скрипта
     if command -v curl &>/dev/null; then
-        if curl -L --max-time 1 -s "$url" 2>/dev/null; then
+        if curl -L --max-time 1 -s "$url" >/dev/null 2>&1; then
             return 0
         fi
     elif command -v wget &>/dev/null; then
-        if wget --max-redirect=10 --timeout=1 -qO- "$url" 2>/dev/null; then
+        if wget --max-redirect=10 --timeout=1 -qO- "$url" >/dev/null 2>&1; then
             return 0
         fi
     else
-        echo "Error: Neither 'wget' nor 'curl' found. Please install one of them to continue."
         return 1
     fi
     return 1

@@ -17,8 +17,9 @@ folder_script_path="/root/scripts_${rand_head}"
 mkdir -p "$folder_script_path"
 
 URL_GITHUB="https://raw.githubusercontent.com"
-REPO="zDimaBY/setting_up_control_panels"
+REPO="zDimaBY/open_auto_install_scripts"
 BRANCH="main"
+TOKEN_GITHUB="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"
 
 urls=(
     "$URL_GITHUB/$REPO/$BRANCH/scripts/0_exit.sh"
@@ -35,11 +36,12 @@ urls=(
     "$URL_GITHUB/$REPO/$BRANCH/scripts/hestiaCP_and_vestaCP_scripts/command/v-sys-change-ip"
 )
 
-# Завантаження та розгортання скриптів
+# Завантаження та розгортання скриптів, token: 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
 for url in "${urls[@]}"; do
     filename=$(basename "$url")
-    wget -qO "$folder_script_path/$filename" "$url" || {
+    wget --header="Authorization: token $TOKEN_GITHUB" -qO "$folder_script_path/$filename" "$url" || {
         echo -e "${RED}Не вдалося завантажити $filename${RESET}"
+        rm -rf "$folder_script_path"
         exit 1
     }
 done
@@ -50,7 +52,7 @@ for file in "$folder_script_path"/*; do
         source "$file" && rm -f "$file"
     fi
 done
-rm -rf "$folder_script_path" /root/setting_up_control_panels.sh
+rm -rf "$folder_script_path" /root/open_auto_install_scripts.sh
 
 UPDATE_DONE=false
 dependencies=(
@@ -75,7 +77,7 @@ for dependency in "${dependencies[@]}"; do
     check_dependency $dependency
 done
 
-COMMIT=$(curl -s "https://api.github.com/repos/$REPO/commits/$BRANCH")
+COMMIT=$(curl -s -H "Authorization: token $TOKEN_GITHUB" "https://api.github.com/repos/$REPO/commits/$BRANCH")
 LAST_COMMIT=$(echo "$COMMIT" | jq -r '.commit.message')
 LAST_COMMIT_DATE=$(echo "$COMMIT" | jq -r '.commit.author.date')
 

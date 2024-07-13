@@ -1,11 +1,10 @@
+#!/bin/bash -n
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 0_funExit() {
-    echo -e "Exit. Приберіть за собою! \nВикориставши:${RED}\nrm -rf ${folder_script_path} /root/setting_up_control_panels.sh && history -c && history -a${RESET}"
-    echo -e "${GREEN}Якщо таких папок та файла нема, то все okay${RESET}\n"
-    echo -e "Запуск:\nwget -N https://raw.githubusercontent.com/zDimaBY/setting_up_control_panels/main/setting_up_control_panels.sh && bash ./setting_up_control_panels.sh && history -c && history -a\n"
+    echo -e "Запуск: wget -N https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/open_auto_install_scripts.sh && bash ./open_auto_install_scripts.sh && history -c && history -a\n"
     sed -i '/wget https:\/\/raw.githubusercontent.com\/zDimaBY/d' /root/.bash_history
-    rm -rf "${folder_script_path}" /root/setting_up_control_panels.sh
+    rm -rf "${folder_script_path}" /root/open_auto_install_scripts.sh
     exit 0
 }
 

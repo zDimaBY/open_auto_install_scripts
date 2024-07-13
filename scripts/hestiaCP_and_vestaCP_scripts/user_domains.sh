@@ -1,3 +1,4 @@
+#!/bin/bash -n
 function 1_outputOfAllDomains() {
     if [ $# -ne 4 ]; then
         echo "Потрібно вказати 4 аргументи: hestia_hostname, hestia_port, hestia_username, password"

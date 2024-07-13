@@ -1,3 +1,4 @@
+#!/bin/bash -n
 # shellcheck disable=SC2148
 # shellcheck disable=SC2154
 function 2_site_control_panel() {
