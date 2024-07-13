@@ -76,7 +76,7 @@ for dependency in "${dependencies[@]}"; do
     check_dependency $dependency
 done
 
-COMMIT=$(curl -s -H "https://api.github.com/repos/$REPO/commits/$BRANCH")
+COMMIT=$(curl -s "https://api.github.com/repos/$REPO/commits/$BRANCH")
 LAST_COMMIT=$(echo "$COMMIT" | jq -r '.commit.message')
 LAST_COMMIT_DATE=$(echo "$COMMIT" | jq -r '.commit.author.date')
 
