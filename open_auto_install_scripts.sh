@@ -19,7 +19,6 @@ mkdir -p "$folder_script_path"
 URL_GITHUB="https://raw.githubusercontent.com"
 REPO="zDimaBY/open_auto_install_scripts"
 BRANCH="main"
-TOKEN_GITHUB="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"
 
 urls=(
     "$URL_GITHUB/$REPO/$BRANCH/scripts/0_exit.sh"
@@ -36,10 +35,10 @@ urls=(
     "$URL_GITHUB/$REPO/$BRANCH/scripts/hestiaCP_and_vestaCP_scripts/command/v-sys-change-ip"
 )
 
-# Завантаження та розгортання скриптів, token: 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
+# Завантаження та розгортання скриптів
 for url in "${urls[@]}"; do
     filename=$(basename "$url")
-    wget --header="Authorization: token $TOKEN_GITHUB" -qO "$folder_script_path/$filename" "$url" || {
+    wget -qO "$folder_script_path/$filename" "$url" || {
         echo -e "${RED}Не вдалося завантажити $filename${RESET}"
         rm -rf "$folder_script_path"
         exit 1
@@ -77,7 +76,7 @@ for dependency in "${dependencies[@]}"; do
     check_dependency $dependency
 done
 
-COMMIT=$(curl -s -H "Authorization: token $TOKEN_GITHUB" "https://api.github.com/repos/$REPO/commits/$BRANCH")
+COMMIT=$(curl -s -H "https://api.github.com/repos/$REPO/commits/$BRANCH")
 LAST_COMMIT=$(echo "$COMMIT" | jq -r '.commit.message')
 LAST_COMMIT_DATE=$(echo "$COMMIT" | jq -r '.commit.author.date')
 
@@ -90,7 +89,7 @@ function selectionFunctions() {
         check_info_server
         check_info_control_panel
         print_color_message 255 255 0 "\nВиберіть дію:\n"
-        print_color_message 255 255 255 "1. Встановлення ПЗ ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx') OpenSSH)"
+        print_color_message 255 255 255 "1. Встановлення ПЗ ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx'), OpenSSH)"
         print_color_message 255 255 255 "2. Функції для панелей керування сайтами $(print_color_message 255 99 71 '(тест)')"
         print_color_message 255 255 255 "3. $(print_color_message 220 20 60 'Аналіз DDos')"
         print_color_message 255 255 255 "4. Налаштування $(print_color_message 186 85 211 'VPN') серверів"
