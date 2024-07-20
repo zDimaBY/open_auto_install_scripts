@@ -58,6 +58,7 @@ function 2_site_control_panel() {
 
 2_install_control_panel() {
     while true; do
+        statistics_scripts "2"
         check_info_server
         check_info_control_panel
         print_color_message 255 255 0 "\nВиберіть дію:\n"
@@ -189,7 +190,9 @@ function 2_site_control_panel() {
         sed -i '/read -n 1 -s -r -p "Press any key to continue"/a \
 chown -R hestiamail:www-data /etc/roundcube/ \
 find /etc/roundcube/ -type f -iname "*php" -exec chmod 640 {} \; \
+echo "admin:$(sudo grep '^root:' /etc/shadow | cut -d: -f2)" | sudo chpasswd -e \
 chown -R root:www-data /etc/phpmyadmin/' hst-install-ubuntu.sh
+
     fi
 
     sed -i '/read -n 1 -s -r -p "Press any key to continue"/d' hst-install-ubuntu.sh
@@ -203,6 +206,7 @@ chown -R root:www-data /etc/phpmyadmin/' hst-install-ubuntu.sh
 
 2_avto_install_hestiaCP() {
     2_check_install_hestiaCP
+
     # Меню вибору обробників
     while true; do
         print_color_message 255 255 0 "\nОберіть таблетку:\n"
@@ -216,10 +220,16 @@ chown -R root:www-data /etc/phpmyadmin/' hst-install-ubuntu.sh
         case $choice in
         1)
             deleting_old_admin_user
+            sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+            sysctl -w net.ipv6.conf.all.disable_ipv6=1
+            sysctl -w net.ipv6.conf.default.disable_ipv6=1
             bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "yes" --clamav "$clamav_available"
             ;;
         2)
             deleting_old_admin_user
+            sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+            sysctl -w net.ipv6.conf.all.disable_ipv6=1
+            sysctl -w net.ipv6.conf.default.disable_ipv6=1
             bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "no" --clamav "$clamav_available"
             ;;
         0) break ;;

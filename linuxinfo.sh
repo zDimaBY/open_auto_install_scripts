@@ -15,10 +15,10 @@ load_and_source_script() {
 }
 
 # Перевірка наявності wget або curl
-if command -v curl &>/dev/null; then
-    load_and_source_script "curl" "--max-time 4 -s"
-elif command -v wget &>/dev/null; then
+if command -v wget &>/dev/null; then
     load_and_source_script "wget" "--timeout=4 -qO-"
+elif command -v curl &>/dev/null; then
+    load_and_source_script "curl" "--max-time 4 -s"
 else
     echo "Error: Neither 'wget' nor 'curl' found. Please install one of them to continue."
     exit 1
