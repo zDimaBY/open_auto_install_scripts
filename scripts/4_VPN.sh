@@ -1,6 +1,5 @@
 #!/bin/bash -n
-# shellcheck disable=SC2148
-# shellcheck disable=SC2154
+# shellcheck disable=SC2148,SC2154
 function 4_VPN() {
     statistics_scripts "4"
     while true; do

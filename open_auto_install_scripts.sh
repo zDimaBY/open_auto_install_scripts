@@ -38,7 +38,7 @@ urls=(
 # Завантаження та розгортання скриптів
 for url in "${urls[@]}"; do
     filename=$(basename "$url")
-    wget -qO "$folder_script_path/$filename" "$url" || {
+    wget -qO --timeout=4 "$folder_script_path/$filename" "$url" || {
         echo -e "${RED}Не вдалося завантажити $filename${RESET}"
         rm -rf "$folder_script_path"
         exit 1

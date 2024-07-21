@@ -1,6 +1,5 @@
 #!/bin/bash -n
-# shellcheck disable=SC2148
-# shellcheck disable=SC2154
+# shellcheck disable=SC2148,SC2154
 function 1_list_install_programs() {
     statistics_scripts "1"
     while true; do

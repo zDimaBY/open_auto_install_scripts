@@ -1,11 +1,22 @@
 #!/bin/bash -n
-# shellcheck disable=SC2148
-# shellcheck disable=SC2154
+# shellcheck disable=SC2148,SC2154
+
+function detect_control_panel() {
+    local control_panels=("/usr/local/vesta" "/usr/local/hestia" "/usr/local/mgr5" "/usr/local/cpanel" "/usr/local/fastpanel2" "/usr/local/brainycp")
+    for panel in "${control_panels[@]}"; do
+        if [[ -e $panel ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 function 2_site_control_panel() {
-    if [ ! -e "/usr/local/vesta" ] && [ ! -e "/usr/local/hestia" ] && [ ! -e "/usr/local/mgr5" ] && [ ! -e "/usr/local/cpanel" ] && [ ! -e "/usr/local/fastpanel2" ] && [ ! -e "/usr/local/brainycp" ]; then
+    detect_control_panel || {
         echo -e "${RED}Не вдалося визначити панель керування сайтами, запускаю скрипт для встановлення.${RESET}"
         2_install_control_panel
-    fi
+        return
+    }
 
     #Перевіряємо яка панель керування встановлена
     if [ -e "/usr/local/vesta" ]; then
@@ -130,16 +141,12 @@ function 2_site_control_panel() {
     # URL до скрипту встановлення для вибраної версії
     INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/hestiacp/hestiacp/${SELECTED_VERSION_HESTIA}/install/hst-install-ubuntu.sh"
 
-    # Завантаження скрипту встановлення
-    wget --timeout=4 -qO hst-install-ubuntu.sh "$INSTALL_SCRIPT_URL"
-
-    # Перевірка чи скрипт було успішно завантажено
-    if wget --timeout=4 -qO hst-install-ubuntu.sh "$INSTALL_SCRIPT_URL"; then
-        echo "Скрипт для версії $SELECTED_VERSION_HESTIA завантажено як hst-install-ubuntu.sh"
-    else
+    wget --timeout=4 -qO hst-install-ubuntu.sh "$INSTALL_SCRIPT_URL" || {
         echo "Не вдалося завантажити скрипт для версії $SELECTED_VERSION_HESTIA."
         exit 1
-    fi
+    }
+
+    echo "Скрипт для версії $SELECTED_VERSION_HESTIA завантажено як hst-install-ubuntu.sh"
 
     while true; do
         check_info_server
@@ -150,7 +157,7 @@ function 2_site_control_panel() {
         print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
         print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "Виберіть варіант: " choice
 
         case $choice in
         1) 2_avto_install_hestiaCP ;;
@@ -163,8 +170,8 @@ function 2_site_control_panel() {
 }
 
 2_check_install_hestiaCP() {
-    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     # Перевірка та встановлення домену
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     if validate_domain "$server_hostname"; then
         print_color_message 0 200 0 "Домен hostname валідний. Буде застосована приставка: $(print_color_message 255 255 0 "hestia.$server_hostname")"
         cp_install_domen="hestia.$server_hostname"
@@ -172,8 +179,10 @@ function 2_site_control_panel() {
         print_color_message 200 0 0 "Домен hostname не валідний, буде використано: $(print_color_message 255 255 0 "hestia.example.com")"
         cp_install_domen="hestia.example.com"
     fi
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
 
     # Перевірка вільної пам'яті
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     total_free_swap_end_ram
     if ((free_swap_end_ram_mb < 2048)); then
         echo -e "Недостатньо вільної пам'яті для $(print_color_message 255 255 0 "clamav"). Вільно: $(print_color_message 255 255 0 "${free_swap_end_ram_gb} ГБ (${free_swap_end_ram_mb} МБ)"), а потрібно 2048мб. В такому разі він не буде встановлений."
@@ -183,25 +192,33 @@ function 2_site_control_panel() {
         clamav_available="yes"
     fi
 
-    # Оновлення скрипта встановлення HestiaCP
-    sed -i '/read -n 1 -s -r -p "Press any key to continue"/a /usr/local/hestia/bin/v-change-user-package admin default' hst-install-ubuntu.sh
-
-    if [[ $SELECTED_VERSION_HESTIA == "1.8.11" ]]; then
-        sed -i '/read -n 1 -s -r -p "Press any key to continue"/a \
-chown -R hestiamail:www-data /etc/roundcube/ \
-find /etc/roundcube/ -type f -iname "*php" -exec chmod 640 {} \; \
-echo "admin:$(sudo grep '^root:' /etc/shadow | cut -d: -f2)" | sudo chpasswd -e \
-chown -R root:www-data /etc/phpmyadmin/' hst-install-ubuntu.sh
-
-    fi
-
-    sed -i '/read -n 1 -s -r -p "Press any key to continue"/d' hst-install-ubuntu.sh
-
     # Повідомлення про видалення користувача admin
     if [ -n "$(grep ^admin: /etc/passwd)" ]; then
         print_color_message 255 0 0 "Користувача $(print_color_message 255 255 0 "\"admin\"") буде видалено, а всі поточні його файли будуть перенесені у папку $(print_color_message 255 255 0 "$hst_backups")"
     fi
+    # Оновлення скрипта встановлення HestiaCP
     echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+    print_color_message 0 255 255 "До виконання hst-install-ubuntu.sh:"
+    echo -e "${YELLOW}Видаляю останій рядок що містить "reboot" та "Press any key to continue" з файлу.${RESET}"
+    sed -i '/read -n 1 -s -r -p "Press any key to continue"/d' hst-install-ubuntu.sh
+    last_line=$(grep -n 'reboot' hst-install-ubuntu.sh | tail -n 1 | cut -d: -f1)
+    sed -i "${last_line}d" hst-install-ubuntu.sh
+
+    print_color_message 0 255 255 "Після виконання hst-install-ubuntu.sh:"
+    echo -e "${YELLOW}Виконую команду для зміни пакету з system на default, для користувача admin${RESET}"
+    echo -e "${YELLOW}Змінюю пароль admin на root, налаштовую права доступу для Roundcube та phpMyAdmin.${RESET}"
+    echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+}
+
+2_end_avto_install_hestiaCP() {
+    /usr/local/hestia/bin/v-change-user-package admin default
+    if [[ $SELECTED_VERSION_HESTIA == "1.8.11" ]]; then
+        echo "admin:$(sudo grep '^root:' /etc/shadow | cut -d: -f2)" | sudo chpasswd -e
+        find /etc/roundcube/ -type f -iname "*php" -exec chmod 640 {} \;
+        chown -R hestiamail:www-data /etc/roundcube/
+        chown -R root:www-data /etc/phpmyadmin/
+    fi
+    reboot
 }
 
 2_avto_install_hestiaCP() {
@@ -220,17 +237,13 @@ chown -R root:www-data /etc/phpmyadmin/' hst-install-ubuntu.sh
         case $choice in
         1)
             deleting_old_admin_user
-            sysctl -w net.ipv6.conf.lo.disable_ipv6=1
-            sysctl -w net.ipv6.conf.all.disable_ipv6=1
-            sysctl -w net.ipv6.conf.default.disable_ipv6=1
             bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "yes" --clamav "$clamav_available"
+            2_end_avto_install_hestiaCP
             ;;
         2)
             deleting_old_admin_user
-            sysctl -w net.ipv6.conf.lo.disable_ipv6=1
-            sysctl -w net.ipv6.conf.all.disable_ipv6=1
-            sysctl -w net.ipv6.conf.default.disable_ipv6=1
             bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "no" --clamav "$clamav_available"
+            2_end_avto_install_hestiaCP
             ;;
         0) break ;;
         00) exit 0 ;;

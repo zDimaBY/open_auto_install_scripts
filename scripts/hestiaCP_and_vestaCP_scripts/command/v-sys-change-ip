@@ -1,6 +1,5 @@
 #!/bin/bash -n
-# shellcheck disable=SC2148
-# shellcheck disable=SC2154
+# shellcheck disable=SC2148,SC2154
 v_sys_change_ip() {
     read -p "Вкажіть стару адресу сервера:" OLD_IP
     read -p "Вкажіть нову адресу сервера:" NEW_IP

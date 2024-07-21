@@ -1,6 +1,5 @@
 #!/bin/bash -n
-# shellcheck disable=SC2148
-# shellcheck disable=SC2154
+# shellcheck disable=SC2148,SC2154
 function 8_server_testing() {
     statistics_scripts "8"
     while true; do

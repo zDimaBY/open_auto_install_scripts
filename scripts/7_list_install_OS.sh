@@ -1,6 +1,5 @@
 #!/bin/bash -n
-# shellcheck disable=SC2148
-# shellcheck disable=SC2154
+# shellcheck disable=SC2148,SC2154
 function 7_Installation_operating_systems() {
     case $operating_system in
     arch | sysrescue) ;;
