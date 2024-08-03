@@ -239,7 +239,7 @@ check_info_server() {
 }
 
 check_info_control_panel() { # Функція перевірки панелі керування
-    for panel_dir in "/usr/local/hestia" "/usr/local/vesta" "/usr/local/mgr5" "/usr/local/cpanel" "/usr/local/fastpanel2" "/usr/local/brainycp"; do
+    for panel_dir in "/usr/local/hestia" "/usr/local/vesta" "/usr/local/mgr5" "/usr/local/cpanel" "/usr/local/fastpanel2" "/usr/local/brainycp" "/usr/local/CyberCP/" "/usr/local/CyberPanel/"; do
         if [ -d "$panel_dir" ]; then
             case $panel_dir in
             "/usr/local/hestia")
@@ -301,6 +301,12 @@ check_info_control_panel() { # Функція перевірки панелі к
                 ;;
             "/www/server/panel/BTPanel/")
                 print_color_message 0 200 0 "aaPanal(BT-Panel) is installed."
+                ;;
+            "/usr/local/CyberCP/")
+                print_color_message 0 200 0 "CyberCP is installed."
+                ;;
+            "/usr/local/CyberPanel/")
+                print_color_message 0 200 0 "CyberPanel is installed."
                 ;;
             esac
 
