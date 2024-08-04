@@ -81,7 +81,7 @@ check_ptr() {
         answer_section=$(echo "$PTR_DETAILS" | awk '/^;; ANSWER SECTION:$/,/^$/')
         result_answer_section=$(echo "$answer_section" | grep -v ';; ANSWER SECTION:')
         echo -e "PTR запис: \n${GREEN}$result_answer_section${RESET}"
-        echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig -x $SERVER_IP | awk '/^;; ANSWER SECTION:$/,/^$/{if(!/^;; ANSWER SECTION:$/)print}'"
+        echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig -x $SERVER_IP | awk '/^;; ANSWER SECTION:$/,/^$/{if(!/^;; ANSWER SECTION:$/)print}'"
     fi
     echo -e "${RED}END PTR${BLUE}---------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
@@ -95,7 +95,7 @@ check_rdns() {
     else
         echo -e "rDNS запис відповідає: ${GREEN}$rDNS${RESET}"
     fi
-    echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig -x $SERVER_IP +short"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig -x $SERVER_IP +short"
     echo -e "${RED}END rDNS${BLUE}--------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
@@ -108,23 +108,40 @@ check_mx() {
     else
         echo -e "MX записи для $DOMAIN: \n${GREEN}$MX${RESET}"
     fi
-    echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig MX $DOMAIN +short"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig MX $DOMAIN +short"
     echo -e "${RED}END MX${BLUE}----------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
 # Перевірка DKIM записів
 check_dkim() {
     echo -e "${RED}DKIM${BLUE}------------------------------------------------------------------------------------------------------------------------------------${RESET}"
-    DKIM=$(dig TXT mail._domainkey.$DOMAIN +short)
-    if [[ -z "$DKIM" ]]; then
-        echo -e "${RED}Стандартні DKIM записи не знайдено для $DOMAIN${RESET}"
-        echo "Якщо налаштований інший селектор, то можите скористатися командою: dig TXT ваш_селектор._domainkey.$DOMAIN +short"
-    else
-        echo -e "DKIM запис для $DOMAIN: \n${GREEN}$DKIM${RESET}"
-        echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT mail._domainkey.$DOMAIN +short"
+    SELECTORS=(
+        "mail" "default" "dkim" "selector1" "selector2" "s1" "s2"
+        "google" "fastmail" "yahoo" "zoho" "hotmail" 
+        "mandrill" "mailchimp" "sendgrid" "postmark" "amazon"
+        "sparkpost" "mailgun" "ms" "smtp" "exchange" 
+        "protection" "office365" "sendinblue" "mailjet"
+    )
+    
+    DKIM_FOUND=false
+    
+    for SELECTOR in "${SELECTORS[@]}"; do
+        DKIM=$(dig TXT ${SELECTOR}._domainkey.$DOMAIN +short)
+        if [[ -n "$DKIM" ]]; then
+            echo -e "DKIM запис для селектора ${SELECTOR}: \n${GREEN}$DKIM${RESET}"
+            echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT ${SELECTOR}._domainkey.$DOMAIN +short"
+            DKIM_FOUND=true
+        fi
+    done
+    
+    if [[ "$DKIM_FOUND" == false ]]; then
+        echo -e "${RED}DKIM записів не знайдено для домену $DOMAIN за всіма перевіреними селекторами.${RESET}"
+        echo "Якщо налаштований інший селектор, ви можете скористатися командою: dig TXT ваш_селектор._domainkey.$DOMAIN +short"
     fi
+    
     echo -e "${RED}END DKIM${BLUE}--------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
+
 
 # Перевірка DMARC записів
 check_dmarc() {
@@ -135,7 +152,7 @@ check_dmarc() {
     else
         echo -e "DMARC запис для $DOMAIN: \n${GREEN}$DMARC${RESET}"
     fi
-    echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT _dmarc.$DOMAIN +short"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT _dmarc.$DOMAIN +short"
     echo -e "${RED}END DMARC${BLUE}-------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
@@ -148,7 +165,7 @@ check_spf() {
     else
         echo -e "SPF запис для $DOMAIN: ${GREEN}$SPF${RESET}"
     fi
-    echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT $DOMAIN +short | grep \"v=spf1\""
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT $DOMAIN +short | grep \"v=spf1\""
     echo -e "${RED}END SPF${BLUE}---------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
@@ -161,6 +178,17 @@ check_helo() {
     else
         echo -e "HELO/EHLO запис відповідає: ${GREEN}$HELO${RESET}"
     fi
+    
+    echo -e "${YELLOW}Перевірка HELO/EHLO через telnet на порт 25...${RESET}"
+    
+    TELNET_RESPONSE=$( (echo open $DOMAIN 25; sleep 2; echo EHLO $DOMAIN; sleep 2; echo quit) | telnet )
+    if [[ "$TELNET_RESPONSE" == *"220"* && "$TELNET_RESPONSE" == *"250"* ]]; then
+        echo -e "Telnet з'єднання встановлено успішно. Відповідь сервера: \n${GREEN}$TELNET_RESPONSE${RESET}"
+    else
+        echo -e "${RED}Не вдалося встановити telnet з'єднання на порт 25 або отримати правильну відповідь.${RESET}"
+        echo -e "Отримана відповідь: \n${RED}$TELNET_RESPONSE${RESET}"
+    fi
+    
     echo -e "${RED}END HELO/EHLO${BLUE}---------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
@@ -173,7 +201,7 @@ check_dns() {
     else
         echo -e "DNS запис для $DOMAIN: ${GREEN}$DNS${RESET}"
     fi
-    echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig A $DOMAIN +short"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig A $DOMAIN +short"
     echo -e "${RED}END DNS${BLUE}---------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
@@ -198,7 +226,7 @@ check_ssl() {
     else
         echo -e "SSL сертифікат для $DOMAIN: \n${GREEN}$SSL${RESET}"
     fi
-    echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} echo | openssl s_client -connect $DOMAIN:25 -starttls smtp 2>/dev/null | openssl x509 -noout -dates"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} echo | openssl s_client -connect $DOMAIN:25 -starttls smtp 2>/dev/null | openssl x509 -noout -dates"
     echo -e "${RED}END SSL${BLUE}---------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
@@ -246,23 +274,23 @@ check_hostname() {
     else
         echo -e "Hostname відповідає домену: ${GREEN}$HOSTNAME${RESET}"
     fi
-    echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} hostname"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} hostname"
     echo -e "${RED}END hostname${BLUE}----------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
 check_hosts() {
-    echo -e "${RED}ETC/HOSTS${BLUE}-------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+    echo -e "${RED}HOSTS${BLUE}-------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     if grep -q "$SERVER_IP" /etc/hosts; then
         echo -e "${GREEN}IP-адреса $SERVER_IP присутня в /etc/hosts.${RESET}"
     else
         echo -e "${RED}IP-адреса $SERVER_IP не знайдена в /etc/hosts.${RESET}"
     fi
-    echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} cat /etc/hosts"
-    echo -e "${RED}END ETC/HOSTS${BLUE}-----------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} cat /etc/hosts"
+    echo -e "${RED}END HOSTS${BLUE}-----------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
 check_mailname() {
-    echo -e "${RED}ETC/MAILNAME${BLUE}-------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+    echo -e "${RED}MAILNAME${BLUE}-------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     if [[ -f /etc/mailname ]]; then
         MAILNAME=$(cat /etc/mailname)
         if [[ "$MAILNAME" == "$DOMAIN" ]]; then
@@ -270,7 +298,7 @@ check_mailname() {
         else
             echo -e "${RED}Домен у /etc/mailname не відповідає: $MAILNAME != $DOMAIN.${RESET}"
         fi
-        echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} cat /etc/mailname"
+        echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} cat /etc/mailname"
     else
         echo -e "${RED}Файл /etc/mailname не знайдено.${RESET}"
     fi
@@ -278,33 +306,86 @@ check_mailname() {
 }
 
 check_exim4() {
-    echo -e "${RED}ETC/EXIM4${BLUE}-------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+    echo -e "${RED}EXIM4${BLUE}-------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     if [[ -d /etc/exim4 ]]; then
         if grep -q "$DOMAIN" /etc/exim4/*; then
             echo -e "${GREEN}Домен $DOMAIN присутній у конфігураціях Exim4.${RESET}"
         else
             echo -e "${RED}Домен $DOMAIN не знайдено у конфігураціях Exim4.${RESET}"
         fi
-        echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} grep -r "$DOMAIN" /etc/exim4"
+        echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} grep -rn "$DOMAIN" /etc/exim4"
     else
         echo -e "${RED}Директорія /etc/exim4 не знайдена.${RESET}"
     fi
-    echo -e "${RED}END ETC/EXIM4${BLUE}-----------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${RED}END EXIM4${BLUE}-----------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
 check_dovecot() {
-    echo -e "${RED}ETC/DOVECOT${BLUE}-------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+    echo -e "${RED}DOVECOT${BLUE}-------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     if [[ -d /etc/dovecot ]]; then
         if grep -q "$DOMAIN" /etc/dovecot/*; then
             echo -e "${GREEN}Домен $DOMAIN присутній у конфігураціях Dovecot.${RESET}"
         else
             echo -e "${RED}Домен $DOMAIN не знайдено у конфігураціях Dovecot.${RESET}"
         fi
-        echo -e "\n${YELLOW}Для перевірки ви можете скористатися командою:${RESET} grep -r "$DOMAIN" /etc/dovecot"
+        echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} grep -rn "$DOMAIN" /etc/dovecot"
     else
         echo -e "${RED}Директорія /etc/dovecot не знайдена.${RESET}"
     fi
-    echo -e "${RED}END ETC/DOVECOT${BLUE}-----------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${RED}END DOVECOT${BLUE}-----------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+}
+
+check_mail_logs_exim() {
+    echo -e "${RED}MAIL LOGS (EXIM)${BLUE}---------------------------------------------------------------------------------------------------------------------------${RESET}"
+    if [[ -f /var/log/exim4/mainlog ]]; then
+        tail -n 5 /var/log/exim4/mainlog
+    else
+        echo -e "${RED}Журнал пошти Exim не знайдено.${RESET}"
+    fi
+    echo -e "${RED}END MAIL LOGS (EXIM)${BLUE}-----------------------------------------------------------------------------------------------------------------------${RESET}\n"
+}
+
+check_mail_logs_postfix() {
+    echo -e "${RED}MAIL LOGS (POSTFIX)${BLUE}-------------------------------------------------------------------------------------------------------------------------${RESET}"
+    if [[ -f /var/log/mail.log ]]; then
+        tail -n 5 /var/log/mail.log
+    else
+        echo -e "${RED}Журнал пошти Postfix не знайдено.${RESET}"
+    fi
+    echo -e "${RED}END MAIL LOGS (POSTFIX)${BLUE}-----------------------------------------------------------------------------------------------------------------------${RESET}\n"
+}
+
+check_mail_queue_exim() {
+    echo -e "${RED}MAIL QUEUE (EXIM)${BLUE}--------------------------------------------------------------------------------------------------------------------------${RESET}"
+    exim -bp
+    echo -e "${RED}END MAIL QUEUE (EXIM)${BLUE}------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+}
+
+check_mail_queue_postfix() {
+    echo -e "${RED}MAIL QUEUE (POSTFIX)${BLUE}------------------------------------------------------------------------------------------------------------------------${RESET}"
+    postqueue -p
+    echo -e "${RED}END MAIL QUEUE (POSTFIX)${BLUE}----------------------------------------------------------------------------------------------------------------------${RESET}\n"
+}
+
+check_postfix_config() {
+    echo -e "${RED}POSTFIX CONFIG${BLUE}---------------------------------------------------------------------------------------------------------------------------${RESET}"
+    if [[ -f /etc/postfix/main.cf ]]; then
+        grep "inet_interfaces = all" /etc/postfix/main.cf
+        grep "mydestination = " /etc/postfix/main.cf
+    else
+        echo -e "${RED}Конфігураційний файл Postfix не знайдено.${RESET}"
+    fi
+    echo -e "${RED}END POSTFIX CONFIG${BLUE}-----------------------------------------------------------------------------------------------------------------------${RESET}\n"
+}
+
+check_amavis() {
+    echo -e "${RED}AMAVIS${BLUE}-------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+    if [[ -f /etc/amavis/conf.d/50-user ]]; then
+        grep "use strict;" /etc/amavis/conf.d/50-user
+    else
+        echo -e "${RED}Конфігураційний файл Amavis не знайдено.${RESET}"
+    fi
+    echo -e "${RED}END AMAVIS${BLUE}---------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
 8_server_testing_mail() {
@@ -360,4 +441,10 @@ check_dovecot() {
     check_mailname
     check_exim4
     check_dovecot
+    check_mail_logs_exim
+    check_mail_logs_postfix
+    #check_mail_queue_exim
+    #check_mail_queue_postfix
+    #check_postfix_config
+    check_amavis
 }
