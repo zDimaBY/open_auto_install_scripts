@@ -112,7 +112,7 @@ check_mx() {
 
 # Перевірка PTR запису
 check_ptr() {
-    echo -e "${RED}PTR${BLUE} - PTR record: Indicates the domain name corresponding to the IP address. -----------------------------------------------------------${RESET}"
+    echo -e "${RED}PTR${BLUE} - Record: Indicates the domain name corresponding to the IP address. -----------------------------------------------------------${RESET}"
     PTR_DETAILS=$(dig -x $SERVER_IP)
     if [[ $? -ne 0 ]]; then
         echo -e "${RED}Помилка при перевірці PTR запису для $SERVER_IP${RESET}"
@@ -127,7 +127,7 @@ check_ptr() {
 
 # Перевірка rDNS запису
 check_rdns() {
-    echo -e "${RED}rDNS${BLUE} - a special domain zone, which is designed to determine the name of a host by its IPv4 address using a PTR record. ---------------${RESET}"
+    echo -e "${RED}rDNS${BLUE} - A special domain zone, which is designed to determine the name of a host by its IPv4 address using a PTR record. ---------------${RESET}"
     rDNS=$(dig -x $SERVER_IP +short)
     if [[ "$rDNS" != "$DOMAIN." ]]; then
         echo -e "${RED}rDNS запис не відповідає: $rDNS != $DOMAIN.${RESET}"
@@ -194,6 +194,16 @@ check_dmarc() {
     echo -e "${RED}END DMARC${BLUE}-------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
+# Перевірка доступності SMTP-порту
+check_smtp_port() {
+    nc -zv $DOMAIN 25
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}SMTP порт 25 не доступний на $DOMAIN${RESET}"
+    else
+        echo -e "SMTP порт 25 доступний на ${GREEN}$DOMAIN${RESET}"
+    fi
+}
+
 # Перевірка HELO/EHLO
 check_helo() {
     echo -e "${RED}HELO/EHLO${BLUE} - The HELO/EHLO command is used by the client (the sending computer) to identify itself to the server.------------------------${RESET}"
@@ -203,36 +213,18 @@ check_helo() {
     else
         echo -e "HELO/EHLO запис відповідає: ${GREEN}$HELO${RESET}"
     fi
-
-    echo -e "${YELLOW}Перевірка HELO/EHLO через telnet на порт 25...${RESET}"
-
-    TELNET_RESPONSE=$( (
-        echo open $DOMAIN 25
-        sleep 2
-        echo EHLO $DOMAIN
-        sleep 2
-        echo quit
-    ) | telnet 2>/dev/null)
+    
+    check_smtp_port
+    
+    TELNET_RESPONSE=$( (echo open $DOMAIN 25; sleep 2; echo EHLO $DOMAIN; sleep 2; echo quit) | telnet 2>/dev/null)
     if [[ "$TELNET_RESPONSE" == *"220"* && "$TELNET_RESPONSE" == *"250"* ]]; then
-        echo -e "Telnet з'єднання встановлено успішно. Відповідь сервера: \n${GREEN}$TELNET_RESPONSE${RESET}"
+        echo -e "${GREEN}Telnet з'єднання встановлено успішно. Відповідь сервера:${RESET}\n$TELNET_RESPONSE"
     else
         echo -e "${RED}Не вдалося встановити telnet з'єднання на порт 25 або отримати правильну відповідь.${RESET}"
         echo -e "Отримана відповідь: \n${RED}$TELNET_RESPONSE${RESET}"
     fi
-
+    
     echo -e "${RED}END HELO/EHLO${BLUE}---------------------------------------------------------------------------------------------------------------------------${RESET}\n"
-}
-
-# Перевірка доступності SMTP-порту
-check_smtp_port() {
-    echo -e "${RED}SMTP PORT${BLUE} - Is a communication protocol for sending email ------------------------------------------------------------------------------${RESET}"
-    nc -zv $DOMAIN 25
-    if [[ $? -ne 0 ]]; then
-        echo -e "${RED}SMTP порт 25 не доступний на $DOMAIN${RESET}"
-    else
-        echo -e "SMTP порт 25 доступний на ${GREEN}$DOMAIN${RESET}"
-    fi
-    echo -e "${RED}END SMTP PORT${BLUE}---------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
 # Перевірка TLS/SSL сертифіката
@@ -319,11 +311,11 @@ check_mailname() {
     else
         echo -e "${RED}Файл /etc/mailname не знайдено.${RESET}"
     fi
-    echo -e "${RED}END MAILNAME${BLUE}---------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${RED}END MAILNAME${BLUE}----------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
 check_exim4() {
-    echo -e "${RED}EXIM4${BLUE}----------------------------------------------------------------------------------------------------------------------------------${RESET}"
+    echo -e "${RED}EXIM4${BLUE}-----------------------------------------------------------------------------------------------------------------------------------${RESET}"
     if [[ -d /etc/exim4 ]]; then
         if grep -q "$DOMAIN" /etc/exim4/*; then
             echo -e "${GREEN}Домен $DOMAIN присутній у конфігураціях Exim4.${RESET}"
@@ -450,7 +442,6 @@ check_amavis() {
     check_dkim
     check_dmarc
     check_helo
-    check_smtp_port
     check_ssl
     #check_send_mail
     check_blacklists
