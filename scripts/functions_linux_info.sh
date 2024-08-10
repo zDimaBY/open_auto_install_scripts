@@ -238,8 +238,10 @@ check_info_server() {
     echo -e "Model: $(print_color_message 0 255 255 "$cpu_model") Cores: $(print_color_message 0 255 0 "$cpu_cores")\n"
 }
 
+all_control_panels=("/usr/local/hestia" "/usr/local/vesta" "/usr/local/mgr5" "/usr/local/cpanel" "/usr/local/fastpanel2" "/usr/local/brainycp" "/usr/local/CyberCP" "/usr/local/CyberPanel")
+
 check_info_control_panel() { # Функція перевірки панелі керування
-    for panel_dir in "/usr/local/hestia" "/usr/local/vesta" "/usr/local/mgr5" "/usr/local/cpanel" "/usr/local/fastpanel2" "/usr/local/brainycp" "/usr/local/CyberCP/" "/usr/local/CyberPanel/"; do
+    for panel_dir in "${all_control_panels[@]}"; do
         if [ -d "$panel_dir" ]; then
             case $panel_dir in
             "/usr/local/hestia")

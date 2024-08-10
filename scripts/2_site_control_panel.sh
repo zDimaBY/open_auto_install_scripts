@@ -2,8 +2,8 @@
 # shellcheck disable=SC2148,SC2154
 
 function detect_control_panel() {
-    local control_panels=("/usr/local/vesta" "/usr/local/hestia" "/usr/local/mgr5" "/usr/local/cpanel" "/usr/local/fastpanel2" "/usr/local/brainycp")
-    for panel in "${control_panels[@]}"; do
+
+    for panel in "${all_control_panels[@]}"; do
         if [[ -e $panel ]]; then
             return 0
         fi
@@ -217,6 +217,7 @@ function 2_site_control_panel() {
         find /etc/roundcube/ -type f -iname "*php" -exec chmod 640 {} \;
         chown -R hestiamail:www-data /etc/roundcube/
         chown -R root:www-data /etc/phpmyadmin/
+        chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
     fi
     reboot
 }

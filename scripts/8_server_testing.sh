@@ -80,8 +80,7 @@ check_hostname() {
     else
         echo -e "Hostname відповідає домену: ${GREEN}$HOSTNAME${RESET}"
     fi
-    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} hostname"
-    echo -e "${RED}END hostname${BLUE}----------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} hostname\n"
 }
 
 # Перевірка DNS записів
@@ -93,8 +92,7 @@ check_dns() {
     else
         echo -e "DNS запис для $DOMAIN: ${GREEN}$DNS${RESET}"
     fi
-    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig A $DOMAIN +short"
-    echo -e "${RED}END DNS${BLUE}---------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig A $DOMAIN +short\n"
 }
 
 # Перевірка MX записів
@@ -106,13 +104,12 @@ check_mx() {
     else
         echo -e "MX записи для $DOMAIN: \n${GREEN}$MX${RESET}"
     fi
-    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig MX $DOMAIN +short"
-    echo -e "${RED}END MX${BLUE}----------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig MX $DOMAIN +short\n"
 }
 
 # Перевірка PTR запису
 check_ptr() {
-    echo -e "${RED}PTR${BLUE} - Record: Indicates the domain name corresponding to the IP address. -----------------------------------------------------------${RESET}"
+    echo -e "${RED}PTR${BLUE} - Record: Indicates the domain name corresponding to the IP address. ---------------------------------------------------------------${RESET}"
     PTR_DETAILS=$(dig -x $SERVER_IP)
     if [[ $? -ne 0 ]]; then
         echo -e "${RED}Помилка при перевірці PTR запису для $SERVER_IP${RESET}"
@@ -120,22 +117,20 @@ check_ptr() {
         answer_section=$(echo "$PTR_DETAILS" | awk '/^;; ANSWER SECTION:$/,/^$/')
         result_answer_section=$(echo "$answer_section" | grep -v ';; ANSWER SECTION:')
         echo -e "PTR запис: \n${GREEN}$result_answer_section${RESET}"
-        echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig -x $SERVER_IP | awk '/^;; ANSWER SECTION:$/,/^$/{if(!/^;; ANSWER SECTION:$/)print}'"
+        echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig -x $SERVER_IP | awk '/^;; ANSWER SECTION:$/,/^$/{if(!/^;; ANSWER SECTION:$/)print}'\n"
     fi
-    echo -e "${RED}END PTR${BLUE}---------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
 # Перевірка rDNS запису
 check_rdns() {
-    echo -e "${RED}rDNS${BLUE} - A special domain zone, which is designed to determine the name of a host by its IPv4 address using a PTR record. ---------------${RESET}"
+    echo -e "${RED}rDNS${BLUE} - A special domain zone, which is designed to determine the name of a host by its IPv4 address using a PTR record. ----------------${RESET}"
     rDNS=$(dig -x $SERVER_IP +short)
     if [[ "$rDNS" != "$DOMAIN." ]]; then
         echo -e "${RED}rDNS запис не відповідає: $rDNS != $DOMAIN.${RESET}"
     else
         echo -e "rDNS запис відповідає: ${GREEN}$rDNS${RESET}"
     fi
-    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig -x $SERVER_IP +short"
-    echo -e "${RED}END rDNS${BLUE}--------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig -x $SERVER_IP +short\n"
 }
 
 # Перевірка SPF записів
@@ -147,8 +142,7 @@ check_spf() {
     else
         echo -e "SPF запис для $DOMAIN: ${GREEN}$SPF${RESET}"
     fi
-    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT $DOMAIN +short | grep \"v=spf1\""
-    echo -e "${RED}END SPF${BLUE}---------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT $DOMAIN +short | grep \"v=spf1\"\n"
 }
 
 # Перевірка DKIM записів
@@ -168,17 +162,15 @@ check_dkim() {
         DKIM=$(dig TXT ${SELECTOR}._domainkey.$DOMAIN +short)
         if [[ -n "$DKIM" ]]; then
             echo -e "DKIM запис для селектора ${SELECTOR}: \n${GREEN}$DKIM${RESET}"
-            echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT ${SELECTOR}._domainkey.$DOMAIN +short"
+            echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT ${SELECTOR}._domainkey.$DOMAIN +short\n"
             DKIM_FOUND=true
         fi
     done
 
     if [[ "$DKIM_FOUND" == false ]]; then
         echo -e "${RED}DKIM записів не знайдено для домену $DOMAIN за всіма перевіреними селекторами.${RESET}"
-        echo "Якщо налаштований інший селектор, ви можете скористатися командою: dig TXT ваш_селектор._domainkey.$DOMAIN +short"
+        echo "Якщо налаштований інший селектор, ви можете скористатися командою: dig TXT ваш_селектор._domainkey.$DOMAIN +short\n"
     fi
-
-    echo -e "${RED}END DKIM${BLUE}--------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
 # Перевірка DMARC записів
@@ -190,8 +182,7 @@ check_dmarc() {
     else
         echo -e "DMARC запис для $DOMAIN: \n${GREEN}$DMARC${RESET}"
     fi
-    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT _dmarc.$DOMAIN +short"
-    echo -e "${RED}END DMARC${BLUE}-------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig TXT _dmarc.$DOMAIN +short\n"
 }
 
 # Перевірка доступності SMTP-порту
@@ -213,18 +204,24 @@ check_helo() {
     else
         echo -e "HELO/EHLO запис відповідає: ${GREEN}$HELO${RESET}"
     fi
-    
+
     check_smtp_port
-    
-    TELNET_RESPONSE=$( (echo open $DOMAIN 25; sleep 2; echo EHLO $DOMAIN; sleep 2; echo quit) | telnet 2>/dev/null)
+
+    TELNET_RESPONSE=$( (
+        echo open $DOMAIN 25
+        sleep 2
+        echo EHLO $DOMAIN
+        sleep 2
+        echo quit
+    ) | telnet 2>/dev/null)
     if [[ "$TELNET_RESPONSE" == *"220"* && "$TELNET_RESPONSE" == *"250"* ]]; then
         echo -e "${GREEN}Telnet з'єднання встановлено успішно. Відповідь сервера:${RESET}\n$TELNET_RESPONSE"
     else
         echo -e "${RED}Не вдалося встановити telnet з'єднання на порт 25 або отримати правильну відповідь.${RESET}"
         echo -e "Отримана відповідь: \n${RED}$TELNET_RESPONSE${RESET}"
     fi
-    
-    echo -e "${RED}END HELO/EHLO${BLUE}---------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+
+    echo "\n"
 }
 
 # Перевірка TLS/SSL сертифіката
@@ -236,8 +233,7 @@ check_ssl() {
     else
         echo -e "SSL сертифікат для $DOMAIN: \n${GREEN}$SSL на 25-му порті${RESET}"
     fi
-    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} echo | openssl s_client -connect $DOMAIN:25 -starttls smtp 2>/dev/null | openssl x509 -noout -dates"
-    echo -e "${RED}END SSL${BLUE}---------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} echo | openssl s_client -connect $DOMAIN:25 -starttls smtp 2>/dev/null | openssl x509 -noout -dates\n"
 }
 
 # Перевірка можливості надсилання пошти
@@ -245,11 +241,10 @@ check_send_mail() {
     echo -e "${RED}SEND MAIL${BLUE}-------------------------------------------------------------------------------------------------------------------------------${RESET}"
     echo "Тестове повідомлення" | mail -s "Тест" test@$DOMAIN
     if [[ $? -ne 0 ]]; then
-        echo -e "${RED}Помилка при спробі надсилання пошти до test@$DOMAIN${RESET}"
+        echo -e "${RED}Помилка при спробі надсилання пошти до test@$DOMAIN${RESET}\n"
     else
-        echo -e "Пошта успішно надіслана до ${GREEN}test@$DOMAIN${RESET}"
+        echo -e "Пошта успішно надіслана до ${GREEN}test@$DOMAIN${RESET}\n"
     fi
-    echo -e "${RED}END SEND MAIL${BLUE}--------------------------------------------------------------------------------------------------------------------------${RESET}\n"
 }
 
 # Перевірка чорних списків
@@ -274,10 +269,9 @@ check_blacklists() {
             echo -e "IP $SERVER_IP не знайдено в чорному списку ${GREEN}$BL${RESET}"
         else
             echo -e "${RED}IP $SERVER_IP знайдено в чорному списку $BL, запит повернув:${RESET} $BL_CHECK"
-            echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig +short $SERVER_IP.$BL"
         fi
     done
-    echo -e "${RED}END BLACKLISTS${BLUE}--------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} dig +short $SERVER_IP.$BL\n"
     # Перевірка у списку Combined Spam Sources (CSS) dig +short ${SERVER_IP}.cbl.abuseat.org
     # Перевірка у списку Domain Blocklist (DBL) dig +short ${SERVER_IP}.dbl.spamhaus.org
     # Перевірка у списку Exploits Blocklist (XBL) dig +short ${SERVER_IP}.xbl.spamhaus.org
@@ -294,8 +288,7 @@ check_hosts() {
     else
         echo -e "${RED}IP-адреса $SERVER_IP не знайдена в /etc/hosts.${RESET}"
     fi
-    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} cat /etc/hosts"
-    echo -e "${RED}END HOSTS${BLUE}-------------------------------------------------------------------------------------------------------------------------------${RESET}\n"
+    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} cat /etc/hosts\n"
 }
 
 check_mailname() {
