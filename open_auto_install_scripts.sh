@@ -11,6 +11,28 @@ WHITE="\e[37m"
 BROWN='\033[0;33m'
 RESET="\e[0m"
 
+# Функція для вибору мови
+function select_language() {
+    clear
+    echo -e "${YELLOW}Select a language:${RESET}"
+    echo "1. English"
+    echo "2. Українська"
+    echo "3. Русский"
+
+    read -p "Select a language pack number (1/2/3): " lang_choice
+
+    case $lang_choice in
+        1) LANG_open_auto_install_scripts="en" ;;
+        3) LANG_open_auto_install_scripts="ru" ;;
+        2) LANG_open_auto_install_scripts="ua" ;;
+        *) echo -e "${RED}Wrong choice. Set by default: 'en'.${RESET}"
+           LANG_open_auto_install_scripts="en" ;;
+    esac
+}
+
+# Вибір мови
+select_language
+
 # Каталог для скриптів
 rand_head=$(head /dev/urandom | tr -dc 'a-z' | head -c 6)
 folder_script_path="/root/scripts_${rand_head}"
@@ -21,6 +43,7 @@ REPO="zDimaBY/open_auto_install_scripts"
 BRANCH="main"
 
 urls=(
+    "$URL_GITHUB/$REPO/$BRANCH/lang/${LANG_open_auto_install_scripts}/messages.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/0_exit.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/1_list_install_programs.sh"
     "$URL_GITHUB/$REPO/$BRANCH/scripts/2_site_control_panel.sh"
@@ -39,7 +62,7 @@ urls=(
 for url in "${urls[@]}"; do
     filename=$(basename "$url")
     wget -qO "$folder_script_path/$filename" --timeout=4 "$url" || {
-        echo -e "${RED}Не вдалося завантажити $filename${RESET}"
+        echo -e "${RED}Failed to download${RESET}"
         rm -rf "$folder_script_path"
         exit 1
     }
@@ -84,22 +107,22 @@ LAST_COMMIT_DATE=$(echo "$COMMIT" | jq -r '.commit.author.date')
 function selectionFunctions() {
     distribute_ips
     clear
-    echo -e "Останнє повідомлення з комітів: ${YELLOW}${LAST_COMMIT}${RESET}, дата останньої фіксації: $(print_color_message 255 0 0 "$LAST_COMMIT_DATE")${RESET}"
+    echo -e "${LAST_COMMIT_MESSAGE}: ${YELLOW}${LAST_COMMIT}${RESET}, ${LAST_COMMIT_DATE_LABEL}: $(print_color_message 255 0 0 "$LAST_COMMIT_DATE")${RESET}"
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
-        print_color_message 255 255 255 "1. Встановлення ПЗ ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx'), OpenSSH)"
-        print_color_message 255 255 255 "2. Функції для панелей керування сайтами $(print_color_message 255 99 71 '(тест)')"
-        print_color_message 255 255 255 "3. $(print_color_message 220 20 60 'Аналіз DDos')"
-        print_color_message 255 255 255 "4. Налаштування $(print_color_message 186 85 211 'VPN') серверів"
-        print_color_message 255 255 255 "5. Налаштування $(print_color_message 135 206 250 'FTP') доступу $(print_color_message 255 99 71 '(тест)')"
-        print_color_message 255 255 255 "6. Налаштування $(print_color_message 186 85 211 'баз даних') $(print_color_message 255 99 71 '(тест)')"
-        print_color_message 255 255 255 "7. Встановлення $(print_color_message 255 215 0 'операційних систем') $(print_color_message 255 99 71 '(тест)')"
-        print_color_message 255 255 255 "8. Тестування сервера: $(print_color_message 255 215 0 'швидкість порта,') $(print_color_message 100 149 237 'пошта')"
-        print_color_message 255 255 255 "0. Закінчити роботу скрипта\n"
+        print_color_message 255 255 0 "\n${ACTION_SELECTION}\n"
+        print_color_message 255 255 255 "1. ${INSTALL_SOFTWARE} ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx'), OpenSSH)"
+        print_color_message 255 255 255 "2. ${CONTROL_PANEL_FUNCTIONS} $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "3. $(print_color_message 220 20 60 "${DDOS_ANALYSIS}")"
+        print_color_message 255 255 255 "4. ${VPN_CONFIGURATION} ${VPN_SERVERS}"
+        print_color_message 255 255 255 "5. ${FTP_CONFIGURATION} $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "6. ${DATABASE_CONFIGURATION} $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "7. ${OPERATING_SYSTEMS_INSTALLATION} $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "8. ${SERVER_TESTING}: $(print_color_message 255 215 0 "${SERVER_TESTING_PORT_SPEED},") $(print_color_message 100 149 237 "${SERVER_TESTING_PORT_MAIL}")"
+        print_color_message 255 255 255 "0. ${EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${CHOOSE_OPTION}" choice
 
         case $choice in
         1) 1_list_install_programs ;;

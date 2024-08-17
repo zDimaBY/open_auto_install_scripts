@@ -12,6 +12,7 @@ function 4_VPN() {
         print_color_message 255 255 255 "4. $(print_color_message 255 215 0 'IPsec/L2TP, Cisco IPsec and IKEv2') $(print_color_message 144 238 144 '(on docker install)') $(print_color_message 135 206 235 'https://github.com/hwdsl2/docker-ipsec-vpn-server')"
         print_color_message 255 255 255 "5. $(print_color_message 255 215 0 'WireGuard') $(print_color_message 255 215 0 '(locall install)') $(print_color_message 135 206 235 'https://github.com/angristan/wireguard-install')"
         print_color_message 255 255 255 "6. $(print_color_message 255 215 0 'OpenVPN') $(print_color_message 255 215 0 '(locall install)') $(print_color_message 135 206 235 'https://github.com/angristan/openvpn-install')"
+        print_color_message 255 255 255 "6. $(print_color_message 255 215 0 'PPTP encryption (MPPE)') $(print_color_message 255 215 0 '(docker install)') $(print_color_message 135 206 235 'https://github.com/mobtitude/docker-vpn-pptp')"
         print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
         print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
@@ -24,6 +25,7 @@ function 4_VPN() {
         4) menu_IPsec_L2TP_IKEv2 ;;
         5) menu_wireguard_scriptLocal ;;
         6) menu_openVPNLocal ;;
+        6) menu_PPTP ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -62,7 +64,7 @@ info_for_client_programs() {
     echo -e "-"
     echo -e "iOS - napsternetv, v2box-v2ray-client:"
     echo -e "-"
-    
+
     echo -e "https://itdog.info/klienty-vless-shadowsocks-trojan-xray-sing-box-dlya-windows-android-ios-macos-linux/"
 }
 
@@ -259,6 +261,7 @@ menu_wireguard_easy() {
     if ! check_docker_availability; then
         return 1
     fi
+    name_docker_container="wg-easy"
     while true; do
         check_info_server
         check_info_control_panel
@@ -285,7 +288,7 @@ menu_wireguard_easy() {
 }
 
 install_wg_easy() {
-    get_selected_interface
+    get_selected_interface # selected_adapter selected_ip_address selected_ip_mask selected_ip_gateway
     generate_random_password_show
     read -r -p "Введіть пароль адміністратора: " admin_password # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
 
@@ -305,8 +308,6 @@ install_wg_easy() {
         return 1
         ;;
     esac
-
-    name_docker_container="wg-easy"
 
     docker run -d \
         --name ${name_docker_container} \
@@ -705,4 +706,129 @@ update_ipsec_vpn_server() {
     docker rm ipsec-vpn-server
     docker pull hwdsl2/ipsec-vpn-server
     echo "ipsec-vpn-server оновлено."
+}
+
+menu_PPTP() {
+    if ! check_docker_availability; then
+        return 1
+    fi
+    name_docker_container="VPN-PPTP-container"
+    while true; do
+        check_info_server
+        check_info_control_panel
+        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        echo "1. Встановлення VPN-PPTP"
+        echo "2. Додавання нового користувача"
+        echo "3. Зупинка VPN-PPTP"
+        echo "4. Видалення VPN-PPTP"
+        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+
+        read -p "Виберіть варіант: " choice
+
+        case $choice in
+        1) install_PPTP ;;
+        2) add_user_to_pptp ;;
+        3) stop_PPTP ;;
+        4) remove_PPTP ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+
+install_PPTP() {
+    create_folder "/root/VPN/PPTP"
+    generate_random_password
+    echo -e "# Secrets for authentication using PAP\n# client    server      secret      acceptable local IP addresses\nuser1 pptpd $rand_password *" > /root/VPN/PPTP/chap-secrets
+    get_selected_interface # selected_adapter selected_ip_address selected_ip_mask selected_ip_gateway
+
+    docker run -d --privileged --net=host --name "$name_docker_container" -v /root/VPN/PPTP/chap-secrets:/etc/ppp/chap-secrets mobtitude/vpn-pptp
+
+    apply_iptables_rules "$selected_adapter"
+
+    docker ps -a
+    
+    echo -e "\nVPN-PPTP успішно встановлено та запущено!"
+    echo -e "\nЗгенеровані дані користувача:"
+    echo -e "Користувач: user1"
+    echo -e "Пароль: $rand_password"
+    echo -e "\nІнструкція з підключення до VPN-PPTP:\n"
+    
+    echo -e "На Windows:"
+    echo -e "1. Відкрийте 'Панель управління' > 'Мережа та інтернет' > 'Центр управління мережами та спільним доступом'."
+    echo -e "2. Натисніть 'Налаштування нового підключення або мережі' > 'Підключення до робочого місця' > 'Використання VPN'."
+    echo -e "3. Введіть IP-адресу сервера: $selected_ip_address."
+    echo -e "4. Введіть ваше ім'я користувача та пароль."
+    echo -e "5. Натисніть 'Підключитися'.\n"
+    
+    echo -e "На macOS:"
+    echo -e "1. Відкрийте 'Системні налаштування' > 'Мережа'."
+    echo -e "2. Натисніть '+' і виберіть 'VPN'."
+    echo -e "3. Виберіть 'Тип VPN' як 'PPTP'."
+    echo -e "4. Введіть IP-адресу сервера: $selected_ip_address."
+    echo -e "5. Введіть ваше ім'я користувача та пароль."
+    echo -e "6. Натисніть 'Підключитися'.\n"
+    
+    echo -e "На Android:"
+    echo -e "1. Відкрийте 'Налаштування' > 'Бездротові мережі та мережі' > 'VPN'."
+    echo -e "2. Натисніть 'Додати VPN' і виберіть 'PPTP'."
+    echo -e "3. Введіть IP-адресу сервера: $selected_ip_address."
+    echo -e "4. Введіть ваше ім'я користувача та пароль."
+    echo -e "5. Натисніть 'Зберегти' та 'Підключитися'.\n"
+    
+    echo -e "На iOS:"
+    echo -e "1. Відкрийте 'Налаштування' > 'Загальні' > 'VPN'."
+    echo -e "2. Натисніть 'Додати конфігурацію VPN' і виберіть 'PPTP'."
+    echo -e "3. Введіть IP-адресу сервера: $selected_ip_address."
+    echo -e "4. Введіть ваше ім'я користувача та пароль."
+    echo -e "5. Натисніть 'Готово' та 'Підключитися'."
+}
+
+add_user_to_pptp() {
+    if ! docker ps -a | grep -q "$name_docker_container"; then
+        echo "Контейнер $name_docker_container не встановлений."
+        return 1
+    fi
+    read -p "Введіть ім'я нового користувача: " username
+    
+    generate_random_password_show
+    read -p "Введіть пароль для нового користувача: " password
+    echo
+
+    # Додаємо нового користувача до файлу chap-secrets
+    echo "$username pptpd $password *" >> /root/VPN/PPTP/chap-secrets
+    
+    # Оновлюємо файл в контейнері
+    docker cp /root/VPN/PPTP/chap-secrets "$name_docker_container:/etc/ppp/chap-secrets"
+
+    echo "Новий користувач $username доданий."
+}
+
+stop_PPTP() {
+    docker stop "$name_docker_container" && echo "${name_docker_container} зупинено."
+}
+
+remove_PPTP() {
+    docker stop "$name_docker_container" && docker rm "$name_docker_container" && echo "${name_docker_container} видалено."
+    docker ps -a
+    remove_firewall_rule 1723
+}
+
+apply_iptables_rules() {
+    local adapter="$1"
+    add_firewall_rule 1723 # Функція для додавання правил файерволу з скриптів functions_controller.sh
+    if ! iptables -C INPUT -p gre -j ACCEPT 2>/dev/null; then
+        iptables -A INPUT -p gre -j ACCEPT
+    fi
+    if ! iptables -C FORWARD -i ppp+ -o "$adapter" -j ACCEPT 2>/dev/null; then
+        iptables -A FORWARD -i ppp+ -o "$adapter" -j ACCEPT
+    fi
+    if ! iptables -C FORWARD -i "$adapter" -o ppp+ -j ACCEPT 2>/dev/null; then
+        iptables -A FORWARD -i "$adapter" -o ppp+ -j ACCEPT
+    fi
+    if ! iptables -t nat -C POSTROUTING -o "$adapter" -j MASQUERADE 2>/dev/null; then
+        iptables -t nat -A POSTROUTING -o "$adapter" -j MASQUERADE
+    fi
 }

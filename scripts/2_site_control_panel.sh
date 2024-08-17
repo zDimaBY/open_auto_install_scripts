@@ -44,11 +44,11 @@ function 2_site_control_panel() {
         check_info_server
         check_info_control_panel
         print_color_message 255 255 0 "\nВиберіть дію:\n"
-        print_color_message 255 255 255 "1. Встановлення/апгрейд $(print_color_message 255 215 0 'ioncube') для всіх php версій (Hestiacp + php-fpm) $(print_color_message 255 99 71 '(тест)')"
-        print_color_message 255 255 255 "2. Встановлення $(print_color_message 255 215 0 'CMS') $(print_color_message 255 99 71 '(тест)')"
-        print_color_message 255 255 255 "3. Заміна IP-адреси з old на new $(print_color_message 255 99 71 '(тест)')"
+        print_color_message 255 255 255 "1. Встановлення/апгрейд $(print_color_message 255 215 0 'ioncube') для всіх php версій (Hestiacp + php-fpm) $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "2. Встановлення $(print_color_message 255 215 0 'CMS') $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "3. Заміна IP-адреси з old на new $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "4. Відключення префікса $(print_color_message 144 238 144 '"admin_"')"
-        print_color_message 255 255 255 "5. Очистка $(print_color_message 144 238 144 'логів') $(print_color_message 255 99 71 '(тест)')"
+        print_color_message 255 255 255 "5. Очистка $(print_color_message 144 238 144 'логів') $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
         print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 

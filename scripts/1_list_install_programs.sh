@@ -9,7 +9,7 @@ function 1_list_install_programs() {
         print_color_message 255 255 255 "1. Встановлення $(print_color_message 255 215 0 'Composer')"
         print_color_message 255 255 255 "2. Встановлення $(print_color_message 255 215 0 'Docker')"
         print_color_message 255 255 255 "3. Встановлення $(print_color_message 255 215 0 'RouterOS від Mikrotik')"
-        print_color_message 255 255 255 "4. Встановлення $(print_color_message 255 215 0 'Elasticsearch') $(print_color_message 255 99 71 '(тест)')"
+        print_color_message 255 255 255 "4. Встановлення $(print_color_message 255 215 0 'Elasticsearch') $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "5. Встановлення $(print_color_message 255 215 0 'Nginx proxy server') портів 80 та 443 з $(print_color_message 255 99 71 "${server_IPv4[0]}") на $(print_color_message 255 0 255 'ххх.ххх.ххх.ххх')"
         print_color_message 255 255 255 "6. Встановлення $(print_color_message 255 215 0 'OpenSSH') через https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable"
         print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
