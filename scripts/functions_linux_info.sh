@@ -119,12 +119,12 @@ check_info_server() {
     esac
 
     # Перевірка уразливих версій OpenSSH
-    current_version=$(ssh -V 2>&1 | awk -F '[ ,]' '{print $1}' | awk -F '_' '{print $2}')
-    if version_gt "4.4p1" "$current_version" || (version_gt "$current_version" "8.5p1" && version_gt "9.8p1" "$current_version"); then
-        print_color_message 255 0 0 "Уразлива версія OpenSSH: $current_version"
-    else
-        print_color_message 0 255 0 "Версія OpenSSH $current_version не уразлива."
-    fi
+    # current_version=$(ssh -V 2>&1 | awk -F '[ ,]' '{print $1}' | awk -F '_' '{print $2}')
+    # if version_gt "4.4p1" "$current_version" || (version_gt "$current_version" "8.5p1" && version_gt "9.8p1" "$current_version"); then
+    #     print_color_message 255 0 0 "Уразлива версія OpenSSH: $current_version"
+    # else
+    #     print_color_message 0 255 0 "Версія OpenSSH $current_version не уразлива."
+    # fi
 
     # Функція для виводу IP-адрес
     print_ips() {
@@ -154,17 +154,14 @@ check_info_server() {
     if [[ "$1" == "full" ]]; then
         network_type="$(curl -s --max-time 5 http://ip6.me/api/ | cut -d, -f1)"
         if [[ $? -ne 0 || -z "$network_type" ]]; then
-            echo "Не вдалося отримати тип мережі з ip6.me"
             network_type="Unknown"
         fi
         ipv4_check=$( (ping -4 -c 1 -W 4 ipv4.google.com >/dev/null 2>&1 && echo true) || curl -s --max-time 5 -4 icanhazip.com)
         if [[ $? -ne 0 || -z "$ipv4_check" ]]; then
-            echo "Перевірка IPv4 не вдалася"
             ipv4_check=""
         fi
         ipv6_check=$( (ping -6 -c 1 -W 4 ipv6.google.com >/dev/null 2>&1 && echo true) || curl -s --max-time 5 -6 icanhazip.com)
         if [[ $? -ne 0 || -z "$ipv6_check" ]]; then
-            echo "Перевірка IPv6 не вдалася"
             ipv6_check=""
         fi
 

@@ -12,7 +12,7 @@ function 4_VPN() {
         print_color_message 255 255 255 "4. $(print_color_message 255 215 0 'IPsec/L2TP, Cisco IPsec and IKEv2') $(print_color_message 144 238 144 '(on docker install)') $(print_color_message 135 206 235 'https://github.com/hwdsl2/docker-ipsec-vpn-server')"
         print_color_message 255 255 255 "5. $(print_color_message 255 215 0 'WireGuard') $(print_color_message 255 215 0 '(locall install)') $(print_color_message 135 206 235 'https://github.com/angristan/wireguard-install')"
         print_color_message 255 255 255 "6. $(print_color_message 255 215 0 'OpenVPN') $(print_color_message 255 215 0 '(locall install)') $(print_color_message 135 206 235 'https://github.com/angristan/openvpn-install')"
-        print_color_message 255 255 255 "6. $(print_color_message 255 215 0 'PPTP encryption (MPPE)') $(print_color_message 255 215 0 '(docker install)') $(print_color_message 135 206 235 'https://github.com/mobtitude/docker-vpn-pptp')"
+        print_color_message 255 255 255 "7. $(print_color_message 255 215 0 'PPTP encryption (MPPE)') $(print_color_message 255 215 0 '(docker install)') $(print_color_message 135 206 235 'https://github.com/mobtitude/docker-vpn-pptp')"
         print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
         print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
 
@@ -25,7 +25,7 @@ function 4_VPN() {
         4) menu_IPsec_L2TP_IKEv2 ;;
         5) menu_wireguard_scriptLocal ;;
         6) menu_openVPNLocal ;;
-        6) menu_PPTP ;;
+        7) menu_PPTP ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;

@@ -107,22 +107,22 @@ LAST_COMMIT_DATE=$(echo "$COMMIT" | jq -r '.commit.author.date')
 function selectionFunctions() {
     distribute_ips
     clear
-    echo -e "${LAST_COMMIT_MESSAGE}: ${YELLOW}${LAST_COMMIT}${RESET}, ${LAST_COMMIT_DATE_LABEL}: $(print_color_message 255 0 0 "$LAST_COMMIT_DATE")${RESET}"
+    echo -e "${MSG_LAST_COMMIT_MESSAGE}: ${YELLOW}${LAST_COMMIT}${RESET}, ${MSG_LAST_COMMIT_DATE_LABEL}: $(print_color_message 255 0 0 "$LAST_COMMIT_DATE")${RESET}"
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\n${ACTION_SELECTION}\n"
-        print_color_message 255 255 255 "1. ${INSTALL_SOFTWARE} ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx'), OpenSSH)"
-        print_color_message 255 255 255 "2. ${CONTROL_PANEL_FUNCTIONS} $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "3. $(print_color_message 220 20 60 "${DDOS_ANALYSIS}")"
-        print_color_message 255 255 255 "4. ${VPN_CONFIGURATION} ${VPN_SERVERS}"
-        print_color_message 255 255 255 "5. ${FTP_CONFIGURATION} $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "6. ${DATABASE_CONFIGURATION} $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "7. ${OPERATING_SYSTEMS_INSTALLATION} $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "8. ${SERVER_TESTING}: $(print_color_message 255 215 0 "${SERVER_TESTING_PORT_SPEED},") $(print_color_message 100 149 237 "${SERVER_TESTING_PORT_MAIL}")"
-        print_color_message 255 255 255 "0. ${EXIT_SCRIPT}\n"
+        print_color_message 255 255 0 "\n${MSG_ACTION_SELECTION}\n"
+        print_color_message 255 255 255 "1. ${MSG_INSTALL_SOFTWARE} ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx'), OpenSSH)"
+        print_color_message 255 255 255 "2. ${MSG_CONTROL_PANEL_FUNCTIONS} $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "3. $(print_color_message 220 20 60 "${MSG_DDOS_ANALYSIS}")"
+        print_color_message 255 255 255 "4. ${MSG_VPN_CONFIGURATION} ${VPN_SERVERS}"
+        print_color_message 255 255 255 "5. ${MSG_FTP_CONFIGURATION} $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "6. ${MSG_DATABASE_CONFIGURATION} $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "7. ${MSG_OPERATING_SYSTEMS_INSTALLATION} $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "8. ${MSG_SERVER_TESTING}: $(print_color_message 255 215 0 "${MSG_SERVER_TESTING_PORT_SPEED},") $(print_color_message 100 149 237 "${MSG_SERVER_TESTING_PORT_MAIL}")"
+        print_color_message 255 255 255 "0. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "${CHOOSE_OPTION}" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) 1_list_install_programs ;;
