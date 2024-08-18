@@ -1,6 +1,7 @@
 #!/bin/bash -n
 # shellcheck disable=SC2148,SC2154
-# Функція відображення кольорових повідомлень
+
+# Color message display function
 print_color_message() {
     local red=$1
     local green=$2
@@ -9,7 +10,7 @@ print_color_message() {
     echo -e "\033[38;2;${red};${green};${blue}m${message}\033[m"
 }
 
-# Функція для розподілу IP-адрес
+# Function to allocate IP addresses
 distribute_ips() { # ${server_IPv4[0]} ${server_IPv6[0]}
     # Отримуємо IP-адреси з hostname -I та hostname -i
     local ip_output_i=$(hostname -i 2>/dev/null)
@@ -54,38 +55,38 @@ version_gt() {
 
 check_compatibility_script() {
     if [ "$(id -u)" -ne 0 ]; then
-        print_color_message 200 0 0 'Error: This script is not run as root.'
+        print_color_message 200 0 0 "$MSG_ERROR_NOT_ROOT"
     fi
 
     if [ -e "/etc/os-release" ]; then
         source "/etc/os-release"
     else
-        print_color_message 200 0 0 "Error: /etc/os-release not found"
-        print_color_message 200 0 0 "lsb_release is currently not installed, please install it:"
+        print_color_message 200 0 0 "$MSG_ERROR_OS_RELEASE_NOT_FOUND"
+        print_color_message 200 0 0 "$MSG_ERROR_LSB_NOT_INSTALLED"
 
         case "$(uname -s)" in
         Linux)
             if [ -x "$(command -v apt-get)" ]; then
-                print_color_message 200 0 0 "On $(print_color_message 200 165 0 "Debian or Ubuntu:")"
+                print_color_message 200 0 0 "$MSG_DEBIAN_BASED_SYSTEM"
                 print_color_message 200 0 0 "sudo apt-get update && sudo apt-get install lsb-release"
             elif [ -x "$(command -v yum)" ]; then
-                print_color_message 200 0 0 "On $(print_color_message 200 165 0 "Red Hat-based systems:")"
+                print_color_message 200 0 0 "$MSG_REDHAT_BASED_SYSTEM"
                 print_color_message 200 0 0 "sudo yum install redhat-lsb-core"
             elif [ -x "$(command -v dnf)" ]; then
-                print_color_message 200 0 0 "On $(print_color_message 200 165 0 "AlmaLinux:")"
+                print_color_message 200 0 0 "$MSG_ALMALINUX"
                 print_color_message 200 0 0 "sudo dnf install redhat-lsb-core"
             elif [ -x "$(command -v zypper)" ]; then
-                print_color_message 200 0 0 "On $(print_color_message 200 165 0 "SUSE:")"
+                print_color_message 200 0 0 "$MSG_SUSE"
                 print_color_message 200 0 0 "sudo zypper install lsb-release"
             elif [ -x "$(command -v pacman)" ]; then
-                print_color_message 200 0 0 "On $(print_color_message 200 165 0 "Arch Linux:")"
+                print_color_message 200 0 0 "$MSG_ARCH_LINUX"
                 print_color_message 200 0 0 "sudo pacman -Sy lsb-release"
             else
-                print_color_message 200 0 0 "Unsupported package manager. Please install lsb-release manually."
+                print_color_message 200 0 0 "$MSG_ERROR_UNSUPPORTED_PACKAGE_MANAGER"
             fi
             ;;
         *)
-            print_color_message 200 0 0 "Unsupported operating system. Please install lsb-release manually."
+            print_color_message 200 0 0 "$MSG_ERROR_UNSUPPORTED_OS"
             ;;
         esac
 
@@ -97,7 +98,7 @@ check_info_server() {
     print_color_message 0 200 0 "----------------------------------------------------------------------------------------------------------------------------------------"
 
     if [ -z "$data" ]; then
-        # URL для отримання даних про дистрибутиви Linux
+        # URL to get data about Linux distributions
         base_url="https://endoflife.date/api/${ID}.json"
         data=$(curl -s --max-time 2 "${base_url}")
         SUPPORT_OS_END=$(echo "$data" | grep -oP '"cycle":\s*"'${VERSION_ID}'".*?"eol":\s*".*?"' | grep -oP '"eol":\s*".*?"' | sed 's/"eol":\s*"\(.*\)"/\1/')
@@ -105,56 +106,49 @@ check_info_server() {
 
     case "${ID}" in
     "debian" | "ubuntu")
-        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "End Life: $SUPPORT_OS_END")"
+        echo -e "$(print_color_message 255 255 0 "$MSG_INFORMATION") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "$MSG_END_LIFE: $SUPPORT_OS_END")"
         ;;
     "rhel" | "almalinux" | "eurolinux" | "rocky" | "centos")
-        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Red Hat-based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "End Life: $SUPPORT_OS_END")"
+        echo -e "$(print_color_message 255 255 0 "$MSG_INFORMATION") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Red Hat-based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "$MSG_END_LIFE: $SUPPORT_OS_END")"
         ;;
     "arch" | "sysrescue" | "gentoo" | "slackware")
-        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Arch-based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "End Life: $SUPPORT_OS_END")"
+        echo -e "$(print_color_message 255 255 0 "$MSG_INFORMATION") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Arch-based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "$MSG_END_LIFE: $SUPPORT_OS_END")"
         ;;
     *)
-        echo -e "$(print_color_message 255 255 0 "Information:") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Other Linux-based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "End Life: $SUPPORT_OS_END")"
+        echo -e "$(print_color_message 255 255 0 "$MSG_INFORMATION") $(print_color_message 255 0 0 "$ID") $(print_color_message 0 255 255 "$VERSION (Other Linux-based system)"). $([ -n "${SUPPORT_OS_END}" ] && print_color_message 255 0 0 "$MSG_END_LIFE: $SUPPORT_OS_END")"
         ;;
     esac
 
-    # Перевірка уразливих версій OpenSSH
-    # current_version=$(ssh -V 2>&1 | awk -F '[ ,]' '{print $1}' | awk -F '_' '{print $2}')
-    # if version_gt "4.4p1" "$current_version" || (version_gt "$current_version" "8.5p1" && version_gt "9.8p1" "$current_version"); then
-    #     print_color_message 255 0 0 "Уразлива версія OpenSSH: $current_version"
-    # else
-    #     print_color_message 0 255 0 "Версія OpenSSH $current_version не уразлива."
-    # fi
-
-    # Функція для виводу IP-адрес
+    # Function for outputting IP addresses
     print_ips() {
         local iface="$1"
         local ips=("${!2}")
         local ipv6_color="$3"
 
-        echo -n "Interface: $(print_color_message 0 255 255 "$iface") IP:"
+        echo -n "$MSG_INTERFACE $(print_color_message 0 255 255 "$iface") IP:"
         for ip in "${ips[@]}"; do
             if [[ $ip == *":"* ]]; then
-                # IPv6 адреса
+                # IPv6 address
                 echo -n " $(print_color_message 100 100 100 "$ip")"
             else
-                # IPv4 адреса
+                # IPv4 address
                 echo -n " $(print_color_message 0 255 0 "$ip")"
             fi
         done
         echo
     }
-    # Мережеві інтерфейси
-    print_color_message 255 255 0 "\nNetwork Interfaces:"
 
-    # Хостнейм та IP
+    # Network interfaces
+    print_color_message 255 255 0 "$MSG_NETWORK_INTERFACES"
+
+    # Hostname and IP
     server_hostname=$(hostname)
-    echo -e "Hostname: $(print_color_message 0 255 0 "$server_hostname") IP: $(print_color_message 255 0 255 "${server_IPv4[0]}")"
+    echo -e "$MSG_HOSTNAME: $(print_color_message 0 255 0 "$server_hostname") IP: $(print_color_message 255 0 255 "${server_IPv4[0]}")"
 
     if [[ "$1" == "full" ]]; then
         network_type="$(curl -s --max-time 5 http://ip6.me/api/ | cut -d, -f1)"
         if [[ $? -ne 0 || -z "$network_type" ]]; then
-            network_type="Unknown"
+            network_type="$MSG_UNKNOWN"
         fi
         ipv4_check=$( (ping -4 -c 1 -W 4 ipv4.google.com >/dev/null 2>&1 && echo true) || curl -s --max-time 5 -4 icanhazip.com)
         if [[ $? -ne 0 || -z "$ipv4_check" ]]; then
@@ -167,18 +161,18 @@ check_info_server() {
 
         [[ -n "$ipv6_check" ]] && ipv6_status=$(echo "IPv6: $(print_color_message 0 255 0 "Online")") || ipv6_status=$(echo "IPv6: $(print_color_message 200 0 0 "Offline")")
         [[ -n "$ipv4_check" ]] && ipv4_status=$(echo "IPv4: $(print_color_message 0 255 0 "Online")") || ipv4_status=$(echo "IPv4: $(print_color_message 200 0 0 "Offline")")
-        [[ -n "$network_type" ]] && echo "Primary Network: $(print_color_message 0 255 0 "$network_type") | $(print_color_message 255 255 0 "Status Network:") ${ipv6_status}, ${ipv4_status}"
+        [[ -n "$network_type" ]] && echo "$MSG_PRIMARY_NETWORK: $(print_color_message 0 255 0 "$network_type") | $(print_color_message 255 255 0 "$MSG_STATUS_NETWORK:") ${ipv6_status}, ${ipv4_status}"
     fi
 
     declare -A interfaces
-    # Отримуємо всі IP-адреси (IPv4 та IPv6) для кожного інтерфейсу
+    # Get all IP addresses (IPv4 and IPv6) for each interface
     ip_output=$(ip -o addr show)
     if [ $? -ne 0 ]; then
-        echo "Помилка виконання команди ip"
+        echo "$MSG_ERROR_IP_COMMAND"
     else
         while read -r line; do
             if [ $(echo $line | awk '{print NF}') -lt 4 ]; then
-                echo "Недостатньо полів у рядку: $line"
+                echo "$MSG_INSUFFICIENT_FIELDS$line"
                 continue
             fi
 
@@ -186,35 +180,35 @@ check_info_server() {
             addr=$(echo $line | awk '{print $4}')
 
             if [ -z "$iface" ] || [ -z "$addr" ]; then
-                echo "Неправильний формат рядка: $line"
+                echo "$MSG_INVALID_FORMAT$line"
                 continue
             fi
 
             interfaces[$iface]+="$addr "
         done <<<"$ip_output"
 
-        # Створюємо відсортований масив інтерфейсів за кількістю символів
+        # Create sorted array of interfaces by number of characters
         sorted_interfaces=($(for iface in "${!interfaces[@]}"; do echo "$iface"; done | awk '{ print length, $0 }' | sort -n | cut -d" " -f2-))
 
-        # Виводимо IP-адреси для кожного інтерфейсу відсортованими за кількістю символів
+        # Output IP addresses for each interface sorted by number of characters
         for iface in "${sorted_interfaces[@]}"; do
             ip_array=(${interfaces[$iface]})
             print_ips "$iface" ip_array[@]
         done
     fi
 
-    # Файлові системи
+    # File Systems
     largest_disk=$(df -h | grep '^/dev/' | sort -k 4 -hr | head -n 1)
-    disk_usage=$(echo "$largest_disk" | awk '{print $5}') # Використання місця на найбільшому диску
-    echo -e "\n$(print_color_message 255 255 0 "File Systems:") Disk Usage: $disk_usage"
+    disk_usage=$(echo "$largest_disk" | awk '{print $5}') # Disk usage on the largest disk
+    echo -e "\n$(print_color_message 255 255 0 "$MSG_FILE_SYSTEMS") $MSG_DISK_USAGE: $disk_usage"
     df -hT | grep '^/dev/'
 
-    # Оперативна пам'ять
-    echo -e "\n$(print_color_message 255 255 0 "Memory:")"
+    # Memory
+    echo -e "\n$(print_color_message 255 255 0 "$MSG_MEMORY")"
     read -r mem_total mem_used mem_free mem_shared mem_buff_cache mem_available < <(free -m | awk '/^Mem:/ {print $2, $3, $4, $5, $6, $7}')
-    echo -e "Total Memory: $(print_color_message 0 255 0 "${mem_total}MB") Used Memory: $(print_color_message 255 0 0 "${mem_used}MB") Free Memory: $(print_color_message 0 255 255 "${mem_free}MB") Shared Memory: $(print_color_message 128 0 128 "${mem_shared}MB") Buff/Cache Memory: $(print_color_message 100 149 237 "${mem_buff_cache}MB") Available Memory: $(print_color_message 255 165 0 "${mem_available}MB")"
+    echo -e "$MSG_TOTAL_MEMORY: $(print_color_message 0 255 0 "${mem_total}MB") $MSG_USED_MEMORY: $(print_color_message 255 0 0 "${mem_used}MB") $MSG_FREE_MEMORY: $(print_color_message 0 255 255 "${mem_free}MB") $MSG_SHARED_MEMORY: $(print_color_message 128 0 128 "${mem_shared}MB") $MSG_BUFF_CACHE_MEMORY: $(print_color_message 100 149 237 "${mem_buff_cache}MB") $MSG_AVAILABLE_MEMORY: $(print_color_message 255 165 0 "${mem_available}MB")"
 
-    # Навантаження системи
+    # Load Average
     load_average=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}')
     load_average=${load_average%,*}
     load_average=$(echo "${load_average/,/.}")
@@ -226,18 +220,19 @@ check_info_server() {
     else
         load_average=$(print_color_message 200 0 0 "$load_average (!)")
     fi
-    echo -e "\n$(print_color_message 255 255 0 "CPU:") Load Average: $load_average"
+    echo -e "\n$(print_color_message 255 255 0 "$MSG_CPU") $MSG_LOAD_AVERAGE $load_average"
 
-    # Процесор
+    # CPU
     cpu_info=$(lscpu)
     cpu_model=$(echo "$cpu_info" | awk -F': ' '/Model name/ {gsub(/^[ \t]+/, "", $2); print $2}')
     cpu_cores=$(echo "$cpu_info" | awk -F': ' '/^CPU\(s\)/ {gsub(/^[ \t]+/, "", $2); print $2}')
-    echo -e "Model: $(print_color_message 0 255 255 "$cpu_model") Cores: $(print_color_message 0 255 0 "$cpu_cores")\n"
+    echo -e "$MSG_CPU_MODEL $(print_color_message 0 255 255 "$cpu_model") $MSG_CPU_CORES $(print_color_message 0 255 0 "$cpu_cores")\n"
+
 }
 
 all_control_panels=("/usr/local/hestia" "/usr/local/vesta" "/usr/local/mgr5" "/usr/local/cpanel" "/usr/local/fastpanel2" "/usr/local/brainycp" "/usr/local/CyberCP" "/usr/local/CyberPanel")
 
-check_info_control_panel() { # Функція перевірки панелі керування
+check_info_control_panel() { # Function to check control panels
     for panel_dir in "${all_control_panels[@]}"; do
         if [ -d "$panel_dir" ]; then
             case $panel_dir in
@@ -250,7 +245,7 @@ check_info_control_panel() { # Функція перевірки панелі к
                 cp_os_version=$(echo "$hestia_info" | awk 'NR==3{print $3}')
 
                 WEB_ADMIN_PORT=$(ss -utpln | grep "hestia-nginx" | awk '{print $5}')
-                print_color_message 0 102 204 "${APP_NAME} $(print_color_message 51 153 102 "$VERSION") backend: $(print_color_message 200 200 0 "$WEB_SYSTEM") | WEB Admin: $(print_color_message 200 200 0 "$WEB_ADMIN_PORT")"
+                print_color_message 0 102 204 "${MSG_HESTIA_INSTALLED} $(print_color_message 51 153 102 "$hestia_version") backend: $(print_color_message 200 200 0 "$WEB_SYSTEM") | ${MSG_WEB_ADMIN_PORT} $(print_color_message 200 200 0 "$WEB_ADMIN_PORT")"
                 source /etc/os-release
                 ;;
             "/usr/local/vesta")
@@ -261,29 +256,29 @@ check_info_control_panel() { # Функція перевірки панелі к
                 cp_operating_system_panel=$(echo "$vesta_info" | awk 'NR==3{print $2}')
                 cp_os_version=$(echo "$vesta_info" | awk 'NR==3{print $3}')
 
-                print_color_message 0 200 200 "Vesta Control Panel $(print_color_message 200 0 200 "$VERSION") backend: $(print_color_message 200 200 0 "$WEB_SYSTEM")"
+                print_color_message 0 200 200 "${MSG_VESTA_INSTALLED} $(print_color_message 200 0 200 "$vesta_version") backend: $(print_color_message 200 200 0 "$WEB_SYSTEM")"
                 source /etc/os-release
                 ;;
             "/usr/local/mgr5")
-                print_color_message 0 200 0 "ISPmanager is installed."
+                print_color_message 0 200 0 "$MSG_ISPMANAGER_INSTALLED"
                 "$panel_dir/sbin/licctl" info ispmgr
                 ;;
             "/usr/local/cpanel")
-                print_color_message 0 200 0 "cPanel is installed."
+                print_color_message 0 200 0 "$MSG_CPanel_INSTALLED"
                 "$panel_dir/cpanel" -V
                 cat /etc/*release
                 ;;
             "/usr/local/fastpanel2")
                 fastuser_passwd_dir="/usr/local/fastpanel2/app/config/.my.cnf"
-                print_color_message 0 150 230 "FastPanel is installed."
+                print_color_message 0 150 230 "$MSG_FASTPANEL_INSTALLED"
                 if [ -f $fastuser_passwd_dir ]; then
                     cat "$fastuser_passwd_dir" | tr '\n' ' ' && echo
                 else
-                    print_color_message 200 0 0 "File $fastuser_passwd_dir not found."
+                    print_color_message 200 0 0 "$MSG_FILE_NOT_FOUND $fastuser_passwd_dir"
                 fi
                 ;;
             "/usr/local/brainycp")
-                print_color_message 0 123 193 "BrainyCP is installed."
+                print_color_message 0 123 193 "$MSG_BRAINYCP_INSTALLED"
                 #  Memory detector brainycp
                 arr=(mysqld exim dovecot httpd nginx named brainyphp-fpm pure-ftpd memcached redis fail2ban csf xinetd sshd clamd clamsmtp-clamd spamassassin proftpd network NetworkManager postgresql tuned)
                 not_found=""
@@ -295,17 +290,17 @@ check_info_control_panel() { # Функція перевірки панелі к
                     fi
                 done
                 if [ -n "$not_found" ]; then
-                    echo "Unit(s) not found: $not_found"
+                    echo "$MSG_UNIT_NOT_FOUND $not_found"
                 fi
                 ;;
             "/www/server/panel/BTPanel/")
-                print_color_message 0 200 0 "aaPanal(BT-Panel) is installed."
+                print_color_message 0 200 0 "$MSG_BTPANEL_INSTALLED"
                 ;;
             "/usr/local/CyberCP/")
-                print_color_message 0 200 0 "CyberCP is installed."
+                print_color_message 0 200 0 "$MSG_CyberCP_INSTALLED"
                 ;;
             "/usr/local/CyberPanel/")
-                print_color_message 0 200 0 "CyberPanel is installed."
+                print_color_message 0 200 0 "$MSG_CyberPanel_INSTALLED"
                 ;;
             esac
 
@@ -313,7 +308,7 @@ check_info_control_panel() { # Функція перевірки панелі к
             return
         fi
     done
-    print_color_message 200 0 0 "Control panel not found."
+    print_color_message 200 0 0 "$MSG_CONTROL_PANEL_NOT_FOUND"
 }
 
 check_command_version() {
@@ -327,7 +322,8 @@ check_command_version() {
         local version=$($command --version 2>&1 | head -n 1)
         print_color_message ${color_success[0]} ${color_success[1]} ${color_success[2]} "$display_name $(print_color_message ${color_version[0]} ${color_version[1]} ${color_version[2]} "$version")"
     else
-        print_color_message ${color_error[0]} ${color_error[1]} ${color_error[2]} "$display_name is not installed."
+        print_color_message ${color_error[0]} ${color_error[1]} ${color_error[2]} "$display_name $MSG_COMMAND_NOT_INSTALLED."
+
     fi
 }
 
@@ -335,7 +331,7 @@ check_available_services() {
     echo
     # Check MySQL, MariaDB, PostgreSQL, SQLite
     if ! command -v mysql >/dev/null 2>&1 && ! command -v mariadb >/dev/null 2>&1 && ! command -v psql >/dev/null 2>&1 && ! command -v sqlite3 >/dev/null 2>&1; then
-        print_color_message 200 0 0 "MySQL or MariaDB, PostgreSQL or SQLite is not installed."
+        print_color_message 200 0 0 "$MSG_MYSQL_MARIADB_POSTGRESQL_SQLITE_NOT_INSTALLED"
     else
         check_command_version mysql "MySQL"
         check_command_version mariadb "MariaDB"
@@ -345,7 +341,7 @@ check_available_services() {
 
     # Check PHP, Python, Node.js
     if ! command -v php >/dev/null 2>&1 && ! command -v python3 >/dev/null 2>&1 && ! command -v node >/dev/null 2>&1; then
-        print_color_message 200 0 0 "PHP, Python or Node.js is not installed."
+        print_color_message 200 0 0 "$MSG_PHP_PYTHON_NODE_NOT_INSTALLED"
     else
         check_command_version php "PHP"
         check_command_version python3 "Python"
@@ -360,7 +356,7 @@ check_available_services() {
         print_color_message 0 102 204 "$(docker -v)"
         docker ps -a
     else
-        print_color_message 200 0 0 "Docker is not installed."
+        print_color_message 200 0 0 "$MSG_DOCKER_NOT_INSTALLED"
     fi
 
     ports=$(ss -tuln | awk 'NR>1 {print $5}' | cut -d ':' -f 2 | sort -n | uniq)
