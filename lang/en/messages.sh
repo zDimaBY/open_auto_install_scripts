@@ -29,6 +29,9 @@ MSG_EXIT_INVALID_SELECTION="Invalid choice. Enter 1, 2, 3 .. or 0."
 MSG_SERVER_TESTING_PORT_SPEED="port speed"
 MSG_SERVER_TESTING_PORT_MAIL="post"
 
+# linuxinfo.sh
+MSG_ERROR_NO_DOWNLOAD_TOOL="Error: 'wget' or 'curl' not found. Please install one of them to continue."
+
 # functions_linux_info.sh
 MSG_ERROR_NOT_ROOT="Error: This script is not run as root."
 MSG_ERROR_OS_RELEASE_NOT_FOUND="Error: /etc/os-release not found"

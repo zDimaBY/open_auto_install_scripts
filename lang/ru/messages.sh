@@ -29,6 +29,9 @@ MSG_EXIT_INVALID_SELECTION="Неверный выбор. Введите 1, 2, 3 
 MSG_SERVER_TESTING_PORT_SPEED="скорость порта"
 MSG_SERVER_TESTING_PORT_MAIL="почта"
 
+# linuxinfo.sh
+MSG_ERROR_NO_DOWNLOAD_TOOL="Ошибка: 'wget' или 'curl' не найден. Пожалуйста, установите один из них для продолжения."
+
 # functions_linux_info.sh
 MSG_ERROR_NOT_ROOT="Ошибка: Скрипт не запущен от имени root."
 MSG_ERROR_OS_RELEASE_NOT_FOUND="Ошибка: /etc/os-release не найден"
