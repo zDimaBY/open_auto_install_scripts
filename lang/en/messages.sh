@@ -29,6 +29,90 @@ MSG_EXIT_INVALID_SELECTION="Invalid choice. Enter 1, 2, 3 .. or 0."
 MSG_SERVER_TESTING_PORT_SPEED="port speed"
 MSG_SERVER_TESTING_PORT_MAIL="post"
 
+# functions_controller.sh
+# function check_dependency
+MSG_ERROR_INFO_UNSUPPORTED_OS="It looks like you are not using this installer on Debian, Ubuntu, Fedora, CentOS, Oracle, AlmaLinux, or Arch Linux systems. Your system: "
+MSG_ERROR_OS_DETECTION_FAILED="Failed to determine the operating system."
+MSG_ERROR_INSTALL_FAILED="Failed to install "
+MSG_ERROR_MANUAL_INSTALL_REQUIRED="Please install it manually."
+MSG_DEPENDENCY_NOT_INSTALLED=" is not installed. Installing..."
+MSG_DEPENDENCY_INSTALLED=" is already installed."
+MSG_DEPENDENCY_SUCCESSFULLY_INSTALLED=" successfully installed."
+
+# function install_package
+MSG_PACKAGE_INSTALL_FAILED="Failed to install "
+MSG_PACKAGE_ALREADY_INSTALLED=" is already installed."
+MSG_PACKAGE_INSTALL_TRY_MANUAL="Failed to install "
+MSG_PACKAGE_INSTALL_MANUAL_PROMPT="Please try installing it manually."
+
+# function generate_random_password_show
+MSG_GENERATED_RANDOM_PASSWORD="Generated random password:"
+
+# function generate_random_password_show
+MSG_DOCKER_NOT_INSTALLED_THIS="Docker is not installed on this system."
+MSG_PROMPT_INSTALL_DOCKER="Do you want to install Docker? (y/n): "
+MSG_INSTALLING_DOCKER="Installing Docker..."
+MSG_DOCKER_INSTALLATION_CANCELED="Docker installation canceled."
+MSG_DOCKER_NOT_STARTED="Docker is not running. Starting Docker..."
+MSG_DOCKER_START_SUCCESS="Command 'sudo systemctl start docker' executed successfully."
+MSG_DOCKER_START_FAILED="Error: Unable to execute 'sudo systemctl start docker'."
+MSG_DOCKER_ALREADY_AUTOSTART="Docker is already enabled in autostart."
+MSG_DOCKER_ADDED_AUTOSTART="Docker has been successfully added to autostart."
+MSG_DOCKER_FAILED_AUTOSTART="Error: Docker was not added to autostart."
+MSG_DOCKER_STATUS="Docker status:"
+
+# function create_folder
+MSG_FOLDER_ALREADY_EXISTS="Folder already exists."
+MSG_FOLDER_CREATED="Folder created."
+
+# function copy_file_from_container
+MSG_WAITING_FOR_FILE="Waiting for file to be created in container..."
+MSG_FILE_COPIED="File was copied to target directory."
+
+# function mask_to_cidr get_public_interface
+MSG_INVALID_SUBNET_MASK="Invalid subnet mask"
+MSG_NO_ADAPTER_FOUND="Could not find adapter with IP address matching hostname -i result:"
+
+# function get_selected_interface
+MSG_SELECT_NETWORK_ADAPTER="Select an available network adapter:"
+MSG_ENTER_ADAPTER_NUMBER="Enter the adapter number (from 1 to"
+MSG_ERROR_NOT_A_NUMBER="Error: Input must be a number."
+MSG_ERROR_INVALID_ADAPTER_NUMBER="Error: Invalid adapter number."
+MSG_ADAPTER_INFO="Information about network adapter"
+MSG_IP_ADDRESS="IP address:"
+MSG_SUBNET_MASK="Subnet mask:"
+MSG_GATEWAY="Gateway:"
+
+# function add_firewall_rule
+MSG_PORT="Port "
+MSG_FIREWALLD_NOT_RUNNING_PART1="firewalld is not running or installed. If another firewall is installed, opening ports in it."
+MSG_IPTABLES_NOT_INSTALLED_PART1="iptables is not installed."
+MSG_UFW_NOT_INSTALLED_PART1="ufw is not installed."
+MSG_FIREWALL_NOT_INSTALLED_PART1="Error: Firewall not installed or unknown. Check port "
+
+# function remove_firewall_rule
+MSG_FIREWALLD_NOT_RUNNING_PART2="firewalld is not running or installed. If another firewall is installed, removing rules from it."
+MSG_RULE_FOR_PORT="Rule for port "
+MSG_IPTABLES_NOT_INSTALLED_PART2="iptables is not installed."
+MSG_UFW_NOT_INSTALLED_PART2="ufw is not installed."
+MSG_FIREWALL_NOT_INSTALLED_PART2="Error: Firewall not installed or unknown."
+
+# function check_domain
+MSG_DOMAIN_POINTED="Domain "
+MSG_DOMAIN_TARGET_SERVER=" is pointing to this server ("
+MSG_DOMAIN_NOT_TARGET_SERVER=" is not pointing to this server"
+
+# function select_disk_and_partition
+MSG_SELECT_DISK="Select a disk:"
+MSG_INVALID_INPUT_DISK="Invalid input. Please enter the disk number."
+MSG_INVALID_CHOICE_DISK="Invalid choice. Please select a valid number from the list."
+MSG_SELECTED_DISK="Selected disk: "
+MSG_NO_PARTITIONS="There are no partitions on this disk."
+MSG_SELECT_PARTITION="Select a partition (or press Enter to skip):"
+MSG_INVALID_INPUT_PARTITION="Invalid input. Please enter the partition number."
+MSG_INVALID_CHOICE_PARTITION="Invalid choice. Please select a valid number from the list."
+MSG_SELECTED_PARTITION="Selected partition: "
+
 # linuxinfo.sh
 MSG_ERROR_NO_DOWNLOAD_TOOL="Error: 'wget' or 'curl' not found. Please install one of them to continue."
 

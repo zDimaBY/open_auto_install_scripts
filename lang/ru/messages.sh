@@ -29,6 +29,90 @@ MSG_EXIT_INVALID_SELECTION="Неверный выбор. Введите 1, 2, 3 
 MSG_SERVER_TESTING_PORT_SPEED="скорость порта"
 MSG_SERVER_TESTING_PORT_MAIL="почта"
 
+# functions_controller.sh
+# function check_dependency
+MSG_ERROR_INFO_UNSUPPORTED_OS="Похоже, вы используете этот установщик не на системах Debian, Ubuntu, Fedora, CentOS, Oracle, AlmaLinux или Arch Linux. Ваша система: "
+MSG_ERROR_OS_DETECTION_FAILED="Не удалось определить операционную систему."
+MSG_ERROR_INSTALL_FAILED="Не удалось установить "
+MSG_ERROR_MANUAL_INSTALL_REQUIRED="Пожалуйста, установите его вручную."
+MSG_DEPENDENCY_NOT_INSTALLED=" не установлен. Устанавливаю..."
+MSG_DEPENDENCY_INSTALLED=" уже установлен."
+MSG_DEPENDENCY_SUCCESSFULLY_INSTALLED=" успешно установлен."
+
+# function install_package
+MSG_PACKAGE_INSTALL_FAILED="Не удалось установить "
+MSG_PACKAGE_ALREADY_INSTALLED=" уже установлен."
+MSG_PACKAGE_INSTALL_TRY_MANUAL="Не удалось установить "
+MSG_PACKAGE_INSTALL_MANUAL_PROMPT="Пожалуйста, попробуйте установить его вручную."
+
+# function generate_random_password_show
+MSG_GENERATED_RANDOM_PASSWORD="Сгенерированный случайный пароль:"
+
+# function check_docker_availability
+MSG_DOCKER_NOT_INSTALLED_THIS="Docker не установлен в этой системе."
+MSG_PROMPT_INSTALL_DOCKER="Хотите установить Docker? (y/n): "
+MSG_INSTALLING_DOCKER="Установка Docker..."
+MSG_DOCKER_INSTALLATION_CANCELED="Установка Docker отменена."
+MSG_DOCKER_NOT_STARTED="Docker не запущен. Запуск Docker..."
+MSG_DOCKER_START_SUCCESS="Команда 'sudo systemctl start docker' выполнена успешно."
+MSG_DOCKER_START_FAILED="Ошибка: Не удалось выполнить 'sudo systemctl start docker'."
+MSG_DOCKER_ALREADY_AUTOSTART="Docker уже включен в автозапуск."
+MSG_DOCKER_ADDED_AUTOSTART="Docker успешно добавлен в автозапуск."
+MSG_DOCKER_FAILED_AUTOSTART="Ошибка: Docker не был добавлен в автозапуск."
+MSG_DOCKER_STATUS="Статус Docker:"
+
+# function create_folder
+MSG_FOLDER_ALREADY_EXISTS="Папка уже существует."
+MSG_FOLDER_CREATED="Папка создана."
+
+# function copy_file_from_container
+MSG_WAITING_FOR_FILE="Ожидание создания файла в контейнере..."
+MSG_FILE_COPIED="Файл был скопирован в целевую директорию."
+
+# function mask_to_cidr get_public_interface
+MSG_INVALID_SUBNET_MASK="Недействительная маска подсети"
+MSG_NO_ADAPTER_FOUND="Не удалось найти адаптер с IP-адресом, совпадающим с результатом команды hostname -i:"
+
+# function get_selected_interface
+MSG_SELECT_NETWORK_ADAPTER="Выберите доступный сетевой адаптер:"
+MSG_ENTER_ADAPTER_NUMBER="Введите номер адаптера (от 1 до"
+MSG_ERROR_NOT_A_NUMBER="Ошибка: Ввод должен быть числом."
+MSG_ERROR_INVALID_ADAPTER_NUMBER="Ошибка: Неверный номер адаптера."
+MSG_ADAPTER_INFO="Информация о сетевом адаптере"
+MSG_IP_ADDRESS="IP-адрес:"
+MSG_SUBNET_MASK="Маска подсети:"
+MSG_GATEWAY="Шлюз:"
+
+# function add_firewall_rule
+MSG_PORT="Порт "
+MSG_FIREWALLD_NOT_RUNNING_PART1="firewalld не запущен или не установлен. Если установлен другой файрвол, открою порты в нем."
+MSG_IPTABLES_NOT_INSTALLED_PART1="iptables не установлен."
+MSG_UFW_NOT_INSTALLED_PART1="ufw не установлен."
+MSG_FIREWALL_NOT_INSTALLED_PART1="Ошибка: файервол не установлен или неизвестен. Проверьте порт "
+
+# function remove_firewall_rule
+MSG_FIREWALLD_NOT_RUNNING_PART2="firewalld не запущен или не установлен. Если установлен другой файрвол, удалю правила из него."
+MSG_RULE_FOR_PORT="Правило для порта "
+MSG_IPTABLES_NOT_INSTALLED_PART2="iptables не установлен."
+MSG_UFW_NOT_INSTALLED_PART2="ufw не установлен."
+MSG_FIREWALL_NOT_INSTALLED_PART2="Ошибка: файервол не установлен или неизвестен."
+
+# function check_domain
+MSG_DOMAIN_POINTED="Домен "
+MSG_DOMAIN_TARGET_SERVER=" указывает на этот сервер ("
+MSG_DOMAIN_NOT_TARGET_SERVER=" не указывает на этот сервер"
+
+# function select_disk_and_partition
+MSG_SELECT_DISK="Выберите диск:"
+MSG_INVALID_INPUT_DISK="Неверный ввод. Пожалуйста, введите номер диска."
+MSG_INVALID_CHOICE_DISK="Неверный выбор. Пожалуйста, выберите правильный номер из списка."
+MSG_SELECTED_DISK="Выбранный диск: "
+MSG_NO_PARTITIONS="На этом диске нет разделов."
+MSG_SELECT_PARTITION="Выберите раздел (или нажмите Enter, чтобы пропустить):"
+MSG_INVALID_INPUT_PARTITION="Неверный ввод. Пожалуйста, введите номер раздела."
+MSG_INVALID_CHOICE_PARTITION="Неверный выбор. Пожалуйста, выберите правильный номер из списка."
+MSG_SELECTED_PARTITION="Выбранный раздел: "
+
 # linuxinfo.sh
 MSG_ERROR_NO_DOWNLOAD_TOOL="Ошибка: 'wget' или 'curl' не найден. Пожалуйста, установите один из них для продолжения."
 

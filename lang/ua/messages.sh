@@ -29,6 +29,90 @@ MSG_EXIT_INVALID_SELECTION="Неправильний вибір. Введіть 
 MSG_SERVER_TESTING_PORT_SPEED="Швидкість порта"
 MSG_SERVER_TESTING_PORT_MAIL="Пошта"
 
+# functions_controller.sh
+# function check_dependency
+MSG_ERROR_INFO_UNSUPPORTED_OS="Схоже, що ви використовуєте цей установник не на системах Debian, Ubuntu, Fedora, CentOS, Oracle, AlmaLinux або Arch Linux. Ваша система: "
+MSG_ERROR_OS_DETECTION_FAILED="Не вдалося визначити операційну систему."
+MSG_ERROR_INSTALL_FAILED="Не вдалося встановити "
+MSG_ERROR_MANUAL_INSTALL_REQUIRED="Будь ласка, встановіть його вручну."
+MSG_DEPENDENCY_NOT_INSTALLED=" не встановлений. Встановлюю..."
+MSG_DEPENDENCY_INSTALLED=" вже встановлений."
+MSG_DEPENDENCY_SUCCESSFULLY_INSTALLED=" успішно встановлений."
+
+# function install_package
+MSG_PACKAGE_INSTALL_FAILED="Не вдалося встановити "
+MSG_PACKAGE_ALREADY_INSTALLED=" вже встановлений."
+MSG_PACKAGE_INSTALL_TRY_MANUAL="Не вдалося встановити "
+MSG_PACKAGE_INSTALL_MANUAL_PROMPT="Будь ласка, спробуйте встановити його вручну."
+
+# function generate_random_password_show
+MSG_GENERATED_RANDOM_PASSWORD="Сгенерований випадковий пароль:"
+
+# function check_docker_availability
+MSG_DOCKER_NOT_INSTALLED_THIS="Docker не встановлений в цій системі."
+MSG_PROMPT_INSTALL_DOCKER="Бажаєте встановити Docker? (y/n): "
+MSG_INSTALLING_DOCKER="Встановлюю Docker..."
+MSG_DOCKER_INSTALLATION_CANCELED="Встановлення Docker скасовано."
+MSG_DOCKER_NOT_STARTED="Docker не запущено. Запуск Docker..."
+MSG_DOCKER_START_SUCCESS="Команда 'sudo systemctl start docker' виконана успішно."
+MSG_DOCKER_START_FAILED="Помилка: Не вдалося виконати 'sudo systemctl start docker'."
+MSG_DOCKER_ALREADY_AUTOSTART="Docker вже включений в автозапуск."
+MSG_DOCKER_ADDED_AUTOSTART="Docker успішно додано в автозапуск."
+MSG_DOCKER_FAILED_AUTOSTART="Помилка: Docker не було додано в автозапуск."
+MSG_DOCKER_STATUS="Статус Docker:"
+
+# function create_folder
+MSG_FOLDER_ALREADY_EXISTS="Папка вже існує."
+MSG_FOLDER_CREATED="Папка створена."
+
+# function copy_file_from_container
+MSG_WAITING_FOR_FILE="Очікування створення файлу в контейнері..."
+MSG_FILE_COPIED="Файл був скопійований до цільової директорії."
+
+# function mask_to_cidr get_public_interface
+MSG_INVALID_SUBNET_MASK="Недійсна маска підмережі"
+MSG_NO_ADAPTER_FOUND="Не вдалося знайти адаптер з IP-адресою, що відповідає результату команди hostname -i:"
+
+# function get_selected_interface
+MSG_SELECT_NETWORK_ADAPTER="Виберіть доступний мережевий адаптер:"
+MSG_ENTER_ADAPTER_NUMBER="Введіть номер адаптера (від 1 до"
+MSG_ERROR_NOT_A_NUMBER="Помилка: Введення має бути числом."
+MSG_ERROR_INVALID_ADAPTER_NUMBER="Помилка: Невірний номер адаптера."
+MSG_ADAPTER_INFO="Інформація про мережевий адаптер"
+MSG_IP_ADDRESS="IP адреса:"
+MSG_SUBNET_MASK="Маска підмережі:"
+MSG_GATEWAY="Шлюз:"
+
+# function add_firewall_rule
+MSG_PORT="Порт "
+MSG_FIREWALLD_NOT_RUNNING_PART1="firewalld не запущений або не встановлений. Якщо встановлений інший файрвол, відкрию порти в ньому."
+MSG_IPTABLES_NOT_INSTALLED_PART1="iptables не встановлений."
+MSG_UFW_NOT_INSTALLED_PART1="ufw не встановлений."
+MSG_FIREWALL_NOT_INSTALLED_PART1="Помилка: файервол не встановлений або невідомий. Перевірте порт "
+
+# function remove_firewall_rule
+MSG_FIREWALLD_NOT_RUNNING_PART2="firewalld не запущений або не встановлений. Якщо встановлений інший файрвол, видалю правила з нього."
+MSG_RULE_FOR_PORT="Правило для порту "
+MSG_IPTABLES_NOT_INSTALLED_PART2="iptables не встановлений."
+MSG_UFW_NOT_INSTALLED_PART2="ufw не встановлений."
+MSG_FIREWALL_NOT_INSTALLED_PART2="Помилка: файервол не встановлений або невідомий."
+
+# function check_domain
+MSG_DOMAIN_POINTED="Домен "
+MSG_DOMAIN_TARGET_SERVER=" вказує на цей сервер ("
+MSG_DOMAIN_NOT_TARGET_SERVER=" не вказує на цей сервер"
+
+# function select_disk_and_partition
+MSG_SELECT_DISK="Виберіть диск:"
+MSG_INVALID_INPUT_DISK="Невірний ввід. Будь ласка, введіть номер диска."
+MSG_INVALID_CHOICE_DISK="Невірний вибір. Будь ласка, виберіть правильний номер зі списку."
+MSG_SELECTED_DISK="Вибраний диск: "
+MSG_NO_PARTITIONS="На цьому диску немає розділів."
+MSG_SELECT_PARTITION="Виберіть розділ (або натисніть Enter, щоб пропустити):"
+MSG_INVALID_INPUT_PARTITION="Невірний ввід. Будь ласка, введіть номер розділу."
+MSG_INVALID_CHOICE_PARTITION="Невірний вибір. Будь ласка, виберіть правильний номер зі списку."
+MSG_SELECTED_PARTITION="Вибраний розділ: "
+
 # linuxinfo.sh
 MSG_ERROR_NO_DOWNLOAD_TOOL="Помилка: 'wget' або 'curl' не знайдено. Будь ласка, встановіть один з них для продовження."
 
@@ -51,7 +135,7 @@ MSG_END_LIFE="Кінець підтримки"
 MSG_ERROR_IP_COMMAND="Помилка виконання команди ip"
 MSG_INSUFFICIENT_FIELDS="Недостатньо полів у рядку: "
 MSG_INVALID_FORMAT="Неправильний формат рядка: "
-MSG_HOSTNAME="Hostname:"
+MSG_HOSTNAME="Ім'я хоста:"
 MSG_PRIMARY_NETWORK="Основна мережа"
 MSG_STATUS_NETWORK="Статус мережі"
 MSG_FILE_SYSTEMS="Файлові системи:"

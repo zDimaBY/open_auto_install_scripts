@@ -143,7 +143,7 @@ check_info_server() {
 
     # Hostname and IP
     server_hostname=$(hostname)
-    echo -e "$MSG_HOSTNAME: $(print_color_message 0 255 0 "$server_hostname") IP: $(print_color_message 255 0 255 "${server_IPv4[0]}")"
+    echo -e "$MSG_HOSTNAME $(print_color_message 0 255 0 "$server_hostname") IP: $(print_color_message 255 0 255 "${server_IPv4[0]}")"
 
     if [[ "$1" == "full" ]]; then
         network_type="$(curl -s --max-time 5 http://ip6.me/api/ | cut -d, -f1)"
@@ -200,7 +200,7 @@ check_info_server() {
     # File Systems
     largest_disk=$(df -h | grep '^/dev/' | sort -k 4 -hr | head -n 1)
     disk_usage=$(echo "$largest_disk" | awk '{print $5}') # Disk usage on the largest disk
-    echo -e "\n$(print_color_message 255 255 0 "$MSG_FILE_SYSTEMS") $MSG_DISK_USAGE: $disk_usage"
+    echo -e "\n$(print_color_message 255 255 0 "$MSG_FILE_SYSTEMS") $MSG_DISK_USAGE $disk_usage"
     df -hT | grep '^/dev/'
 
     # Memory

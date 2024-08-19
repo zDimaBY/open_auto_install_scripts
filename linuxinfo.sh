@@ -4,6 +4,7 @@
 if [ -z "$1" ]; then
     LANG_open_auto_install_scripts="en"
 else
+    LANG_open_auto_install_scripts="$1"
     case "$LANG_open_auto_install_scripts" in
     "en" | "ru" | "ua") ;;
     *)
