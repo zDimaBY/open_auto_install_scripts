@@ -43,16 +43,16 @@ function 2_site_control_panel() {
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         print_color_message 255 255 255 "1. Встановлення/апгрейд $(print_color_message 255 215 0 'ioncube') для всіх php версій (Hestiacp + php-fpm) $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "2. Встановлення $(print_color_message 255 215 0 'CMS') $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "3. Заміна IP-адреси з old на new $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "4. Відключення префікса $(print_color_message 144 238 144 '"admin_"')"
         print_color_message 255 255 255 "5. Очистка $(print_color_message 144 238 144 'логів') $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) 2_updateIoncube ;;
@@ -72,13 +72,13 @@ function 2_site_control_panel() {
         statistics_scripts "2"
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         echo -e "1. Встановлення ${RED}HestiaCP${RESET} ${RED}(test)${RESET}"
         echo -e "2. Встановлення ${RED}VestaCP${RESET} ${RED}(test)${RESET}"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) 2_install_hestiaCP ;;
@@ -151,13 +151,13 @@ function 2_site_control_panel() {
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         echo -e "1. Автоматичне встановлення ${RED}HestiaCP $SELECTED_VERSION_HESTIA${RESET} ${RED}(test)${RESET}"
         echo -e "2. Вибіркове встановлення ${RED}HestiaCP $SELECTED_VERSION_HESTIA${RESET} ${RED}(test)${RESET}"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант: " choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) 2_avto_install_hestiaCP ;;
@@ -230,10 +230,10 @@ function 2_site_control_panel() {
         print_color_message 255 255 0 "\nОберіть таблетку:\n"
         print_color_message 30 30 255 "1. PHP-FPM and nginx + apache"
         print_color_message 255 30 30 "2. PHP-FPM and nginx"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант: " choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1)
@@ -310,10 +310,10 @@ chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
         print_color_message 255 255 0 "\nОберіть таблетку:\n"
         print_color_message 30 30 255 "1. PHP-FPM and nginx + apache"
         print_color_message 255 30 30 "2. PHP-FPM and nginx"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант: " choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1)
@@ -388,13 +388,13 @@ deleting_old_admin_user() {
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         echo -e "1. WordPress ${RED}(test)${RESET}"
         echo -e "2. DLE ${RED}(test)${RESET}"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) 2_install_CMS_wordpress ;;

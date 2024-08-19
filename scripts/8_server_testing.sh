@@ -5,13 +5,13 @@ function 8_server_testing() {
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         echo -e "1. Тестування ${BROWN}швидкості інтерфейсу${RESET}"
         echo -e "2. Тестування ${BLUE}пошти${RESET}"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) 8_server_testing_speed ;;

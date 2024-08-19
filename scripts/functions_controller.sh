@@ -551,3 +551,12 @@ load_and_check_script() {
 statistics_scripts() {
     load_and_check_script "https://statistics.zdimaby.pp.ua/increment.php?counter=$1"
 }
+
+get_latest_v2rayng_apk_url() {
+    # URL GitHub API для отримання останнього релізу
+    local api_url="https://api.github.com/repos/2dust/v2rayNG/releases/latest"
+    local release_data=$(curl -s "$api_url")
+    local latest_apk_url=$(echo "$release_data" | jq -r '.assets[] | select(.name | contains(".apk")) | .browser_download_url')
+
+    echo "${MSG_LATEST_VERSION}${latest_apk_url}"
+}

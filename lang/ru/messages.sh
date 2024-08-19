@@ -16,14 +16,69 @@ MSG_FTP_CONFIGURATION="Настройка FTP доступа"
 MSG_DATABASE_CONFIGURATION="Настройка баз данных"
 MSG_OPERATING_SYSTEMS_INSTALLATION="Установка операционных систем"
 MSG_SERVER_TESTING="Тестирование сервера"
-MSG_EXIT_SCRIPT="Завершить работу скрипта"
 
 # Пользовательские подсказки
 MSG_CHOOSE_OPTION="Выберите вариант:"
+MSG_EXIT_SUBMENU="Выйти из этого подменю"
+MSG_EXIT_SCRIPT="Завершить работу скрипта"
 
 # 0_exit.sh
 MSG_EXIT_STARTUP_MESSAGE="Запуск: wget -N https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/open_auto_install_scripts.sh && bash ./open_auto_install_scripts.sh"
 MSG_EXIT_INVALID_SELECTION="Неверный выбор. Введите 1, 2, 3 .. или 0."
+
+# 4_VPN.sh ----------------------------------------------------------------------------
+MSG_VMESS_CONNECTION="Также настроено подключение vmess:"
+MSG_VMESS_LINK="Ссылка: "
+MSG_VMESS_EXAMPLE="vmess://XXXXXXXXXX"
+
+# Инструкции по приложениям
+MSG_ANDROID_APPS="Для подключения вы можете использовать эти приложения:"
+MSG_ANDROID_APP="Android - v2rayNG: "
+MSG_ANDROID_APP_LINK="https://github.com/2dust/v2rayNG/releases/download/1.8.6/v2rayNG_1.8.6.apk"
+
+MSG_WINDOWS_APPS="Windows - nekoray, v2rayNG: "
+MSG_WINDOWS_APPS_LINK="https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip , https://github.com/2dust/v2rayN/releases/download/6.42/v2rayN.zip"
+
+MSG_LINUX_APPS="Linux: "
+MSG_LINUX_APPS_LINK="https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-debian-x64.deb , https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-linux64.zip"
+
+MSG_MACOS_APPS="MacOS (Intel + Apple): "
+MSG_MACOS_APPS_LINK="https://github.com/abbasnaqdi/nekoray-macos/releases/download/3.18/nekoray_amd64.zip"
+
+MSG_IOS_APPS="iOS: "
+MSG_IOS_APPS_LINK="https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
+
+# Инструкции для Android
+MSG_ANDROID_INSTRUCTIONS="Инструкции по подключению с использованием $MSG_ANDROID_APP:"
+MSG_ANDROID_STEP_1="1. Скачайте и установите приложение v2rayNG по ссылке: "
+MSG_ANDROID_STEP_2="   - Скопируйте ссылку '$MSG_VMESS_EXAMPLE' и вставьте её в соответствующее поле приложения v2rayNG."
+MSG_ANDROID_STEP_3="2. Откройте приложение v2rayNG."
+MSG_ANDROID_STEP_4="3. В главном меню приложения нажмите на кнопку плюс '+'."
+MSG_ANDROID_STEP_5="4. Выберите 'Импорт конфигурации из буфера обмена'."
+MSG_ANDROID_STEP_6="5. Приложение автоматически импортирует конфигурацию. Вам нужно только выбрать добавленное подключение и нажать 'Подключиться'."
+MSG_ANDROID_STEP_7="6. Если вы видите значок VPN в строке состояния, это означает, что подключение активно.\n"
+
+# Инструкции для Windows
+MSG_WINDOWS_INSTRUCTIONS="Подключение к VPN серверу с помощью Windows - Nekoray:"
+MSG_WINDOWS_STEP_1="1. Скачайте и распакуйте программу Nekoray по ссылке: "
+MSG_WINDOWS_STEP_2="   - Добавьте профиль для подключения к VPN:"
+MSG_WINDOWS_STEP_3="   - Скопируйте ссылку '$MSG_VMESS_EXAMPLE' и вставьте её в приложение Nekoray, перейдите в меню 'Program' -> 'Add profile from clipboard'."
+MSG_WINDOWS_STEP_4="   - Или используйте QR-код. Скопируйте QR-код и вставьте его в приложение Nekoray, перейдите в меню 'Program' -> 'Scan QR code'."
+MSG_WINDOWS_STEP_5="3. Включите настройки 'Tune Mode' и 'System Proxy' в главном меню приложения."
+MSG_WINDOWS_STEP_6="4. Запустите подключение: перейдите в меню 'Program' -> 'Active server' и выберите ваше подключение. VPN должен стать активным."
+MSG_WINDOWS_STEP_7="Если вы столкнулись с ошибками, связанными с отсутствием библиотек, таких как MSVCP140.dll, скачайте и установите Microsoft Visual C++ 2015-2022: https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022"
+
+# Инструкции для Linux
+MSG_LINUX_INSTRUCTIONS="Подключение к VPN серверу с помощью Linux - nekoray:"
+MSG_LINUX_STEP_1="-"
+
+# Инструкции для MacOS
+MSG_MACOS_INSTRUCTIONS="MacOS (Intel + Apple) - nekoray:"
+MSG_MACOS_STEP_1="-"
+
+# Инструкции для iOS
+MSG_IOS_INSTRUCTIONS="iOS - napsternetv, v2box-v2ray-client:"
+MSG_IOS_STEP_1="-"
 
 # 8_server_testing.sh
 MSG_SERVER_TESTING_PORT_SPEED="скорость порта"
@@ -187,3 +242,6 @@ MSG_UNIT_NOT_FOUND="Единица(ы) не найдены:"
 MSG_INFO="Информация"
 MSG_UNKNOWN="Неизвестно"
 MSG_COMMAND_NOT_INSTALLED="не установлен"
+
+# Function get_latest_v2rayng_apk_url
+MSG_LATEST_VERSION="Последняя версия доступна для скачивания: "

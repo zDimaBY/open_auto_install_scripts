@@ -20,16 +20,72 @@ MSG_EXIT_SCRIPT="Exit script"
 
 # User prompts
 MSG_CHOOSE_OPTION="Choose an option:"
+MSG_EXIT_SUBMENU="Exit this submenu"
+MSG_EXIT_SCRIPT="End the script"
 
-# 0_exit.sh
+# 0_exit.sh ----------------------------------------------------------------------------
 MSG_EXIT_STARTUP_MESSAGE="Starting: wget -N https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/open_auto_install_scripts.sh && bash ./open_auto_install_scripts.sh"
 MSG_EXIT_INVALID_SELECTION="Invalid choice. Enter 1, 2, 3 .. or 0."
+
+# 4_VPN.sh ----------------------------------------------------------------------------
+MSG_VMESS_CONNECTION="Also configured vmess connection:"
+MSG_VMESS_LINK="Link: "
+MSG_VMESS_EXAMPLE="vmess://XXXXXXXXXX"
+
+# Application instructions
+MSG_ANDROID_APPS="For connection, you can use these apps:"
+MSG_ANDROID_APP="Android - v2rayNG: "
+MSG_ANDROID_APP_LINK="https://github.com/2dust/v2rayNG/releases/download/1.8.6/v2rayNG_1.8.6.apk"
+
+MSG_WINDOWS_APPS="Windows - nekoray, v2rayNG: "
+MSG_WINDOWS_APPS_LINK="https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip , https://github.com/2dust/v2rayN/releases/download/6.42/v2rayN.zip"
+
+MSG_LINUX_APPS="Linux: "
+MSG_LINUX_APPS_LINK="https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-debian-x64.deb , https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-linux64.zip"
+
+MSG_MACOS_APPS="MacOS (Intel + Apple): "
+MSG_MACOS_APPS_LINK="https://github.com/abbasnaqdi/nekoray-macos/releases/download/3.18/nekoray_amd64.zip"
+
+MSG_IOS_APPS="iOS: "
+MSG_IOS_APPS_LINK="https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
+
+# Instructions for Android
+MSG_ANDROID_INSTRUCTIONS="Instructions for connecting using $MSG_ANDROID_APP:"
+MSG_ANDROID_STEP_1="1. Download and install the v2rayNG app from the link: "
+MSG_ANDROID_STEP_2="   - Copy the link '$MSG_VMESS_EXAMPLE' and paste it into the appropriate field of the v2rayNG app."
+MSG_ANDROID_STEP_3="2. Open the v2rayNG app."
+MSG_ANDROID_STEP_4="3. In the main menu of the app, click on the plus '+' button."
+MSG_ANDROID_STEP_5="4. Choose 'Import config from Clipboard'."
+MSG_ANDROID_STEP_6="5. The app will automatically import the configuration. You just need to select the added connection and click 'Connect'."
+MSG_ANDROID_STEP_7="6. If you see the VPN icon in the status bar, it means the connection is active.\n"
+
+# Instructions for Windows
+MSG_WINDOWS_INSTRUCTIONS="Connecting to VPN server using Windows - Nekoray:"
+MSG_WINDOWS_STEP_1="1. Download and unzip the Nekoray program from the link: "
+MSG_WINDOWS_STEP_2="   - Add a profile for VPN connection:"
+MSG_WINDOWS_STEP_3="   - Copy the link '$MSG_VMESS_EXAMPLE' and paste it into the Nekoray app, go to 'Program' -> 'Add profile from clipboard'."
+MSG_WINDOWS_STEP_4="   - Or use the QR code. Copy the QR code and paste it into the Nekoray app, go to 'Program' -> 'Scan QR code'."
+MSG_WINDOWS_STEP_5="3. Enable 'Tune Mode' and 'System Proxy' settings in the main menu of the app."
+MSG_WINDOWS_STEP_6="4. Start the connection: go to 'Program' -> 'Active server' and select your connection. The VPN should become active."
+MSG_WINDOWS_STEP_7="If you encounter errors related to missing libraries like MSVCP140.dll, download and install Microsoft Visual C++ 2015-2022: https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022"
+
+# Instructions for Linux
+MSG_LINUX_INSTRUCTIONS="Connecting to VPN server using Linux - nekoray:"
+MSG_LINUX_STEP_1="-"
+
+# Instructions for MacOS
+MSG_MACOS_INSTRUCTIONS="MacOS (Intel + Apple) - nekoray:"
+MSG_MACOS_STEP_1="-"
+
+# Instructions for iOS
+MSG_IOS_INSTRUCTIONS="iOS - napsternetv, v2box-v2ray-client:"
+MSG_IOS_STEP_1="-"
 
 # 8_server_testing.sh
 MSG_SERVER_TESTING_PORT_SPEED="port speed"
 MSG_SERVER_TESTING_PORT_MAIL="post"
 
-# functions_controller.sh
+# functions_controller.sh ----------------------------------------------------------------------------
 # function check_dependency
 MSG_ERROR_INFO_UNSUPPORTED_OS="It looks like you are not using this installer on Debian, Ubuntu, Fedora, CentOS, Oracle, AlmaLinux, or Arch Linux systems. Your system: "
 MSG_ERROR_OS_DETECTION_FAILED="Failed to determine the operating system."
@@ -187,3 +243,6 @@ MSG_UNIT_NOT_FOUND="Unit(s) not found:"
 MSG_INFO="Information"
 MSG_UNKNOWN="Unknown"
 MSG_COMMAND_NOT_INSTALLED="is not installed"
+
+# Function get_latest_v2rayng_apk_url
+MSG_LATEST_VERSION="Latest version available for download: "

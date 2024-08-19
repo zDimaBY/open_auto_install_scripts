@@ -5,7 +5,7 @@ function 4_VPN() {
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         print_color_message 255 255 255 "1. $(print_color_message 255 215 0 '3X-UI') $(print_color_message 144 238 144 '(WEB, on docker install)') $(print_color_message 135 206 235 'https://github.com/MHSanaei/3x-ui') $(print_color_message 144 238 144 '(OS - Windows 64)')"
         print_color_message 255 255 255 "2. $(print_color_message 255 215 0 'X-UI') $(print_color_message 144 238 144 '(WEB, on docker install)') $(print_color_message 135 206 235 'https://github.com/alireza0/x-ui/pkgs/container/x-ui')"
         print_color_message 255 255 255 "3. $(print_color_message 255 215 0 'WireGuard Easy') $(print_color_message 144 238 144 '(WEB, on docker install)') $(print_color_message 135 206 235 'https://github.com/wg-easy/wg-easy')"
@@ -13,10 +13,10 @@ function 4_VPN() {
         print_color_message 255 255 255 "5. $(print_color_message 255 215 0 'WireGuard') $(print_color_message 255 215 0 '(locall install)') $(print_color_message 135 206 235 'https://github.com/angristan/wireguard-install')"
         print_color_message 255 255 255 "6. $(print_color_message 255 215 0 'OpenVPN') $(print_color_message 255 215 0 '(locall install)') $(print_color_message 135 206 235 'https://github.com/angristan/openvpn-install')"
         print_color_message 255 255 255 "7. $(print_color_message 255 215 0 'PPTP encryption (MPPE)') $(print_color_message 255 215 0 '(docker install)') $(print_color_message 135 206 235 'https://github.com/mobtitude/docker-vpn-pptp')"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) menu_3x_ui ;;
@@ -34,36 +34,53 @@ function 4_VPN() {
 }
 
 info_for_client_programs() {
-    echo -e "${YELLOW}Також, налаштував vmess підключення:${RESET}"
-    echo -e "- QR-код (знімок екрану додаю)"
-    echo -e "- посилання: "
-    echo -e "vmess://XXXXXXXXXX\n"
+    echo -e "${YELLOW}${MSG_VMESS_CONNECTION}${RESET}"
+    echo -e "${MSG_VMESS_LINK}"
+    echo -e "${MSG_VMESS_EXAMPLE}\n"
 
-    echo -e "${YELLOW}Для підключення, можете використати ці додатки:${RESET}"
-    echo -e "${GREEN}Android - v2rayNG: ${RESET}https://github.com/2dust/v2rayNG/releases/download/1.8.6/v2rayNG_1.8.6.apk"
-    echo -e "${GREEN}Windows - nekoray, v2rayNG: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip , https://github.com/2dust/v2rayN/releases/download/6.42/v2rayN.zip"
-    echo -e "${GREEN}Linux: ${RESET}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-debian-x64.deb , https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-linux64.zip"
-    echo -e "${GREEN}MacOS (Intel + Apple): ${RESET}https://github.com/abbasnaqdi/nekoray-macos/releases/download/3.18/nekoray_amd64.zip"
-    echo -e "${GREEN}iOS: ${RESET}https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
+    echo -e "${YELLOW}${MSG_ANDROID_APPS}${RESET}"
+    echo -e "${GREEN}${MSG_ANDROID_APP}${RESET}"
+    get_latest_v2rayng_apk_url
+    
+    echo -e "${YELLOW}${MSG_WINDOWS_APPS}${RESET}"
+    echo -e "${GREEN}${MSG_WINDOWS_APPS_LINK}${RESET}"
+    
+    echo -e "${YELLOW}${MSG_LINUX_APPS}${RESET}"
+    echo -e "${GREEN}${MSG_LINUX_APPS_LINK}${RESET}"
+    
+    echo -e "${YELLOW}${MSG_MACOS_APPS}${RESET}"
+    echo -e "${GREEN}${MSG_MACOS_APPS_LINK}${RESET}"
+    
+    echo -e "${YELLOW}${MSG_IOS_APPS}${RESET}"
+    echo -e "${GREEN}${MSG_IOS_APPS_LINK}${RESET}"
 
-    echo -e "\n\nІнструкції для підключення:"
-    echo -e "Android - v2rayNG:"
-    echo -e "-"
-    echo -e "${GREEN}Підключення до VPN сервера за допомогою Nekoray (Windows):${RESET}"
-    echo -e "${YELLOW}Щоб підключитись, виконайте наступні кроки:${RESET}"
-    echo -e "${YELLOW}1. Завантажте та розпакуйте програму Nekoray за посиланням:${RESET} ${GREEN}https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip${RESET}"
-    echo -e "${YELLOW}2. Додайте профіль для підключення до VPN:${RESET}"
-    echo -e "${YELLOW}   - Скопіюйте посилання 'vmess://XXXXXXXXXX' і вставте його в програму Nekoray, перейдіть у меню 'Program' -> 'Add profile from clipboard'.${RESET}"
-    echo -e "${YELLOW}   - Або скористайтесь QR-кодом. Скопіюйте QR-код і вставте його в програму Nekoray, перейдіть у меню 'Program' -> 'Scan QR code'.${RESET}"
-    echo -e "${YELLOW}3. Увімкніть налаштування 'Tune Mode' і 'System Proxy' в головному меню програми.${RESET}"
-    echo -e "${YELLOW}4. Запустіть підключення: перейдіть у меню 'Program' -> 'Active server' і виберіть ваше підключення. VPN має стати активним.${RESET}"
-    echo -e "Якщо виникає помилка відсутности бібліотек MSVCP140.dll. та інші, то скачайте і встановіть Microsoft Visual C++ 2015-2022: \nhttps://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022"
-    echo -e "Linux - nekoray:"
-    echo -e "-"
-    echo -e "MacOS (Intel + Apple) - nekoray:"
-    echo -e "-"
-    echo -e "iOS - napsternetv, v2box-v2ray-client:"
-    echo -e "-"
+    echo -e "\n\n${MSG_ANDROID_INSTRUCTIONS}"
+    echo -e "${MSG_ANDROID_STEP_1}"
+    get_latest_v2rayng_apk_url
+    echo -e "${MSG_ANDROID_STEP_2}"
+    echo -e "${MSG_ANDROID_STEP_3}"
+    echo -e "${MSG_ANDROID_STEP_4}"
+    echo -e "${MSG_ANDROID_STEP_5}"
+    echo -e "${MSG_ANDROID_STEP_6}"
+    echo -e "${MSG_ANDROID_STEP_7}"
+
+    echo -e "${MSG_WINDOWS_INSTRUCTIONS}"
+    echo -e "${MSG_WINDOWS_STEP_1}${MSG_WINDOWS_APPS_LINK}"
+    echo -e "${MSG_WINDOWS_STEP_2}"
+    echo -e "${MSG_WINDOWS_STEP_3}"
+    echo -e "${MSG_WINDOWS_STEP_4}"
+    echo -e "${MSG_WINDOWS_STEP_5}"
+    echo -e "${MSG_WINDOWS_STEP_6}"
+    echo -e "${MSG_WINDOWS_STEP_7}"
+
+    echo -e "${MSG_LINUX_INSTRUCTIONS}"
+    echo -e "${MSG_LINUX_STEP_1}"
+
+    echo -e "${MSG_MACOS_INSTRUCTIONS}"
+    echo -e "${MSG_MACOS_STEP_1}"
+
+    echo -e "${MSG_IOS_INSTRUCTIONS}"
+    echo -e "${MSG_IOS_STEP_1}"
 
     echo -e "https://itdog.info/klienty-vless-shadowsocks-trojan-xray-sing-box-dlya-windows-android-ios-macos-linux/"
 }
@@ -76,15 +93,15 @@ menu_x_ui() {
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         echo "1. Встановлення X-UI"
         echo "2. Зупинка X-UI"
         echo "3. Видалення X-UI"
         #echo "4. Оновлення X-UI"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) list_x_ui_versions_install ;;
@@ -174,15 +191,15 @@ menu_3x_ui() {
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         echo "1. Встановлення 3X-UI"
         echo "2. Зупинка 3X-UI"
         echo "3. Видалення 3X-UI"
         #echo "4. Оновлення 3X-UI"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) list_3x_ui_versions_install ;;
@@ -265,15 +282,15 @@ menu_wireguard_easy() {
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         echo "1. Встановлення WireGuard Easy"
         echo "2. Зупинка WireGuard Easy"
         echo "3. Видалення WireGuard Easy"
         echo "4. Оновлення WireGuard Easy"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) install_wg_easy ;;
@@ -367,10 +384,10 @@ menu_wireguard_scriptLocal() {
         echo -e "\nWireGuard installer. Виберіть дію:\n"
         echo "1. Автоматичне встановлення WireGuard"
         echo "2. Меню керування WireGuard та ручне встановлення"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) install_wireguard_scriptLocal ;;
@@ -445,10 +462,10 @@ menu_openVPNLocal() {
         echo -e "\nOpenVPN installer. Виберіть дію:\n"
         echo "1. Автоматичне встановлення OpenVPN"
         echo "2. Меню керування OpenVPN та ручне встановлення"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) avtoInstall_openVPN ;;
@@ -544,10 +561,10 @@ menu_IPsec_L2TP_IKEv2() {
         echo "3. Зупинка ipsec-vpn-server"
         echo "4. Видалення ipsec-vpn-server"
         echo "5. Оновлення ipsec-vpn-server"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) install_ipsec_vpn_server ;;
@@ -716,15 +733,15 @@ menu_PPTP() {
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         echo "1. Встановлення VPN-PPTP"
         echo "2. Додавання нового користувача"
         echo "3. Зупинка VPN-PPTP"
         echo "4. Видалення VPN-PPTP"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант: " choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) install_PPTP ;;

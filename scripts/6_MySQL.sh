@@ -6,13 +6,13 @@ function 6_manage_docker_databases() {
     fi
     statistics_scripts "6"
     while true; do
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         print_color_message 255 255 255 "1. $(print_color_message 255 215 0 'MySQL')"
         print_color_message 255 255 255 "2. $(print_color_message 255 215 0 'MariaDB')"
         print_color_message 255 255 255 "3. $(print_color_message 255 215 0 'MongoDB')"
         print_color_message 255 255 255 "4. $(print_color_message 255 215 0 'PostgreSQL')"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
         read -p "Виберіть дію:" choice
         case $choice in
         1) install_database "mysql" ;;
@@ -35,10 +35,10 @@ function install_database() {
         echo "2. Видалити образ"
         echo "3. Налаштувати Docker"
         echo "4. Перелік запущених контейнерів"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) select_tag_and_install "$db_name" ;;

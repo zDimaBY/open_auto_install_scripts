@@ -8,15 +8,15 @@ function 5_FTP() {
     while true; do
         check_info_server
         check_info_control_panel
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         print_color_message 255 255 255 "1. Встановлення $(print_color_message 255 215 0 'alpine-ftp-server')"
         print_color_message 255 255 255 "2. Зупинка $(print_color_message 255 215 0 'alpine-ftp-server')"
         print_color_message 255 255 255 "3. Видалення $(print_color_message 255 215 0 'alpine-ftp-server')"
         print_color_message 255 255 255 "4. Оновлення $(print_color_message 255 215 0 'alpine-ftp-server')"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
-        print_color_message 255 255 255 "00. Закінчити роботу скрипта\n"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
-        read -p "Виберіть варіант:" choice
+        read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
         1) install_alpine_ftp_server ;;

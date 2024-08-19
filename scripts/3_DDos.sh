@@ -9,13 +9,13 @@ function 3_DDos() {
         get_selected_interface
         read -p "Введіть тривалість таймауту tcpdump (у секундах, стандартне значення: 5): " duration
         duration=${duration:-5}
-        print_color_message 255 255 0 "\nВиберіть дію:\n"
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         print_color_message 255 255 255 "1. Аналіз кількості IP-запитів на мережевому інтерфейсі протягом $(print_color_message 255 99 71 '$duration') секунд"
         print_color_message 255 255 255 "2. Аналіз кількості унікальних IP-адрес на мережевому інтерфейсі протягом $(print_color_message 255 99 71 '$duration') секунд"
         print_color_message 255 255 255 "3. Перехопити пакети з мережевого інтерфейсу $(print_color_message 255 99 71 '$selected_adapter') окрім ssh/22"
         print_color_message 255 255 255 "4. Створити файл blocked_IPs.log на основі аналізу tcpdump протягом $(print_color_message 255 99 71 '$duration') секунд"
         print_color_message 255 255 255 "5. Створити резервні копії iptables та заблокувати IP з файлу $(print_color_message 255 99 71 'blocked_IPs.log')"
-        print_color_message 255 255 255 "\n0. Вийти з цього підменю!"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         read -p "Виберіть опцію (1/0): " choice
 
         case $choice in
