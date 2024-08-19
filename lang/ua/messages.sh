@@ -42,10 +42,10 @@ MSG_LINUX_APPS="Linux: "
 MSG_MACOS_APPS="MacOS (Intel + Apple): "
 
 MSG_IOS_APPS="iOS: "
-MSG_IOS_APPS_LINK="https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
+MSG_IOS_APPS_LINK="https://apps.apple.com/us/app/napsternetv/id1629465476\nhttps://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
 
 # Інструкції для Android
-MSG_ANDROID_INSTRUCTIONS="Інструкції для підключення за допомогою $MSG_ANDROID_APP:"
+MSG_ANDROID_INSTRUCTIONS="Інструкції для підключення за допомогою $MSG_ANDROID_APP"
 MSG_ANDROID_STEP_1="1. Завантажте та встановіть додаток v2rayNG за посиланням: "
 MSG_ANDROID_STEP_2="   - Скопіюйте посилання '$MSG_VMESS_EXAMPLE' і вставте його у відповідне поле додатку v2rayNG."
 MSG_ANDROID_STEP_3="2. Відкрийте додаток v2rayNG."
@@ -57,7 +57,7 @@ MSG_ANDROID_STEP_7="6. Якщо ви бачите значок VPN у стату
 # Інструкції для Windows
 MSG_WINDOWS_INSTRUCTIONS="Підключення до VPN сервера за допомогою Windows - Nekoray:"
 MSG_WINDOWS_STEP_1="1. Завантажте та розпакуйте програму Nekoray за посиланням: "
-MSG_WINDOWS_STEP_2="   - Додайте профіль для підключення до VPN:"
+MSG_WINDOWS_STEP_2="2. Додайте профіль для підключення до VPN:"
 MSG_WINDOWS_STEP_3="   - Скопіюйте посилання '$MSG_VMESS_EXAMPLE' і вставте його в додаток Nekoray, перейдіть у меню 'Program' -> 'Add profile from clipboard'."
 MSG_WINDOWS_STEP_4="   - Або скористайтеся QR-кодом. Скопіюйте QR-код і вставте його в додаток Nekoray, перейдіть у меню 'Program' -> 'Scan QR code'."
 MSG_WINDOWS_STEP_5="3. Увімкніть налаштування 'Tune Mode' і 'System Proxy' в головному меню програми."

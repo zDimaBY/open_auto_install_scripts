@@ -43,25 +43,24 @@ info_for_client_programs() {
     get_latest_files_url "https://api.github.com/repos/2dust/v2rayNG" "apk"
     get_latest_files_url "https://api.github.com/repos/MatsuriDayo/NekoBoxForAndroid" "apk"
 
-    echo -e "${YELLOW}${MSG_WINDOWS_APPS}${RESET}"
+    echo -e "${GREEN}${MSG_WINDOWS_APPS}${RESET}"
     # Furious (Windows, Linux)
     get_latest_files_url "https://api.github.com/repos/MatsuriDayo/nekoray" "zip" | grep windows64.zip
     get_latest_files_url "https://api.github.com/repos/2dust/v2rayN" "zip" | grep v2rayN.zip
     get_latest_files_url "https://api.github.com/repos/LorenEteval/Furious" "zip"
     get_latest_files_url "https://api.github.com/repos/InvisibleManVPN/InvisibleMan-XRayClient" "zip"
 
-
-    echo -e "${YELLOW}${MSG_LINUX_APPS}${RESET}"
+    echo -e "${GREEN}${MSG_LINUX_APPS}${RESET}"
     get_latest_files_url "https://api.github.com/repos/MatsuriDayo/nekoray" "deb,zip" | grep -v windows64.zip
 
-    echo -e "${YELLOW}${MSG_MACOS_APPS}${RESET}"
+    echo -e "${GREEN}${MSG_MACOS_APPS}${RESET}"
     get_latest_files_url "https://api.github.com/repos/abbasnaqdi/nekoray-macos" "zip"
 
-    echo -e "${YELLOW}${MSG_IOS_APPS}${RESET}"
-    echo -e "${GREEN}${MSG_IOS_APPS_LINK}${RESET}"
+    echo -e "${GREEN}${MSG_IOS_APPS}${RESET}"
+    print_color_message 135 206 235 "${MSG_IOS_APPS_LINK}"
 
-    echo -e "\n\n${MSG_ANDROID_INSTRUCTIONS}"
-    echo -e "${YELLOW}${MSG_ANDROID_STEP_1}${RESET}"
+    echo -e "\n\n${YELLOW}${MSG_ANDROID_INSTRUCTIONS}${RESET}"
+    echo -e "${MSG_ANDROID_STEP_1}"
     get_latest_files_url "https://api.github.com/repos/2dust/v2rayNG" "apk" | grep universal.apk
     echo -e "\n${MSG_ANDROID_STEP_2}"
     echo -e "${MSG_ANDROID_STEP_3}"
@@ -73,7 +72,6 @@ info_for_client_programs() {
     echo -e "${YELLOW}${MSG_WINDOWS_INSTRUCTIONS}${RESET}"
     echo -e "${MSG_WINDOWS_STEP_1}"
     get_latest_files_url "https://api.github.com/repos/MatsuriDayo/nekoray" "zip" | grep windows64.zip
-    get_latest_files_url "https://api.github.com/repos/2dust/v2rayN" "zip" | grep v2rayN.zip
     echo -e "\n${MSG_WINDOWS_STEP_2}"
     echo -e "${MSG_WINDOWS_STEP_3}"
     echo -e "${MSG_WINDOWS_STEP_4}"
