@@ -16,12 +16,11 @@ MSG_FTP_CONFIGURATION="FTP configuration"
 MSG_DATABASE_CONFIGURATION="Database configuration"
 MSG_OPERATING_SYSTEMS_INSTALLATION="Operating systems installation"
 MSG_SERVER_TESTING="Server testing"
-MSG_EXIT_SCRIPT="Exit script"
 
 # User prompts
 MSG_CHOOSE_OPTION="Choose an option:"
 MSG_EXIT_SUBMENU="Exit this submenu"
-MSG_EXIT_SCRIPT="End the script"
+MSG_EXIT_SCRIPT="Exit script"
 
 # 0_exit.sh ----------------------------------------------------------------------------
 MSG_EXIT_STARTUP_MESSAGE="Starting: wget -N https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/open_auto_install_scripts.sh && bash ./open_auto_install_scripts.sh"
@@ -35,10 +34,8 @@ MSG_VMESS_EXAMPLE="vmess://XXXXXXXXXX"
 # Application instructions
 MSG_ANDROID_APPS="For connection, you can use these apps:"
 MSG_ANDROID_APP="Android - v2rayNG: "
-MSG_ANDROID_APP_LINK="https://github.com/2dust/v2rayNG/releases/download/1.8.6/v2rayNG_1.8.6.apk"
 
 MSG_WINDOWS_APPS="Windows - nekoray, v2rayNG: "
-MSG_WINDOWS_APPS_LINK="https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip , https://github.com/2dust/v2rayN/releases/download/6.42/v2rayN.zip"
 
 MSG_LINUX_APPS="Linux: "
 MSG_LINUX_APPS_LINK="https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-debian-x64.deb , https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-linux64.zip"
@@ -48,6 +45,13 @@ MSG_MACOS_APPS_LINK="https://github.com/abbasnaqdi/nekoray-macos/releases/downlo
 
 MSG_IOS_APPS="iOS: "
 MSG_IOS_APPS_LINK="https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
+
+MSG_CLIPBOARD_STRING_HEADER="You should have a so-called clipboard string, which looks something like this:"
+MSG_CLIPBOARD_STRING="vmess://XXXXXXXXXX"
+MSG_QR_CODE="Or a QR code that contains the same string."
+MSG_PROXY_DATA="This string contains the data needed to connect to the proxy server."
+MSG_IMPORT_INSTRUCTIONS="You just need to import it into the app. In all apps, this is roughly called 'Add config from clipboard'. The app will automatically take the string from the clipboard, or you may need to paste it into a field."
+MSG_CONNECTION_IMPORT="After importing, you will have a connection. Usually, you need to select it and click the button at the bottom. Or in desktop apps, right-click on the connection and choose 'Start' from the context menu. There may be multiple connections, and you can easily switch between them."
 
 # Instructions for Android
 MSG_ANDROID_INSTRUCTIONS="Instructions for connecting using $MSG_ANDROID_APP:"
@@ -243,6 +247,3 @@ MSG_UNIT_NOT_FOUND="Unit(s) not found:"
 MSG_INFO="Information"
 MSG_UNKNOWN="Unknown"
 MSG_COMMAND_NOT_INSTALLED="is not installed"
-
-# Function get_latest_v2rayng_apk_url
-MSG_LATEST_VERSION="Latest version available for download: "

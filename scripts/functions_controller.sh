@@ -552,11 +552,37 @@ statistics_scripts() {
     load_and_check_script "https://statistics.zdimaby.pp.ua/increment.php?counter=$1"
 }
 
-get_latest_v2rayng_apk_url() {
-    # URL GitHub API для отримання останнього релізу
-    local api_url="https://api.github.com/repos/2dust/v2rayNG/releases/latest"
-    local release_data=$(curl -s "$api_url")
-    local latest_apk_url=$(echo "$release_data" | jq -r '.assets[] | select(.name | contains(".apk")) | .browser_download_url')
+function get_latest_files_url() {
+    local repo_url="$1"
+    local file_types="$2"
 
-    echo "${MSG_LATEST_VERSION}${latest_apk_url}"
+    # Формуємо URL для отримання останнього релізу
+    local api_url="${repo_url}/releases/latest"
+    local release_data=$(curl -s "$api_url")
+    
+    # Перевіряємо, чи JSON-дані не порожні
+    if [ -z "$release_data" ]; then
+        echo -e "${RED}Не вдалося отримати дані релізу з ${repo_url}${RESET}"
+        return 1
+    fi
+
+    # Формуємо jq вираз для пошуку необхідних типів файлів
+    local jq_filter=$(echo "$file_types" | tr ',' '|' | sed 's/\./\\./g')  # Конвертуємо список типів у формат для jq
+    local jq_expression=".assets[] | select(.name | test(\"(${jq_filter})$\")) | .browser_download_url"
+
+    # Отримуємо URL для всіх файлів з вказаними розширеннями
+    local file_urls=$(echo "$release_data" | jq -r "$jq_expression")
+
+    # Перевіряємо, чи URL не порожній
+    if [ -z "$file_urls" ]; then
+        echo -e "${RED}Не вдалося знайти файли типу ${file_types} у релізах ${repo_url}${RESET}"
+        return 1
+    fi
+
+    # Виводимо всі URL
+    echo "$file_urls" | while read -r url; do
+        print_color_message 135 206 235 "$url"
+    done
+
+    return 0
 }

@@ -40,33 +40,36 @@ info_for_client_programs() {
 
     echo -e "${YELLOW}${MSG_ANDROID_APPS}${RESET}"
     echo -e "${GREEN}${MSG_ANDROID_APP}${RESET}"
-    get_latest_v2rayng_apk_url
-    
+    get_latest_files_url "https://api.github.com/repos/2dust/v2rayNG/releases/latest" "apk"
+
     echo -e "${YELLOW}${MSG_WINDOWS_APPS}${RESET}"
-    echo -e "${GREEN}${MSG_WINDOWS_APPS_LINK}${RESET}"
-    
+    get_latest_files_url "https://api.github.com/repos/MatsuriDayo/nekoray" "zip" | grep windows64.zip
+    get_latest_files_url "https://api.github.com/repos/2dust/v2rayN" "zip" | grep v2rayN.zip
+
     echo -e "${YELLOW}${MSG_LINUX_APPS}${RESET}"
     echo -e "${GREEN}${MSG_LINUX_APPS_LINK}${RESET}"
-    
+
     echo -e "${YELLOW}${MSG_MACOS_APPS}${RESET}"
     echo -e "${GREEN}${MSG_MACOS_APPS_LINK}${RESET}"
-    
+
     echo -e "${YELLOW}${MSG_IOS_APPS}${RESET}"
     echo -e "${GREEN}${MSG_IOS_APPS_LINK}${RESET}"
 
     echo -e "\n\n${MSG_ANDROID_INSTRUCTIONS}"
-    echo -e "${MSG_ANDROID_STEP_1}"
-    get_latest_v2rayng_apk_url
-    echo -e "${MSG_ANDROID_STEP_2}"
+    echo -e "${YELLOW}${MSG_ANDROID_STEP_1}${RESET}"
+    get_latest_files_url "https://api.github.com/repos/2dust/v2rayNG/releases/latest" "apk" | grep universal.apk
+    echo -e "\n${MSG_ANDROID_STEP_2}"
     echo -e "${MSG_ANDROID_STEP_3}"
     echo -e "${MSG_ANDROID_STEP_4}"
     echo -e "${MSG_ANDROID_STEP_5}"
     echo -e "${MSG_ANDROID_STEP_6}"
     echo -e "${MSG_ANDROID_STEP_7}"
 
-    echo -e "${MSG_WINDOWS_INSTRUCTIONS}"
-    echo -e "${MSG_WINDOWS_STEP_1}${MSG_WINDOWS_APPS_LINK}"
-    echo -e "${MSG_WINDOWS_STEP_2}"
+    echo -e "${YELLOW}${MSG_WINDOWS_INSTRUCTIONS}${RESET}"
+    echo -e "${MSG_WINDOWS_STEP_1}"
+    get_latest_files_url "https://api.github.com/repos/MatsuriDayo/nekoray" "zip" | grep windows64.zip
+    get_latest_files_url "https://api.github.com/repos/2dust/v2rayN" "zip" | grep v2rayN.zip
+    echo -e "\n${MSG_WINDOWS_STEP_2}"
     echo -e "${MSG_WINDOWS_STEP_3}"
     echo -e "${MSG_WINDOWS_STEP_4}"
     echo -e "${MSG_WINDOWS_STEP_5}"
@@ -81,6 +84,13 @@ info_for_client_programs() {
 
     echo -e "${MSG_IOS_INSTRUCTIONS}"
     echo -e "${MSG_IOS_STEP_1}"
+    
+    echo -e "${YELLOW}${MSG_CLIPBOARD_STRING_HEADER}${RESET}"
+    echo -e "${MSG_CLIPBOARD_STRING}"
+    echo -e "${MSG_QR_CODE}\n"
+    echo -e "${MSG_PROXY_DATA}"
+    echo -e "${MSG_IMPORT_INSTRUCTIONS}"
+    echo -e "${MSG_CONNECTION_IMPORT}"
 
     echo -e "https://itdog.info/klienty-vless-shadowsocks-trojan-xray-sing-box-dlya-windows-android-ios-macos-linux/"
 }
@@ -180,22 +190,25 @@ menu_3x_ui() {
     if ! check_docker_availability; then
         return 1
     fi
-    echo -e "\nТакож 3x-ui стала доступна у Windows. Для запуска 3x-ui виконайте наступні кроки:"
-    echo "1: Перейдіть за посиланням: https://github.com/MHSanaei/3x-ui/releases"
-    echo "2: Виберіть необхідну версію і завантажте її з підменю 'Assets' -> x-ui-windows-amd64.zip"
-    echo "3: Розпакуйте архів, завантажте та встановіть мову 'go' за посиланням: https://go.dev/dl/go1.22.1.windows-amd64.msi" як вказано у файлі readme.txt.
-    echo "4: Виконайте нвступну команду у powershell: New-NetFirewallRule -DisplayName "Allow_TCP_2053" -Direction Inbound -LocalPort 2053 -Protocol TCP -Action Allow"
-    echo "5: Запустіть 3x-ui.exe з папки 3x-ui та перейдіть за посиланням: http://localhost:2053"
-    echo "6: Для видачі SSL сертифіката встановіть Win64OpenSSL_Light-3_2_1.exe з папки 'SSL'"
-    echo "Примітка: Для в такому випадку потрібно відкривати порти для кожного нового клієнта, або відключати фаєрвол"
     while true; do
         check_info_server
         check_info_control_panel
+
+        echo -e "\nТакож 3x-ui стала доступна у Windows. Для запуска 3x-ui виконайте наступні кроки:"
+        echo "1: Перейдіть за посиланням: https://github.com/MHSanaei/3x-ui/releases"
+        echo "2: Виберіть необхідну версію і завантажте її з підменю 'Assets' -> x-ui-windows-amd64.zip"
+        echo "3: Розпакуйте архів, завантажте та встановіть мову 'go' за посиланням: https://go.dev/dl/go1.22.1.windows-amd64.msi" як вказано у файлі readme.txt.
+        echo "4: Виконайте нвступну команду у powershell: New-NetFirewallRule -DisplayName "Allow_TCP_2053" -Direction Inbound -LocalPort 2053 -Protocol TCP -Action Allow"
+        echo "5: Запустіть 3x-ui.exe з папки 3x-ui та перейдіть за посиланням: http://localhost:2053"
+        echo "6: Для видачі SSL сертифіката встановіть Win64OpenSSL_Light-3_2_1.exe з папки 'SSL'"
+        echo "Примітка: Для в такому випадку потрібно відкривати порти для кожного нового клієнта, або відключати фаєрвол"
+
         print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         echo "1. Встановлення 3X-UI"
         echo "2. Зупинка 3X-UI"
         echo "3. Видалення 3X-UI"
         #echo "4. Оновлення 3X-UI"
+
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -758,7 +771,7 @@ menu_PPTP() {
 install_PPTP() {
     create_folder "/root/VPN/PPTP"
     generate_random_password
-    echo -e "# Secrets for authentication using PAP\n# client    server      secret      acceptable local IP addresses\nuser1 pptpd $rand_password *" > /root/VPN/PPTP/chap-secrets
+    echo -e "# Secrets for authentication using PAP\n# client    server      secret      acceptable local IP addresses\nuser1 pptpd $rand_password *" >/root/VPN/PPTP/chap-secrets
     get_selected_interface # selected_adapter selected_ip_address selected_ip_mask selected_ip_gateway
 
     docker run -d --privileged --net=host --name "$name_docker_container" -v /root/VPN/PPTP/chap-secrets:/etc/ppp/chap-secrets mobtitude/vpn-pptp
@@ -766,20 +779,20 @@ install_PPTP() {
     apply_iptables_rules "$selected_adapter"
 
     docker ps -a
-    
+
     echo -e "\nVPN-PPTP успішно встановлено та запущено!"
     echo -e "\nЗгенеровані дані користувача:"
     echo -e "Користувач: user1"
     echo -e "Пароль: $rand_password"
     echo -e "\nІнструкція з підключення до VPN-PPTP:\n"
-    
+
     echo -e "На Windows:"
     echo -e "1. Відкрийте 'Панель управління' > 'Мережа та інтернет' > 'Центр управління мережами та спільним доступом'."
     echo -e "2. Натисніть 'Налаштування нового підключення або мережі' > 'Підключення до робочого місця' > 'Використання VPN'."
     echo -e "3. Введіть IP-адресу сервера: $selected_ip_address."
     echo -e "4. Введіть ваше ім'я користувача та пароль."
     echo -e "5. Натисніть 'Підключитися'.\n"
-    
+
     echo -e "На macOS:"
     echo -e "1. Відкрийте 'Системні налаштування' > 'Мережа'."
     echo -e "2. Натисніть '+' і виберіть 'VPN'."
@@ -787,14 +800,14 @@ install_PPTP() {
     echo -e "4. Введіть IP-адресу сервера: $selected_ip_address."
     echo -e "5. Введіть ваше ім'я користувача та пароль."
     echo -e "6. Натисніть 'Підключитися'.\n"
-    
+
     echo -e "На Android:"
     echo -e "1. Відкрийте 'Налаштування' > 'Бездротові мережі та мережі' > 'VPN'."
     echo -e "2. Натисніть 'Додати VPN' і виберіть 'PPTP'."
     echo -e "3. Введіть IP-адресу сервера: $selected_ip_address."
     echo -e "4. Введіть ваше ім'я користувача та пароль."
     echo -e "5. Натисніть 'Зберегти' та 'Підключитися'.\n"
-    
+
     echo -e "На iOS:"
     echo -e "1. Відкрийте 'Налаштування' > 'Загальні' > 'VPN'."
     echo -e "2. Натисніть 'Додати конфігурацію VPN' і виберіть 'PPTP'."
@@ -809,14 +822,14 @@ add_user_to_pptp() {
         return 1
     fi
     read -p "Введіть ім'я нового користувача: " username
-    
+
     generate_random_password_show
     read -p "Введіть пароль для нового користувача: " password
     echo
 
     # Додаємо нового користувача до файлу chap-secrets
-    echo "$username pptpd $password *" >> /root/VPN/PPTP/chap-secrets
-    
+    echo "$username pptpd $password *" >>/root/VPN/PPTP/chap-secrets
+
     # Оновлюємо файл в контейнері
     docker cp /root/VPN/PPTP/chap-secrets "$name_docker_container:/etc/ppp/chap-secrets"
 

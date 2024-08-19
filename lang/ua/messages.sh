@@ -80,6 +80,13 @@ MSG_MACOS_STEP_1="-"
 MSG_IOS_INSTRUCTIONS="iOS - napsternetv, v2box-v2ray-client:"
 MSG_IOS_STEP_1="-"
 
+MSG_CLIPBOARD_STRING_HEADER="У вас повинна бути так звана clipboard string, виглядає приблизно так:"
+MSG_CLIPBOARD_STRING="vmess://XXXXXXXXXX"
+MSG_QR_CODE="Або QR-код, який містить ту ж саму рядок."
+MSG_PROXY_DATA="В цій рядку задані дані для підключення до proxy-сервера."
+MSG_IMPORT_INSTRUCTIONS="Вам потрібно лише імпортувати її в додаток. У всіх додатках це називається приблизно 'Add config from clipboard'. Додаток сам бере з буфера обміну рядок, або вам потрібно вставити її в поле."
+MSG_CONNECTION_IMPORT="Після імпорту у вас з’явиться підключення. Зазвичай його потрібно вибрати і натиснути кнопку внизу. Або в десктопних додатках правою кнопкою на підключення і в контекстному меню вибрати 'Start'. Підключень може бути кілька, і між ними можна легко перемикатися."
+
 # 8_server_testing.sh
 MSG_SERVER_TESTING_PORT_SPEED="Швидкість порта"
 MSG_SERVER_TESTING_PORT_MAIL="Пошта"
@@ -242,6 +249,3 @@ MSG_UNIT_NOT_FOUND="Одиниця/Одиниці не знайдені:"
 MSG_INFO="Інформація"
 MSG_UNKNOWN="Невідомо"
 MSG_COMMAND_NOT_INSTALLED="не встановлений"
-
-# Function get_latest_v2rayng_apk_url
-MSG_LATEST_VERSION="Остання версія доступна для завантаження: "
