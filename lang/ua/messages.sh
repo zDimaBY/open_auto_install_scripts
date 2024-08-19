@@ -34,16 +34,12 @@ MSG_VMESS_EXAMPLE="vmess://XXXXXXXXXX"
 # Інструкції для програм
 MSG_ANDROID_APPS="Для підключення ви можете використовувати ці додатки:"
 MSG_ANDROID_APP="Android - v2rayNG: "
-MSG_ANDROID_APP_LINK="https://github.com/2dust/v2rayNG/releases/download/1.8.6/v2rayNG_1.8.6.apk"
 
 MSG_WINDOWS_APPS="Windows - nekoray, v2rayNG: "
-MSG_WINDOWS_APPS_LINK="https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-windows64.zip , https://github.com/2dust/v2rayN/releases/download/6.42/v2rayN.zip"
 
 MSG_LINUX_APPS="Linux: "
-MSG_LINUX_APPS_LINK="https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-debian-x64.deb , https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-linux64.zip"
 
 MSG_MACOS_APPS="MacOS (Intel + Apple): "
-MSG_MACOS_APPS_LINK="https://github.com/abbasnaqdi/nekoray-macos/releases/download/3.18/nekoray_amd64.zip"
 
 MSG_IOS_APPS="iOS: "
 MSG_IOS_APPS_LINK="https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
@@ -174,6 +170,10 @@ MSG_SELECT_PARTITION="Виберіть розділ (або натисніть E
 MSG_INVALID_INPUT_PARTITION="Невірний ввід. Будь ласка, введіть номер розділу."
 MSG_INVALID_CHOICE_PARTITION="Невірний вибір. Будь ласка, виберіть правильний номер зі списку."
 MSG_SELECTED_PARTITION="Вибраний розділ: "
+
+MSG_RELEASE_DATA_ERROR="Не вдалося отримати дані випуску з"
+MSG_FILE_TYPES_ERROR="Не вдалося знайти файли типу"
+MSG_IN_RELEASES_FROM="у випусках від"
 
 # linuxinfo.sh
 MSG_ERROR_NO_DOWNLOAD_TOOL="Помилка: 'wget' або 'curl' не знайдено. Будь ласка, встановіть один з них для продовження."

@@ -38,20 +38,11 @@ MSG_ANDROID_APP="Android - v2rayNG: "
 MSG_WINDOWS_APPS="Windows - nekoray, v2rayNG: "
 
 MSG_LINUX_APPS="Linux: "
-MSG_LINUX_APPS_LINK="https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-debian-x64.deb , https://github.com/MatsuriDayo/nekoray/releases/download/3.20/nekoray-3.20-2023-09-07-linux64.zip"
 
 MSG_MACOS_APPS="MacOS (Intel + Apple): "
-MSG_MACOS_APPS_LINK="https://github.com/abbasnaqdi/nekoray-macos/releases/download/3.18/nekoray_amd64.zip"
 
 MSG_IOS_APPS="iOS: "
 MSG_IOS_APPS_LINK="https://apps.apple.com/us/app/napsternetv/id1629465476 , https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
-
-MSG_CLIPBOARD_STRING_HEADER="You should have a so-called clipboard string, which looks something like this:"
-MSG_CLIPBOARD_STRING="vmess://XXXXXXXXXX"
-MSG_QR_CODE="Or a QR code that contains the same string."
-MSG_PROXY_DATA="This string contains the data needed to connect to the proxy server."
-MSG_IMPORT_INSTRUCTIONS="You just need to import it into the app. In all apps, this is roughly called 'Add config from clipboard'. The app will automatically take the string from the clipboard, or you may need to paste it into a field."
-MSG_CONNECTION_IMPORT="After importing, you will have a connection. Usually, you need to select it and click the button at the bottom. Or in desktop apps, right-click on the connection and choose 'Start' from the context menu. There may be multiple connections, and you can easily switch between them."
 
 # Instructions for Android
 MSG_ANDROID_INSTRUCTIONS="Instructions for connecting using $MSG_ANDROID_APP:"
@@ -84,6 +75,13 @@ MSG_MACOS_STEP_1="-"
 # Instructions for iOS
 MSG_IOS_INSTRUCTIONS="iOS - napsternetv, v2box-v2ray-client:"
 MSG_IOS_STEP_1="-"
+
+MSG_CLIPBOARD_STRING_HEADER="You should have a so-called clipboard string, which looks something like this:"
+MSG_CLIPBOARD_STRING="vmess://XXXXXXXXXX"
+MSG_QR_CODE="Or a QR code that contains the same string."
+MSG_PROXY_DATA="This string contains the data needed to connect to the proxy server."
+MSG_IMPORT_INSTRUCTIONS="You just need to import it into the app. In all apps, this is roughly called 'Add config from clipboard'. The app will automatically take the string from the clipboard, or you may need to paste it into a field."
+MSG_CONNECTION_IMPORT="After importing, you will have a connection. Usually, you need to select it and click the button at the bottom. Or in desktop apps, right-click on the connection and choose 'Start' from the context menu. There may be multiple connections, and you can easily switch between them."
 
 # 8_server_testing.sh
 MSG_SERVER_TESTING_PORT_SPEED="port speed"
@@ -173,6 +171,10 @@ MSG_INVALID_INPUT_PARTITION="Invalid input. Please enter the partition number."
 MSG_INVALID_CHOICE_PARTITION="Invalid choice. Please select a valid number from the list."
 MSG_SELECTED_PARTITION="Selected partition: "
 
+MSG_RELEASE_DATA_ERROR="Failed to retrieve release data from"
+MSG_FILE_TYPES_ERROR="Failed to find files of type"
+MSG_IN_RELEASES_FROM="in releases from"
+
 # linuxinfo.sh
 MSG_ERROR_NO_DOWNLOAD_TOOL="Error: 'wget' or 'curl' not found. Please install one of them to continue."
 
@@ -247,3 +249,4 @@ MSG_UNIT_NOT_FOUND="Unit(s) not found:"
 MSG_INFO="Information"
 MSG_UNKNOWN="Unknown"
 MSG_COMMAND_NOT_INSTALLED="is not installed"
+

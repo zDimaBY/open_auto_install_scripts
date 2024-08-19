@@ -562,7 +562,7 @@ function get_latest_files_url() {
     
     # Перевіряємо, чи JSON-дані не порожні
     if [ -z "$release_data" ]; then
-        echo -e "${RED}Не вдалося отримати дані релізу з ${repo_url}${RESET}"
+        echo -e "${RED}${MSG_RELEASE_DATA_ERROR} ${repo_url}${RESET}"
         return 1
     fi
 
@@ -575,7 +575,7 @@ function get_latest_files_url() {
 
     # Перевіряємо, чи URL не порожній
     if [ -z "$file_urls" ]; then
-        echo -e "${RED}Не вдалося знайти файли типу ${file_types} у релізах ${repo_url}${RESET}"
+        echo -e "${RED}${MSG_FILE_TYPES_ERROR} ${file_types} ${MSG_IN_RELEASES_FROM} ${repo_url}${RESET}"
         return 1
     fi
 
