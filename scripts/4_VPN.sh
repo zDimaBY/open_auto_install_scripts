@@ -87,7 +87,7 @@ info_for_client_programs() {
 
     echo -e "${MSG_IOS_INSTRUCTIONS}"
     echo -e "${MSG_IOS_STEP_1}"
-    
+
     echo -e "${YELLOW}${MSG_CLIPBOARD_STRING_HEADER}${RESET}"
     echo -e "${MSG_CLIPBOARD_STRING}"
     echo -e "${MSG_QR_CODE}\n"
@@ -107,9 +107,9 @@ menu_x_ui() {
         check_info_server
         check_info_control_panel
         print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
-        echo "1. Встановлення X-UI"
-        echo "2. Зупинка X-UI"
-        echo "3. Видалення X-UI"
+        echo "${MSG_INSTALL_XUI}"
+        echo "${MSG_STOP_XUI}"
+        echo "${MSG_REMOVE_XUI}"
         #echo "4. Оновлення X-UI"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
@@ -148,37 +148,38 @@ install_x_ui() {
 
 list_x_ui_versions_install() {
     local versions=$(curl -s https://api.github.com/repos/alireza0/x-ui/tags | jq -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9)
-    echo "Список доступних версій образу alireza7/x-ui:"
+    echo -e "${YELLOW}${MSG_XUI_AVAILABLE_VERSIONS}${RESET}"
     local i=1
     for ver in $versions; do
         echo "$i. $ver"
         ((i++))
     done
-    read -p "Введіть номер версії, яку ви хочете встановити (1-9): " choice
+    read -p "${MSG_XUI_SELECT_VERSION}" choice
     if ((choice >= 1 && choice <= 9)); then
         install_x_ui "$(curl -s https://api.github.com/repos/alireza0/x-ui/tags | jq -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9 | sed -n "${choice}p")"
     else
-        echo "Неправильний вибір. Будь ласка, виберіть номер від 1 до 9."
+        echo -e "${RED}${MSG_XUI_INVALID_SELECTION}${RESET}"
         return 1
     fi
 
-    echo -e "${YELLOW}\n\nВстановив X-UI на сервер. Для входу в панель адміністратора, використовуйте ці дані:${RESET}"
+    echo -e "${YELLOW}\n\n${MSG_XUI_INSTALLED}${RESET}"
     echo -e "http://${server_IPv4[0]}:54321"
-    echo -e "Користувач: admin"
-    echo -e "Пароль: admin\n"
+    echo -e "${GREEN}${MSG_XUI_USERNAME}${RESET}"
+    echo -e "${GREEN}${MSG_XUI_PASSWORD}${RESET}\n"
 
     info_for_client_programs
 }
+
 stop_x_ui() {
     docker stop "$name_docker_container"
-    echo "${name_docker_container} зупинено."
+    echo -e "${YELLOW}${name_docker_container} ${MSG_XUI_STOPPED}${RESET}"
 }
 
 remove_x_ui() {
     docker stop "$name_docker_container"
     docker rm "$name_docker_container"
     #docker rmi "$name_docker_container"
-    echo "${name_docker_container} видалено."
+    echo -e "${RED}${name_docker_container} ${MSG_XUI_REMOVED}${RESET}"
     docker ps -a
     remove_firewall_rule 80
     remove_firewall_rule 443
@@ -186,8 +187,9 @@ remove_x_ui() {
 }
 
 update_x_ui() {
-    echo "Функція не реалізована"
+    echo -e "${YELLOW}${MSG_XUI_UPDATE_NOT_IMPLEMENTED}${RESET}"
 }
+
 #_______________________________________________________________________________________________________________________________________
 menu_3x_ui() {
     if ! check_docker_availability; then
@@ -197,19 +199,19 @@ menu_3x_ui() {
         check_info_server
         check_info_control_panel
 
-        echo -e "\nТакож 3x-ui стала доступна у Windows. Для запуска 3x-ui виконайте наступні кроки:"
-        echo "1: Перейдіть за посиланням: https://github.com/MHSanaei/3x-ui/releases"
-        echo "2: Виберіть необхідну версію і завантажте її з підменю 'Assets' -> x-ui-windows-amd64.zip"
-        echo "3: Розпакуйте архів, завантажте та встановіть мову 'go' за посиланням: https://go.dev/dl/go1.22.1.windows-amd64.msi" як вказано у файлі readme.txt.
-        echo "4: Виконайте нвступну команду у powershell: New-NetFirewallRule -DisplayName "Allow_TCP_2053" -Direction Inbound -LocalPort 2053 -Protocol TCP -Action Allow"
-        echo "5: Запустіть 3x-ui.exe з папки 3x-ui та перейдіть за посиланням: http://localhost:2053"
-        echo "6: Для видачі SSL сертифіката встановіть Win64OpenSSL_Light-3_2_1.exe з папки 'SSL'"
-        echo "Примітка: Для в такому випадку потрібно відкривати порти для кожного нового клієнта, або відключати фаєрвол"
+        echo -e "${YELLOW}${MSG_3X_UI_AVAILABLE_WINDOWS}${RESET}"
+        echo -e "${MSG_3X_UI_STEP_1}"
+        echo -e "${MSG_3X_UI_STEP_2}"
+        echo -e "${MSG_3X_UI_STEP_3}"
+        echo -e "${MSG_3X_UI_STEP_4}"
+        echo -e "${MSG_3X_UI_STEP_5}"
+        echo -e "${MSG_3X_UI_STEP_6}"
+        echo -e "${YELLOW}${MSG_3X_UI_NOTE}${RESET}"
 
         print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
-        echo "1. Встановлення 3X-UI"
-        echo "2. Зупинка 3X-UI"
-        echo "3. Видалення 3X-UI"
+        echo -e "${MSG_INSTALL_3X_UI}"
+        echo -e "${MSG_STOP_3X_UI}"
+        echo -e "${MSG_REMOVE_3X_UI}"
         #echo "4. Оновлення 3X-UI"
 
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
@@ -248,47 +250,49 @@ install_3x_ui() {
 
 list_3x_ui_versions_install() {
     local versions=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9)
-    echo -e "\n${GREEN}Список доступних версій образу ${YELLOW}ghcr.io/mhsanaei/3x-ui:${RESET}"
+    echo -e "${MSG_AVAILABLE_3X_UI_VERSIONS}"
     local i=1
     for ver in $versions; do
         echo "$i. $ver"
         ((i++))
     done
-    read -p "Введіть номер версії, яку ви хочете встановити (1-9): " choice
+    read -p "${MSG_SELECT_VERSION}" choice
     if ((choice >= 1 && choice <= 9)); then
         version=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9 | sed -n "${choice}p")
         install_3x_ui "$version"
     else
-        echo "Неправильний вибір. Будь ласка, виберіть номер від 1 до 9."
+        echo "${MSG_INVALID_CHOICE}"
         return 1
     fi
 
-    echo -e "${YELLOW}\n\nВстановив X-UI на сервер. Для входу в панель адміністратора, використовуйте ці дані:${RESET}"
+    echo -e "${MSG_X_UI_INSTALLED}"
     echo -e "http://${server_IPv4[0]}:2053"
-    echo -e "Користувач: admin"
-    echo -e "Пароль: admin\n"
+    echo -e "${MSG_ADMIN_USERNAME}"
+    echo -e "${MSG_ADMIN_PASSWORD}"
 
     info_for_client_programs
 }
+
 stop_3x_ui() {
     docker stop "$name_docker_container"
-    echo "${name_docker_container} зупинено."
+    echo -e "${YELLOW}${name_docker_container} ${MSG_XUI_STOPPED}${RESET}"
 }
 
 remove_3x_ui() {
     docker stop "$name_docker_container"
     docker rm "$name_docker_container"
     #docker rmi "$name_docker_container"
-    echo "${name_docker_container} видалено."
+    echo -e "${RED}${name_docker_container} ${MSG_XUI_REMOVED}${RESET}"
     docker ps -a
 
-    # Функція для видалення правил з файервола з скриптів functions_controller.sh
+    # Function for removing firewall rules from functions_controller.sh scripts
     remove_firewall_rule 2053
 }
 
 update_3x_ui() {
-    echo "Функція не реалізована"
+    echo "${MSG_UPDATE_FUNCTION_NOT_IMPLEMENTED}"
 }
+
 #_______________________________________________________________________________________________________________________________________
 menu_wireguard_easy() {
     if ! check_docker_availability; then
@@ -299,10 +303,10 @@ menu_wireguard_easy() {
         check_info_server
         check_info_control_panel
         print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
-        echo "1. Встановлення WireGuard Easy"
-        echo "2. Зупинка WireGuard Easy"
-        echo "3. Видалення WireGuard Easy"
-        echo "4. Оновлення WireGuard Easy"
+        echo "${MSG_INSTALL_WIREGUARD_EASY}"
+        echo "${MSG_STOP_WIREGUARD_EASY}"
+        echo "${MSG_REMOVE_WIREGUARD_EASY}"
+        echo "${MSG_UPDATE_WIREGUARD_EASY}"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -323,7 +327,7 @@ menu_wireguard_easy() {
 install_wg_easy() {
     get_selected_interface # selected_adapter selected_ip_address selected_ip_mask selected_ip_gateway
     generate_random_password_show
-    read -r -p "Введіть пароль адміністратора: " admin_password # -r: забороняє інтерпретацію backslashes, -s: не виводити введений пароль
+    read -r -p "${MSG_ENTER_ADMIN_PASSWORD} " admin_password
 
     case $operating_system in
     debian | ubuntu) ;;
@@ -337,7 +341,7 @@ install_wg_easy() {
         ;;
     arch | sysrescue) ;;
     *)
-        echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
+        echo -e "${RED}${MSG_INSTALL_FAILURE1}${dependency_name}${MSG_INSTALL_FAILURE1}${RESET}"
         return 1
         ;;
     esac
@@ -357,49 +361,50 @@ install_wg_easy() {
         weejewel/wg-easy
 
     if [ $? -eq 0 ]; then
-        echo -e "\n${GREEN}WireGuard Easy успішно встановлено. Ви можете отримати доступ до веб-інтерфейсу за адресою: ${YELLOW}http://$selected_ip_address:51821${RESET}"
-        echo -e "${GREEN}Пароль для доступу до інтерфейсу:${RESET} ${YELLOW}$admin_password${RESET}"
-        echo -e "${YELLOW}Інструкція для налаштування WireGuard${RESET}"
-        echo -e "1. Завантажте клієнт WireGuard за посиланням: ${BLUE}https://www.wireguard.com/install/${RESET}"
-        echo -e "2. Після завантаження клієнта, встановіть його на Ваш пристрій."
-        echo -e "3. Перейдіть за посиланням: ${YELLOW}http://$selected_ip_address:51821${RESET} та скопіюйте файл конфігурації з серверу на Ваш пристрій."
-        echo -e "4. Відкрийте клієнт WireGuard та імпортуйте файл конфігурації."
-        echo -e "5. Після імпорту, Ваш VPN-профіль буде доступний для підключення."
-        echo -e "\n${YELLOW}Документація за посиланням: https://github.com/wg-easy/wg-easy${RESET}"
-        echo -e "Для діагностики використовуйте команди:"
-        echo -e "  ${YELLOW}docker logs wg-easy${RESET} - перегляд журналів контейнера"
-        echo -e "  ${YELLOW}docker exec -it wg-easy /bin/bash -c 'ls /bin'${RESET} - перегляд списку команд у контейнері"
+        echo -e "\n${GREEN}${MSG_INSTALL_WG_EASY_SUCCESS} ${YELLOW}http://$selected_ip_address:51821${RESET}"
+        echo -e "${GREEN}${MSG_INSTALL_WG_EASY_PASSWORD}${RESET} ${YELLOW}$admin_password${RESET}"
+        echo -e "${YELLOW}${MSG_INSTALL_WG_EASY_INSTRUCTIONS}${RESET}"
+        echo -e "${MSG_INSTALL_WG_EASY_STEP_1} ${BLUE}https://www.wireguard.com/install/${RESET}"
+        echo -e "${MSG_INSTALL_WG_EASY_STEP_2}"
+        echo -e "${MSG_INSTALL_WG_EASY_STEP_3} ${YELLOW}http://$selected_ip_address:51821${RESET}"
+        echo -e "${MSG_INSTALL_WG_EASY_STEP_4}"
+        echo -e "${MSG_INSTALL_WG_EASY_STEP_5}"
+        echo -e "\n${YELLOW}${MSG_INSTALL_WG_EASY_DOC} https://github.com/wg-easy/wg-easy${RESET}"
+        echo -e "${MSG_INSTALL_WG_EASY_DIAG}"
+        echo -e "  ${YELLOW}${MSG_INSTALL_WG_EASY_LOGS} docker logs wg-easy${RESET}"
+        echo -e "  ${YELLOW}${MSG_INSTALL_WG_EASY_COMMANDS} docker exec -it wg-easy /bin/bash -c 'ls /bin'${RESET}"
     else
-        echo -e "\n${RED}Сталася помилка під час встановлення WireGuard Easy. Перевірте, будь ласка, налаштування і спробуйте ще раз.${RESET}"
+        echo -e "\n${RED}${MSG_INSTALL_WG_EASY_ERROR}${RESET}"
     fi
 }
 
 stop_wg_easy() {
     docker stop "$name_docker_container"
-    echo "WireGuard Easy зупинено."
+    echo "${MSG_STOP_WG_EASY}"
 }
 
 remove_wg_easy() {
     docker stop "$name_docker_container"
     docker rm "$name_docker_container"
-    #docker rmi "$name_docker_container"
-    echo "WireGuard Easy видалено."
+    echo "${MSG_REMOVE_WG_EASY}"
 }
 
 update_wg_easy() {
     docker stop "$name_docker_container"
     docker rm "$name_docker_container"
     docker pull weejewel/wg-easy
-    echo "WireGuard Easy оновлено."
+    echo "${MSG_UPDATE_WG_EASY}"
 }
+
 #_______________________________________________________________________________________________________________________________________
 menu_wireguard_scriptLocal() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nWireGuard installer. Виберіть дію:\n"
-        echo "1. Автоматичне встановлення WireGuard"
-        echo "2. Меню керування WireGuard та ручне встановлення"
+        echo -e "${MSG_WIREGUARD_INSTALLER_HEADER}"
+        echo "${MSG_WIREGUARD_AUTO_INSTALL}"
+        echo "${MSG_WIREGUARD_MANUAL_MENU}"
+
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -416,16 +421,6 @@ menu_wireguard_scriptLocal() {
 }
 
 install_wireguard_scriptLocal() {
-    case $operating_system in
-    debian | ubuntu) ;;
-    fedora) ;;
-    centos | oracle) ;;
-    arch | sysrescue) ;;
-    *)
-        echo -e "${RED}Не вдалося встановити $dependency_name. Будь ласка, встановіть його вручну.${RESET}"
-        return 1
-        ;;
-    esac
 
     create_folder "/root/VPN/wireguard"
 
@@ -451,18 +446,19 @@ install_wireguard_scriptLocal() {
     bash /root/VPN/wireguard-install.sh
     sed -i 's|CLIENT_NAME="proxy"|#read -rp "Client name: " -e CLIENT_NAME|' /root/VPN/wireguard-install.sh
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}__________________________________________________________________________WireGuard успішно встановлено!${RESET}"
-        echo -e "${YELLOW}Інструкція для налаштування WireGuard${RESET}"
-        echo -e "1. Завантажте клієнт WireGuard за посиланням: ${BLUE}https://www.wireguard.com/install/${RESET}"
-        echo "2. Після завантаження клієнта, встановіть його на Ваш пристрій."
-        echo "3. Перейдіть до каталогу /root/VPN/wireguard/ на Вашому сервері."
-        echo "4. Скопіюйте файл конфігурації з серверу на Ваш пристрій."
-        echo "5. Відкрийте клієнт WireGuard та імпортуйте файл конфігурації."
-        echo "6. Після імпорту, Ваш VPN-профіль буде доступний для підключення."
-        echo "Документація за посиланням: https://github.com/angristan/openvpn-install"
+        echo -e "${GREEN}${MSG_WIREGUARD_INSTALL_SUCCESS}${RESET}"
+        echo -e "${YELLOW}${MSG_WIREGUARD_SETUP_INSTRUCTIONS}${RESET}"
+        echo -e "${MSG_WIREGUARD_CLIENT_DOWNLOAD}"
+        echo -e "${MSG_WIREGUARD_INSTALL_CLIENT}"
+        echo -e "${MSG_WIREGUARD_COPY_CONFIG}"
+        echo -e "${MSG_WIREGUARD_COPY_FILE}"
+        echo -e "${MSG_WIREGUARD_IMPORT_CONFIG}"
+        echo -e "${MSG_WIREGUARD_PROFILE_ACCESS}"
+        echo -e "${MSG_WIREGUARD_DOCUMENTATION}"
     else
-        echo -e "\n${RED}Сталася помилка під час встановлення WireGuard. Перевірте, будь ласка, налаштування і спробуйте ще раз.${RESET}"
+        echo -e "\n${RED}${MSG_WIREGUARD_INSTALL_ERROR}${RESET}"
     fi
+
 }
 
 menu_wireguard_installer() {
@@ -475,9 +471,9 @@ menu_openVPNLocal() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nOpenVPN installer. Виберіть дію:\n"
-        echo "1. Автоматичне встановлення OpenVPN"
-        echo "2. Меню керування OpenVPN та ручне встановлення"
+        echo -e "\n${MSG_OPENVPN_INSTALLER_HEADER}\n"
+        echo -e "${MSG_OPENVPN_AUTO_INSTALL}"
+        echo -e "${MSG_OPENVPN_MANUAL_MENU}"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -507,56 +503,44 @@ avtoInstall_openVPN() {
     create_folder "/root/VPN/openVPN"
 
     if ! curl -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh; then
-        echo "Failed to download and install openvpn-install.sh"
+        echo -e "${RED}${MSG_DOWNLOAD_INSTALL_SCRIPT_FAILED}${RESET}"
         return 1
     fi
     sed -i 's|"$homeDir|"/root/VPN/openVPN|g' /root/VPN/openvpn-install.sh
     chmod +x /root/VPN/openvpn-install.sh && export AUTO_INSTALL=y
     bash /root/VPN/openvpn-install.sh
-    echo -e "${GREEN}__________________________________________________________________________OpenVPN успішно встановлено!${RESET}"
-    echo -e "Документація за посиланням: https://github.com/angristan/openvpn-install"
-    # Інструкція для платформи Windows
-    echo -e "${YELLOW}Інструкція для платформи Windows${RESET}"
-    echo "1. Завантажте встановлювач OpenVPN для Windows з офіційного сайту OpenVPN."
-    echo "2. Встановіть програму, використовуючи стандартний інсталяційний процес."
-    echo "3. Запустіть OpenVPN."
-    echo "4. Після запуску програми, перейдіть до 'Файл' -> 'Імпорт файлу конфігурації'."
-    echo "5. Виберіть конфігураційний файл, який отримали від свого сервера VPN."
-    echo "6. Після імпорту, з'явиться новий профіль під назвою Вашого VPN. Клацніть на нього, щоб підключитися."
 
-    # Інструкція для платформи Android
-    echo -e "\n${YELLOW}Інструкція для платформи Android${RESET}"
-    echo "1. Завантажте та встановіть додаток OpenVPN для Android з Google Play Store."
-    echo "2. Перенесіть конфігураційний файл (з розширенням .ovpn) на Ваш пристрій Android."
-    echo "3. У додатку OpenVPN натисніть на значок '+' для додавання нового профілю."
-    echo "4. Виберіть опцію 'Імпорт із файлу' та оберіть свій конфігураційний файл."
-    echo "5. Після імпорту, профіль буде доступний для підключення."
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}__________________________________________________________________________${MSG_OPENVPN_INSTALL_SUCCESS}${RESET}"
+        echo -e "${MSG_OPENVPN_DOCUMENTATION}"
 
-    # Інструкція для платформи macOS (OS X)
-    echo -e "\n${YELLOW}Інструкція для платформи macOS (OS X)${RESET}"
-    echo "1. Встановіть Tunnelblick, безкоштовний клієнт OpenVPN для macOS, завантаживши його з офіційного сайту."
-    echo "2. Відкрийте інсталятор та слідуйте інструкціям для завершення процесу встановлення."
-    echo "3. Після встановлення, перенесіть конфігураційний файл (з розширенням .ovpn) в теку 'configurations' у Вашій домашній теки."
-    echo "4. Запустіть Tunnelblick та виберіть 'Connect' для Вашого VPN-профілю."
+        # Instructions for Windows
+        echo -e "\n${YELLOW}${MSG_WINDOWS_INSTRUCTIONS_HEADER}${RESET}"
+        echo -e "${MSG_WINDOWS_INSTRUCTIONS}"
 
-    # Інструкція для Linux
-    echo -e "\n${YELLOW}Інструкція для Linux${RESET}"
-    echo "1. Встановіть пакунок OpenVPN за допомогою менеджера пакунків Вашої дистрибуції (наприклад, apt для Ubuntu або yum для CentOS)."
-    echo "2. Перенесіть конфігураційний файл (з розширенням .ovpn) в теку /etc/openvpn."
-    echo "3. В терміналі введіть 'sudo openvpn назва_конфігураційного_файлу.ovpn' для підключення до VPN."
+        # Instructions for Android
+        echo -e "\n${YELLOW}${MSG_ANDROID_INSTRUCTIONS_HEADER}${RESET}"
+        echo -e "${MSG_ANDROID_INSTRUCTIONS}"
 
-    # Інструкція для iOS (iPhone та iPad)
-    echo -e "\n${YELLOW}Інструкція для iOS (iPhone та iPad)${RESET}"
-    echo "1. Встановіть програму OpenVPN Connect з App Store на Вашому пристрої iOS."
-    echo "2. Перенесіть конфігураційний файл (з розширенням .ovpn) на Ваш пристрій через iTunes або інші доступні методи."
-    echo "3. У програмі OpenVPN Connect, відкрийте розділ 'Настройки' та оберіть 'Імпорт файлу OpenVPN'."
-    echo "4. Оберіть свій конфігураційний файл та дотримуйтесь інструкцій для імпорту."
-    echo "5. Після імпорту, Ваш VPN-профіль буде доступний для підключення."
+        # Instructions for macOS
+        echo -e "\n${YELLOW}${MSG_MACOS_INSTRUCTIONS_HEADER}${RESET}"
+        echo -e "${MSG_MACOS_INSTRUCTIONS}"
+
+        # Instructions for Linux
+        echo -e "\n${YELLOW}${MSG_LINUX_INSTRUCTIONS_HEADER}${RESET}"
+        echo -e "${MSG_LINUX_INSTRUCTIONS}"
+
+        # Instructions for iOS
+        echo -e "\n${YELLOW}${MSG_IOS_INSTRUCTIONS_HEADER}${RESET}"
+        echo -e "${MSG_IOS_INSTRUCTIONS}"
+    else
+        echo -e "\n${RED}${MSG_INSTALLATION_ERROR}${RESET}"
+    fi
 }
 
 menu_openVPN_installer() {
     if ! curl -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh; then
-        echo "Failed to download and install openvpn-install.sh"
+        echo -e "${RED}${MSG_DOWNLOAD_INSTALL_SCRIPT_FAILED}${RESET}"
         return 1
     fi
     sed -i 's|"$homeDir|"/root/VPN/openVPN|g' /root/VPN/openvpn-install.sh
@@ -571,12 +555,12 @@ menu_IPsec_L2TP_IKEv2() {
     while true; do
         check_info_server
         check_info_control_panel
-        echo -e "\nВиберіть дію для налаштування контейнера IPsec/L2TP, Cisco IPsec та IKEv2:\n"
-        echo "1. Встановлення ipsec-vpn-server"
-        echo "2. Створити нову конфігурацію для клієнта ipsec-vpn-server"
-        echo "3. Зупинка ipsec-vpn-server"
-        echo "4. Видалення ipsec-vpn-server"
-        echo "5. Оновлення ipsec-vpn-server"
+        echo -e "\n${MSG_CHOOSE_ACTION_IPSEC}\n"
+        echo "1. ${MSG_INSTALL_IPSEC}"
+        echo "2. ${MSG_CREATE_NEW_CONFIG}"
+        echo "3. ${MSG_STOP_IPSEC}"
+        echo "4. ${MSG_REMOVE_IPSEC}"
+        echo "5. ${MSG_UPDATE_IPSEC}"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -603,16 +587,16 @@ install_ipsec_vpn_server() {
         echo "VPN_USER=admin" >>/root/VPN/IPsec_L2TP/vpn.env
         generate_random_password
         echo "VPN_PASSWORD=$rand_password" >>/root/VPN/IPsec_L2TP/vpn.env
-        echo -e "${GREEN}Файл /root/VPN/IPsec_L2TP/vpn.env створено та налаштовано успішно.${RESET}\n"
+        echo -e "${GREEN}${MSG_VPN_ENV_FILE_CREATED}${RESET}\n"
     }
 
     if [ -f /root/VPN/IPsec_L2TP/vpn.env ]; then
-        echo -e "${GREEN}Файл vpn.env для кнфігурації вже існує. Ви хочете створити новий чи використовувати той що є ?${RESET}"
+        echo -e "${GREEN}${MSG_EXISTING_VPN_ENV_FILE}${RESET}"
         read -p "(y/n): " create_new_vpn_env
         if [[ "$create_new_vpn_env" =~ ^(y|Y|yes)$ ]]; then
-            echo -e "${YELLOW}Використовуємо існуючий файл vpn.env.\n${RESET}"
+            echo -e "${YELLOW}${MSG_USE_EXISTING_FILE}\n${RESET}"
         else
-            echo "Вибрано створення нового vpn.env."
+            echo "${MSG_CREATE_NEW_FILE}"
             generate_vpn_env_file
         fi
     else
@@ -639,77 +623,40 @@ install_ipsec_vpn_server() {
         copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.mobileconfig" "/root/VPN/IPsec_L2TP"
 
         if [ $? -eq 0 ]; then
-            echo -e "\n${GREEN}Файли для налаштуваня клієнта успішно скопійовано до /root/VPN/IPsec_L2TP${RESET}"
+            echo -e "\n${GREEN}${MSG_FILES_COPIED_SUCCESS}${RESET}"
         else
-            echo -e "\n${RED}Помилка під час копіювання файлів.${RESET}"
-            echo -e "Спробуйте, будь ласка, виконати команди вручну:"
-            echo -e "\n${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.p12 /root/VPN/IPsec_L2TP${RESET}"
-            echo -e "${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.sswan /root/VPN/IPsec_L2TP${RESET}"
-            echo -e "${YELLOW}docker cp ipsec-vpn-server:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN/IPsec_L2TP${RESET}"
+            echo -e "\n${RED}${MSG_COPY_FILES_ERROR}${RESET}"
+            echo -e "\n${YELLOW}${MSG_COPY_COMMAND_1}${RESET}"
+            echo -e "${YELLOW}${MSG_COPY_COMMAND_2}${RESET}"
+            echo -e "${YELLOW}${MSG_COPY_COMMAND_3}${RESET}"
         fi
 
-        echo -e "\n${GREEN}Контейнер ipsec-vpn-server встановлено та налаштовано успішно. Документація за посиланням: https://github.com/hwdsl2/setup-ipsec-vpn${RESET}\n"
+        echo -e "\n${GREEN}${MSG_CONTAINER_SETUP_SUCCESS}${RESET}\n"
 
-        # Підключення через протокол IKEv2 на Windows 10/11/8
-        echo -e "${YELLOW}Підключення через протокол IKEv2 на Windows 10/11/8${RESET}"
-        echo "1. Перенесіть згенерований файл .p12 у бажану теку на вашому комп'ютері."
-        echo "1.1. Завантажте файли ikev2_config_import.cmd і IPSec_NAT_Config.bat. Переконайтеся, що обидва файли знаходяться у тій самій текі, що й файл .p12."
-        echo "2. Налаштування VPN:"
-        echo "2.1. Клацніть правою кнопкою миші на файлі IPSec_NAT_Config.bat."
-        echo "2.2. У контекстному меню виберіть 'Запустити від імені адміністратора'."
-        echo "2.3. Підтвердіть дію, якщо з'явиться запит UAC (Контроль облікових записів користувачів)."
-        echo "3. Імпорт конфігурації:"
-        echo "3.1. Клацніть правою кнопкою миші на файлі ikev2_config_import.cmd."
-        echo "3.2. У контекстному меню виберіть 'Запустити від імені адміністратора'."
-        echo "3.3. Дотримуйтесь інструкцій на екрані, щоб завершити імпорт конфігурації."
-        echo "4. Перезавантажте Ваш комп'ютер, щоб переконатися, що всі зміни набрали чинності."
-        echo "5. Тепер Ви можете спробувати підключитися до Вашого VPN-серверу, використовуючи налаштування IKEv2."
+        # IKEv2 Connection on Windows 10/11/8
+        echo -e "${YELLOW}${MSG_IKEV2_WINDOWS}${RESET}"
 
-        # Підключення через Android
-        echo -e "\n${YELLOW}Підключення через Android${RESET}"
-        echo "1. Перенесіть згенерований файл .sswan на Ваш пристрій Android."
-        echo "2. Завантажте і встановіть програму strongSwan VPN Client з Google Play, F-Droid або безпосередньо з сервера strongSwan."
-        echo "3. Запустіть клієнт strongSwan VPN на вашому пристрої."
-        echo "4. Імпорт профілю VPN:"
-        echo "4.1. Натисніть на іконку 'Інші параметри' (зазвичай зображена трема вертикальними крапками) у правому верхньому куті."
-        echo "4.2. У випадаючому меню виберіть 'Імпорт профілю VPN'."
-        echo "4.3. Для пошуку файлу .sswan натисніть на іконку трьох горизонтальних ліній або кнопку меню, і перейдіть до теки, де збережений файл."
-        echo "4.4. Виберіть файл .sswan, який Ви отримали з VPN-сервера."
-        echo "5. Імпорт сертифіката:"
-        echo "5.1. На екрані 'Імпорт профілю VPN' виберіть 'ІМПОРТ СЕРТИФІКАТА З ПРОФІЛЯ VPN' і дотримуйтесь вказівок на екрані."
-        echo "5.2. На наступному екрані 'Виберіть сертифікат' виберіть щойно імпортований сертифікат клієнта і натисніть 'Вибрати'."
-        echo "5.3. Потім натисніть 'ІМПОРТ'."
-        echo "5.4. Підключення до VPN: Натисніть на новий VPN-профіль, щоб розпочати підключення."
+        # Android Connection
+        echo -e "\n${YELLOW}${MSG_ANDROID_CONNECTION}${RESET}"
 
-        # Для налаштування OS X (macOS) / iOS використовується файл .mobileconfig
-        echo -e "\n${YELLOW}Для налаштування OS X (macOS) / iOS використовується файл .mobileconfig${RESET}"
-        echo "Спочатку безпечно передайте згенерований файл .mobileconfig на ваш Mac, а потім двічі клацніть по ньому й дотримуйтесь інструкцій для імпорту як профілю macOS."
-        echo "Якщо на вашому Mac встановлено macOS Big Sur або новіше, відкрийте Системні налаштування й перейдіть до розділу Профілі, щоб завершити імпорт."
-        echo "Для macOS Ventura і новіших відкрийте Системні налаштування й знайдіть Профілі."
-        echo "Після завершення перевірте, щоб 'IKEv2 VPN' відображалося в Системні налаштування -> Профілі."
-        echo "Для підключення до VPN:"
-        echo "1. Відкрийте Системні налаштування і перейдіть до розділу Мережа."
-        echo "2. Виберіть VPN-підключення з Вашим IP-адресою VPN-сервера (або DNS-іменем)."
-        echo "3. Поставте галочку 'Показувати статус VPN у рядку меню'. Для macOS Ventura і новіших цю настройку можна налаштувати в Системні налаштування -> Контрольний центр -> Тільки рядок меню."
-        echo "4. Натисніть Підключити або перемикніть VPN у положення ВКЛ."
-        echo "5. (Додаткова функція) Увімкніть VPN за вимогою, щоб автоматично запускати VPN-підключення, коли ваш Mac підключений до Wi-Fi."
-        echo "   Щоб увімкнути, поставте галочку 'Підключати за вимогою' для VPN-підключення і натисніть Застосувати."
-        echo "   Щоб знайти цю настройку на macOS Ventura і новіших, клацніть на значок 'i' праворуч від VPN-підключення."
+        # For OS X (macOS) / iOS using the .mobileconfig file
+        echo -e "\n${YELLOW}${MSG_MAC_IOS_CONNECTION}${RESET}"
+
     else
-        echo -e "\n${YELLOW}Контейнер ipsec-vpn-server вже встановлено..${RESET}\n"
+        echo -e "\n${YELLOW}${MSG_CONTAINER_INSTALLED}${RESET}\n"
     fi
 }
 
 add_client_ipsec_vpn_server() {
-    read -p "Введіть ім'я підключення: " connection_name
+    read -p "${MSG_PROMPT_CONNECTION_NAME}" connection_name
 
     if [ -z "$connection_name" ]; then
-        echo "Помилка: не вказано ім'я підключення"
+        echo "${RED}${MSG_NO_CONNECTION_NAME}${RESET}"
         return 1
     fi
 
     if docker exec -it ipsec-vpn-server ls "/etc/ipsec.d/$connection_name.p12" &>/dev/null; then
-        echo "Помилка: підключення \"$connection_name\" вже існує"
+        echo "${RED}${MSG_CONNECTION_EXISTS1}${connection_name}${MSG_CONNECTION_EXISTS2}${RESET}"
         return 1
     fi
     create_folder "/root/VPN/IPsec_L2TP/$connection_name"
@@ -720,25 +667,25 @@ add_client_ipsec_vpn_server() {
     wget -N -P /root/VPN/IPsec_L2TP/${connection_name}/ https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat
     wget -N -P /root/VPN/IPsec_L2TP/${connection_name}/ https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd
 
-    echo -e "${GREEN}Файли конфігурації скопійовано за шляхом /root/VPN/IPsec_L2TP/$connection_name ${RESET}"
+    echo -e "${GREEN}${MSG_CONFIG_FILES_COPIED}${connection_name}${RESET}"
 }
 
 stop_ipsec_vpn_server() {
     docker stop ipsec-vpn-server
-    echo "ipsec-vpn-server зупинено."
+    echo "${MSG_IPSEC_STOPPED}"
 }
 
 remove_ipsec_vpn_server() {
     docker stop ipsec-vpn-server
     docker rm ipsec-vpn-server
-    echo "ipsec-vpn-server видалено."
+    echo "${MSG_IPSEC_REMOVED}"
 }
 
 update_ipsec_vpn_server() {
     docker stop ipsec-vpn-server
     docker rm ipsec-vpn-server
     docker pull hwdsl2/ipsec-vpn-server
-    echo "ipsec-vpn-server оновлено."
+    echo "${MSG_IPSEC_UPDATED}"
 }
 
 menu_PPTP() {
@@ -750,10 +697,11 @@ menu_PPTP() {
         check_info_server
         check_info_control_panel
         print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
-        echo "1. Встановлення VPN-PPTP"
-        echo "2. Додавання нового користувача"
-        echo "3. Зупинка VPN-PPTP"
-        echo "4. Видалення VPN-PPTP"
+        echo -e "\n${MSG_INSTALL_VPN_PPTP}"
+        echo "${MSG_ADD_USER}"
+        echo "${MSG_STOP_VPN_PPTP}"
+        echo "${MSG_REMOVE_VPN_PPTP}"
+
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -774,7 +722,7 @@ menu_PPTP() {
 install_PPTP() {
     create_folder "/root/VPN/PPTP"
     generate_random_password
-    echo -e "# Secrets for authentication using PAP\n# client    server      secret      acceptable local IP addresses\nuser1 pptpd $rand_password *" >/root/VPN/PPTP/chap-secrets
+    echo -e "${MSG_SECRETS_HEADER}\n${MSG_SECRETS_FORMAT}\nuser1 pptpd $rand_password *" >/root/VPN/PPTP/chap-secrets
     get_selected_interface # selected_adapter selected_ip_address selected_ip_mask selected_ip_gateway
 
     docker run -d --privileged --net=host --name "$name_docker_container" -v /root/VPN/PPTP/chap-secrets:/etc/ppp/chap-secrets mobtitude/vpn-pptp
@@ -783,70 +731,72 @@ install_PPTP() {
 
     docker ps -a
 
-    echo -e "\nVPN-PPTP успішно встановлено та запущено!"
-    echo -e "\nЗгенеровані дані користувача:"
-    echo -e "Користувач: user1"
-    echo -e "Пароль: $rand_password"
-    echo -e "\nІнструкція з підключення до VPN-PPTP:\n"
+    echo -e "\n$MSG_VPN_SUCCESS"
+    echo -e "\n$MSG_USER_DATA"
+    echo -e "$MSG_USERNAME"
+    echo -e "${MSG_PASSWORD}${rand_password}"
+    echo -e "\n$MSG_INSTRUCTIONS"
 
-    echo -e "На Windows:"
-    echo -e "1. Відкрийте 'Панель управління' > 'Мережа та інтернет' > 'Центр управління мережами та спільним доступом'."
-    echo -e "2. Натисніть 'Налаштування нового підключення або мережі' > 'Підключення до робочого місця' > 'Використання VPN'."
-    echo -e "3. Введіть IP-адресу сервера: $selected_ip_address."
-    echo -e "4. Введіть ваше ім'я користувача та пароль."
-    echo -e "5. Натисніть 'Підключитися'.\n"
+    echo -e "$MSG_WINDOWS"
+    echo -e "$MSG_WINDOWS_STEP1"
+    echo -e "$MSG_WINDOWS_STEP2"
+    echo -e "${MSG_WINDOWS_STEP3}${selected_ip_address}"
+    echo -e "$MSG_WINDOWS_STEP4"
+    echo -e "$MSG_WINDOWS_STEP5"
 
-    echo -e "На macOS:"
-    echo -e "1. Відкрийте 'Системні налаштування' > 'Мережа'."
-    echo -e "2. Натисніть '+' і виберіть 'VPN'."
-    echo -e "3. Виберіть 'Тип VPN' як 'PPTP'."
-    echo -e "4. Введіть IP-адресу сервера: $selected_ip_address."
-    echo -e "5. Введіть ваше ім'я користувача та пароль."
-    echo -e "6. Натисніть 'Підключитися'.\n"
+    echo -e "$MSG_MACOS"
+    echo -e "$MSG_MACOS_STEP1"
+    echo -e "$MSG_MACOS_STEP2"
+    echo -e "$MSG_MACOS_STEP3"
+    echo -e "${MSG_MACOS_STEP4}${selected_ip_address}"
+    echo -e "$MSG_MACOS_STEP5"
+    echo -e "$MSG_MACOS_STEP6"
 
-    echo -e "На Android:"
-    echo -e "1. Відкрийте 'Налаштування' > 'Бездротові мережі та мережі' > 'VPN'."
-    echo -e "2. Натисніть 'Додати VPN' і виберіть 'PPTP'."
-    echo -e "3. Введіть IP-адресу сервера: $selected_ip_address."
-    echo -e "4. Введіть ваше ім'я користувача та пароль."
-    echo -e "5. Натисніть 'Зберегти' та 'Підключитися'.\n"
+    echo -e "$MSG_ANDROID"
+    echo -e "$MSG_ANDROID_STEP1"
+    echo -e "$MSG_ANDROID_STEP2"
+    echo -e "${MSG_ANDROID_STEP3}${selected_ip_address}"
+    echo -e "$MSG_ANDROID_STEP4"
+    echo -e "$MSG_ANDROID_STEP5"
 
-    echo -e "На iOS:"
-    echo -e "1. Відкрийте 'Налаштування' > 'Загальні' > 'VPN'."
-    echo -e "2. Натисніть 'Додати конфігурацію VPN' і виберіть 'PPTP'."
-    echo -e "3. Введіть IP-адресу сервера: $selected_ip_address."
-    echo -e "4. Введіть ваше ім'я користувача та пароль."
-    echo -e "5. Натисніть 'Готово' та 'Підключитися'."
+    echo -e "$MSG_IOS"
+    echo -e "$MSG_IOS_STEP1"
+    echo -e "$MSG_IOS_STEP2"
+    echo -e "${MSG_IOS_STEP3}${selected_ip_address}"
+    echo -e "$MSG_IOS_STEP4"
+    echo -e "$MSG_IOS_STEP5"
 }
 
 add_user_to_pptp() {
     if ! docker ps -a | grep -q "$name_docker_container"; then
-        echo "Контейнер $name_docker_container не встановлений."
+        echo "${MSG_CONTAINER_NOT_FOUND1}${name_docker_container}${MSG_CONTAINER_NOT_FOUND2}"
         return 1
     fi
-    read -p "Введіть ім'я нового користувача: " username
+
+    read -p "$MSG_ENTER_USERNAME" username
 
     generate_random_password_show
-    read -p "Введіть пароль для нового користувача: " password
+    read -p "$MSG_ENTER_PASSWORD" password
     echo
 
-    # Додаємо нового користувача до файлу chap-secrets
+    # Add new user to chap-secrets file
     echo "$username pptpd $password *" >>/root/VPN/PPTP/chap-secrets
 
-    # Оновлюємо файл в контейнері
+    # Update file in the container
     docker cp /root/VPN/PPTP/chap-secrets "$name_docker_container:/etc/ppp/chap-secrets"
 
-    echo "Новий користувач $username доданий."
+    echo "${MSG_USER_ADDED1}${username}${MSG_USER_ADDED2}"
 }
 
 stop_PPTP() {
-    docker stop "$name_docker_container" && echo "${name_docker_container} зупинено."
+    docker stop "$name_docker_container" && echo "$name_docker_container $MSG_CONTAINER_STOPPED"
 }
 
 remove_PPTP() {
-    docker stop "$name_docker_container" && docker rm "$name_docker_container" && echo "${name_docker_container} видалено."
+    docker stop "$name_docker_container" && docker rm "$name_docker_container" && echo "$name_docker_container $MSG_CONTAINER_REMOVED"
     docker ps -a
     remove_firewall_rule 1723
+    echo "$MSG_FIREWALL_RULE_REMOVED"
 }
 
 apply_iptables_rules() {

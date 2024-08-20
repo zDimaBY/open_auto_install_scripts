@@ -83,6 +83,272 @@ MSG_PROXY_DATA="В этой строке заданы данные для под
 MSG_IMPORT_INSTRUCTIONS="Вам нужно только импортировать её в приложение. Во всех приложениях это называется примерно 'Add config from clipboard'. Приложение само берет из буфера обмена строку, либо вам нужно вставить её в поле."
 MSG_CONNECTION_IMPORT="После импорта у вас появится подключение. Обычно его нужно выбрать и нажать кнопку внизу. Либо в десктопных приложениях правой кнопкой на подключение и в контекстном меню выбрать 'Start'. Подключений может быть несколько, и между ними можно легко переключаться."
 
+# function menu_x_ui
+MSG_XUI="X-UI"
+MSG_INSTALL_XUI="1. Установить $MSG_XUI"
+MSG_STOP_XUI="2. Остановить $MSG_XUI"
+MSG_REMOVE_XUI="3. Удалить $MSG_XUI"
+
+# function list_x_ui_versions_install
+MSG_XUI_AVAILABLE_VERSIONS="Список доступных версий образа alireza7/x-ui:"
+MSG_XUI_SELECT_VERSION="Введите номер версии, которую вы хотите установить (1-9): "
+MSG_XUI_INVALID_SELECTION="Неверный выбор. Пожалуйста, выберите число от 1 до 9."
+MSG_XUI_INSTALLED="X-UI установлен на сервере. Для доступа к панели администратора используйте следующие данные:"
+MSG_XUI_USERNAME="Имя пользователя: admin"
+MSG_XUI_PASSWORD="Пароль: admin"
+
+# function stop_x_ui remove_x_ui update_x_ui
+MSG_XUI_STOPPED="остановлен."
+MSG_XUI_REMOVED="удален."
+MSG_XUI_UPDATE_NOT_IMPLEMENTED="Функция не реализована."
+
+# function menu_3x_ui
+MSG_3X_UI="3X-UI"
+MSG_3X_UI_AVAILABLE_WINDOWS="\nТакже $MSG_3X_UI теперь доступен на Windows. Чтобы запустить $MSG_3X_UI, выполните следующие шаги:"
+MSG_3X_UI_STEP_1="1: Перейдите по ссылке: https://github.com/MHSanaei/3x-ui/releases"
+MSG_3X_UI_STEP_2="2: Выберите нужную версию и скачайте её из подменю 'Assets' -> x-ui-windows-amd64.zip"
+MSG_3X_UI_STEP_3="3: Распакуйте архив, скачайте и установите язык 'go' по ссылке: https://go.dev/dl/go1.22.1.windows-amd64.msi, как указано в readme.txt."
+MSG_3X_UI_STEP_4="4: Выполните следующую команду в PowerShell: New-NetFirewallRule -DisplayName \"Allow_TCP_2053\" -Direction Inbound -LocalPort 2053 -Protocol TCP -Action Allow"
+MSG_3X_UI_STEP_5="5: Запустите 3x-ui.exe из папки $MSG_3X_UI и перейдите по ссылке: http://localhost:2053"
+MSG_3X_UI_STEP_6="6: Для получения SSL-сертификата установите Win64OpenSSL_Light-3_2_1.exe из папки 'SSL'"
+MSG_3X_UI_NOTE="Примечание: В этом случае вам нужно открыть порты для каждого нового клиента или отключить брандмауэр."
+
+MSG_INSTALL_3X_UI="1. Установить $MSG_3X_UI"
+MSG_STOP_3X_UI="2. Остановить $MSG_3X_UI"
+MSG_REMOVE_3X_UI="3. Удалить $MSG_3X_UI"
+
+# function list_3x_ui_versions_install
+MSG_AVAILABLE_3X_UI_VERSIONS="\n${GREEN}Список доступных версий для ${YELLOW}ghcr.io/mhsanaei/3x-ui:${RESET}"
+MSG_SELECT_VERSION="Введите номер версии, которую вы хотите установить (1-9): "
+MSG_INVALID_CHOICE="Неверный выбор. Пожалуйста, выберите число от 1 до 9."
+MSG_X_UI_INSTALLED="${YELLOW}\n\n3x-UI установлен на сервере. Для доступа к панели администратора используйте следующую информацию:${RESET}"
+MSG_ADMIN_USERNAME="Имя пользователя: admin"
+MSG_ADMIN_PASSWORD="Пароль: admin\n"
+MSG_UPDATE_FUNCTION_NOT_IMPLEMENTED="Функция не реализована"
+
+# function menu_wireguard_easy
+MSG_WIREGUARD_EASY="WireGuard Easy"
+MSG_INSTALL_WIREGUARD_EASY="1. Установить $MSG_WIREGUARD_EASY"
+MSG_STOP_WIREGUARD_EASY="2. Остановить $MSG_WIREGUARD_EASY"
+MSG_REMOVE_WIREGUARD_EASY="3. Удалить $MSG_WIREGUARD_EASY"
+MSG_UPDATE_WIREGUARD_EASY="4. Обновить $MSG_WIREGUARD_EASY"
+
+# function install_wg_easy
+MSG_ENTER_ADMIN_PASSWORD="Введите пароль администратора:"
+MSG_INSTALL_FAILURE1="Не удалось установить "
+MSG_INSTALL_FAILURE2=". Пожалуйста, установите вручную."
+MSG_INSTALL_WG_EASY_SUCCESS="$MSG_WIREGUARD_EASY успешно установлен. Вы можете получить доступ к веб-интерфейсу по адресу:"
+MSG_INSTALL_WG_EASY_PASSWORD="Пароль для доступа к интерфейсу:"
+MSG_INSTALL_WG_EASY_INSTRUCTIONS="Инструкции по настройке WireGuard:"
+MSG_INSTALL_WG_EASY_STEP_1="1. Скачайте клиент WireGuard по ссылке:"
+MSG_INSTALL_WG_EASY_STEP_2="2. После скачивания установите его на вашем устройстве."
+MSG_INSTALL_WG_EASY_STEP_3="3. Перейдите по ссылке и скопируйте конфигурационный файл с сервера на ваше устройство:"
+MSG_INSTALL_WG_EASY_STEP_4="4. Откройте клиент WireGuard и импортируйте конфигурационный файл."
+MSG_INSTALL_WG_EASY_STEP_5="5. После импорта ваш VPN-профиль будет доступен для подключения."
+MSG_INSTALL_WG_EASY_DOC="Документацию можно найти по адресу:"
+MSG_INSTALL_WG_EASY_DIAG="Для диагностики используйте следующие команды:"
+MSG_INSTALL_WG_EASY_LOGS="  Просмотреть логи контейнера:"
+MSG_INSTALL_WG_EASY_COMMANDS="  Просмотреть список команд в контейнере:"
+MSG_INSTALL_WG_EASY_ERROR="Произошла ошибка при установке $MSG_WIREGUARD_EASY. Пожалуйста, проверьте настройки и попробуйте снова."
+
+# function stop_wg_easy remove_wg_easy update_wg_easy
+MSG_STOP_WG_EASY="$MSG_WIREGUARD_EASY остановлен."
+MSG_REMOVE_WG_EASY="$MSG_WIREGUARD_EASY удален."
+MSG_UPDATE_WG_EASY="$MSG_WIREGUARD_EASY обновлен."
+
+# function menu_wireguard_scriptLocal
+MSG_WIREGUARD_INSTALLER_HEADER="Установщик WireGuard. Выберите действие:\n"
+MSG_WIREGUARD_AUTO_INSTALL="1. Автоматическая установка WireGuard"
+MSG_WIREGUARD_MANUAL_MENU="2. Меню управления WireGuard и ручная установка"
+
+# function install_wireguard_scriptLocal
+MSG_WIREGUARD_INSTALL_SUCCESS="__________________________________________________________________________WireGuard успешно установлен!"
+MSG_WIREGUARD_SETUP_INSTRUCTIONS="Инструкции по настройке WireGuard"
+MSG_WIREGUARD_CLIENT_DOWNLOAD="1. Скачайте клиент WireGuard с: ${BLUE}https://www.wireguard.com/install/${RESET}"
+MSG_WIREGUARD_INSTALL_CLIENT="2. После скачивания клиента установите его на ваше устройство."
+MSG_WIREGUARD_COPY_CONFIG="3. Перейдите в каталог /root/VPN/wireguard/ на вашем сервере."
+MSG_WIREGUARD_COPY_FILE="4. Скопируйте конфигурационный файл с сервера на ваше устройство."
+MSG_WIREGUARD_IMPORT_CONFIG="5. Откройте клиент WireGuard и импортируйте конфигурационный файл."
+MSG_WIREGUARD_PROFILE_ACCESS="6. После импорта ваш VPN-профиль будет доступен для подключения."
+MSG_WIREGUARD_DOCUMENTATION="Документацию можно найти по адресу: https://github.com/angristan/openvpn-install"
+MSG_WIREGUARD_INSTALL_ERROR="Произошла ошибка при установке WireGuard. Пожалуйста, проверьте конфигурацию и попробуйте снова."
+
+# function menu_openVPNLocal
+MSG_OPENVPN_INSTALLER_HEADER="Установщик OpenVPN. Выберите действие:"
+MSG_OPENVPN_AUTO_INSTALL="1. Автоматическая установка OpenVPN"
+MSG_OPENVPN_MANUAL_MENU="2. Меню управления OpenVPN и ручная установка"
+
+# function avtoInstall_openVPN
+MSG_OPENVPN_INSTALL_SUCCESS="OpenVPN успешно установлен!"
+MSG_OPENVPN_DOCUMENTATION="Документация по адресу: https://github.com/angristan/openvpn-install"
+MSG_WINDOWS_INSTRUCTIONS_HEADER="Инструкции для платформы Windows"
+MSG_WINDOWS_INSTRUCTIONS="1. Скачайте установщик OpenVPN для Windows с официального сайта OpenVPN.\n\
+2. Установите программу, используя стандартный процесс установки.\n\
+3. Запустите OpenVPN.\n\
+4. После запуска программы перейдите в 'Файл' -> 'Импортировать конфигурационный файл'.\n\
+5. Выберите конфигурационный файл, который вы получили от вашего VPN-сервера.\n\
+6. После импорта появится новый профиль с именем вашего VPN. Нажмите на него, чтобы подключиться."
+MSG_ANDROID_INSTRUCTIONS_HEADER="Инструкции для платформы Android"
+MSG_ANDROID_INSTRUCTIONS="1. Скачайте и установите приложение OpenVPN для Android из Google Play Store.\n\
+2. Перенесите конфигурационный файл (с расширением .ovpn) на ваше Android-устройство.\n\
+3. В приложении OpenVPN нажмите иконку '+' для добавления нового профиля.\n\
+4. Выберите 'Импортировать из файла' и выберите ваш конфигурационный файл.\n\
+5. После импорта профиль будет доступен для подключения."
+MSG_MACOS_INSTRUCTIONS_HEADER="Инструкции для платформы macOS (OS X)"
+MSG_MACOS_INSTRUCTIONS="1. Установите Tunnelblick, бесплатный клиент OpenVPN для macOS, скачав его с официального сайта.\n\
+2. Откройте установочный файл и следуйте инструкциям для завершения процесса установки.\n\
+3. После установки переместите конфигурационный файл (с расширением .ovpn) в папку 'configurations' в вашем домашнем каталоге.\n\
+4. Запустите Tunnelblick и выберите 'Подключиться' для вашего VPN-профиля."
+MSG_LINUX_INSTRUCTIONS_HEADER="Инструкции для платформы Linux"
+MSG_LINUX_INSTRUCTIONS="1. Установите пакет OpenVPN с помощью менеджера пакетов вашей дистрибуции (например, apt для Ubuntu или yum для CentOS).\n\
+2. Перенесите конфигурационный файл (с расширением .ovpn) в каталог /etc/openvpn.\n\
+3. В терминале введите 'sudo openvpn имя_файла_конфигурации.ovpn', чтобы подключиться к VPN."
+MSG_IOS_INSTRUCTIONS_HEADER="Инструкции для платформы iOS (iPhone и iPad)"
+MSG_IOS_INSTRUCTIONS="1. Установите приложение OpenVPN Connect из App Store на ваше устройство iOS.\n\
+2. Перенесите конфигурационный файл (с расширением .ovpn) на ваше устройство с помощью iTunes или других доступных методов.\n\
+3. В приложении OpenVPN Connect перейдите в 'Настройки' и выберите 'Импортировать OpenVPN файл'.\n\
+4. Выберите ваш конфигурационный файл и следуйте инструкциям для импорта.\n\
+5. После импорта ваш VPN-профиль будет доступен для подключения."
+MSG_DOWNLOAD_INSTALL_SCRIPT_FAILED="Не удалось скачать и установить openvpn-install.sh"
+MSG_INSTALLATION_ERROR="Произошла ошибка при установке OpenVPN. Пожалуйста, проверьте ваши настройки и попробуйте снова."
+
+# function menu_IPsec_L2TP_IKEv2
+MSG_IPSEC="ipsec-vpn-server"
+MSG_CHOOSE_ACTION_IPSEC="Выберите действие для настройки контейнера IPsec/L2TP, Cisco IPsec и IKEv2:"
+MSG_INSTALL_IPSEC="Установить $MSG_IPSEC"
+MSG_CREATE_NEW_CONFIG="Создать новую конфигурацию для клиента $MSG_IPSEC"
+MSG_STOP_IPSEC="Остановить $MSG_IPSEC"
+MSG_REMOVE_IPSEC="Удалить $MSG_IPSEC"
+MSG_UPDATE_IPSEC="Обновить $MSG_IPSEC"
+
+# function install_ipsec_vpn_server
+# function generate_vpn_env_file
+MSG_VPN_ENV_FILE_CREATED="Файл /root/VPN/IPsec_L2TP/vpn.env был успешно создан и настроен."
+MSG_EXISTING_VPN_ENV_FILE="Файл vpn.env для конфигурации уже существует. Вы хотите создать новый файл или использовать существующий?"
+MSG_USE_EXISTING_FILE="Использование существующего файла vpn.env."
+MSG_CREATE_NEW_FILE="Создание нового файла vpn.env."
+
+MSG_FILES_COPIED_SUCCESS="Файлы для конфигурации клиента успешно скопированы в /root/VPN/IPsec_L2TP."
+MSG_COPY_FILES_ERROR="Произошла ошибка при копировании файлов. Пожалуйста, попробуйте выполнить команды вручную:"
+MSG_COPY_COMMAND_1="docker cp $MSG_IPSEC:/etc/ipsec.d/vpnclient.p12 /root/VPN/IPsec_L2TP"
+MSG_COPY_COMMAND_2="docker cp $MSG_IPSEC:/etc/ipsec.d/vpnclient.sswan /root/VPN/IPsec_L2TP"
+MSG_COPY_COMMAND_3="docker cp $MSG_IPSEC:/etc/ipsec.d/vpnclient.mobileconfig /root/VPN/IPsec_L2TP"
+MSG_CONTAINER_SETUP_SUCCESS="Контейнер $MSG_IPSEC был успешно установлен и настроен. Документация доступна по адресу: https://github.com/hwdsl2/setup-ipsec-vpn"
+
+MSG_IKEV2_WINDOWS="Подключение через IKEv2 на Windows 10/11/8\n\
+1. Перенесите сгенерированный файл .p12 в желаемую папку на вашем компьютере.\n\
+1.1. Скачайте файлы ikev2_config_import.cmd и IPSec_NAT_Config.bat. Убедитесь, что оба файла находятся в одной папке с файлом .p12.\n\
+2. Конфигурация VPN:\n\
+2.1. Щелкните правой кнопкой мыши на файле IPSec_NAT_Config.bat.\n\
+2.2. Выберите 'Запуск от имени администратора' из контекстного меню.\n\
+2.3. Подтвердите действие, если появится запрос UAC (Контроль учетных записей).\n\
+3. Импорт конфигурации:\n\
+3.1. Щелкните правой кнопкой мыши на файле ikev2_config_import.cmd.\n\
+3.2. Выберите 'Запуск от имени администратора' из контекстного меню.\n\
+3.3. Следуйте инструкциям на экране для завершения импорта конфигурации.\n\
+4. Перезагрузите компьютер, чтобы все изменения вступили в силу.\n\
+5. Теперь вы можете попытаться подключиться к вашему VPN-серверу, используя настройки IKEv2."
+
+MSG_ANDROID_CONNECTION="Подключение через Android\n\
+1. Перенесите сгенерированный файл .sswan на ваше Android-устройство.\n\
+2. Скачайте и установите приложение strongSwan VPN Client из Google Play, F-Droid или непосредственно с сервера strongSwan.\n\
+3. Запустите приложение strongSwan VPN Client на вашем устройстве.\n\
+4. Импорт профиля:\n\
+4.1. Нажмите иконку 'Дополнительные параметры' (обычно обозначенную тремя вертикальными точками) в верхнем правом углу.\n\
+4.2. В выпадающем меню выберите 'Импортировать VPN-профиль'.\n\
+4.3. Чтобы найти файл .sswan, нажмите иконку трёх горизонтальных линий или кнопку меню и перейдите в папку, где сохранён файл.\n\
+4.4. Выберите файл .sswan, полученный с VPN-сервера.\n\
+5. Импорт сертификата:\n\
+5.1. На экране 'Импортировать VPN-профиль' выберите 'ИМПОРТ СЕРТИФИКАТА ИЗ VPN-ПРОФИЛЯ' и следуйте инструкциям на экране.\n\
+5.2. На экране 'Выбор сертификата' выберите вновь импортированный клиентский сертификат и нажмите 'Выбрать'.\n\
+5.3. Затем нажмите 'ИМПОРТИРОВАТЬ'.\n\
+5.4. Для подключения к VPN: Нажмите новый VPN-профиль для начала подключения."
+
+MSG_MAC_IOS_CONNECTION="Для настройки OS X (macOS) / iOS используйте файл .mobileconfig\n\
+Сначала безопасно перенесите сгенерированный файл .mobileconfig на ваш Mac, затем дважды щелкните по нему и следуйте инструкциям для импорта в виде профиля macOS.\n\
+Если на вашем Mac установлена macOS Big Sur или новее, откройте 'Системные настройки' и перейдите в раздел 'Профили', чтобы завершить импорт.\n\
+Для macOS Ventura и новее откройте 'Системные настройки' и найдите 'Профили'.\n\
+После завершения убедитесь, что 'IKEv2 VPN' отображается в 'Системные настройки' -> 'Профили'.\n\
+Для подключения к VPN:\n\
+1. Откройте 'Системные настройки' и перейдите в раздел 'Сеть'.\n\
+2. Выберите VPN-соединение с IP-адресом вашего VPN-сервера (или DNS-именем).\n\
+3. Установите флажок 'Показывать статус VPN в строке меню'. Для macOS Ventura и новее эту настройку можно настроить в 'Системные настройки' -> 'Центр управления' -> 'Только строка меню'.\n\
+4. Нажмите 'Подключиться' или переключите VPN в ВКЛ.\n\
+5. (По желанию) Включите VPN по требованию, чтобы автоматически запускать VPN-соединение при подключении вашего Mac к Wi-Fi.\n\
+   Для этого установите флажок 'Подключать по требованию' для VPN-соединения и нажмите 'Применить'.\n\
+   Чтобы найти эту настройку в macOS Ventura и новее, нажмите на иконку 'i' рядом с VPN-соединением."
+
+MSG_CONTAINER_INSTALLED="Контейнер $MSG_IPSEC уже установлен."
+
+# function add_client_ipsec_vpn_server
+MSG_PROMPT_CONNECTION_NAME="Введите имя подключения:"
+MSG_NO_CONNECTION_NAME="Ошибка: Имя подключения не указано"
+MSG_CONNECTION_EXISTS1="Ошибка: Подключение "
+MSG_CONNECTION_EXISTS2=" уже существует"
+MSG_CONFIG_FILES_COPIED="Файлы конфигурации скопированы в /root/VPN/IPsec_L2TP/"
+
+# function stop_ipsec_vpn_server remove_ipsec_vpn_server update_ipsec_vpn_server
+MSG_IPSEC_STOPPED="$MSG_IPSEC остановлен."
+MSG_IPSEC_REMOVED="$MSG_IPSEC удалён."
+MSG_IPSEC_UPDATED="$MSG_IPSEC обновлён."
+
+# function menu_PPTP
+MSG_VPN_PPTP="VPN-PPTP"
+MSG_INSTALL_VPN_PPTP="1. Установка $MSG_VPN_PPTP"
+MSG_ADD_USER="2. Добавление нового пользователя"
+MSG_STOP_VPN_PPTP="3. Остановка $MSG_VPN_PPTP"
+MSG_REMOVE_VPN_PPTP="4. Удаление $MSG_VPN_PPTP"
+
+# function install_PPTP
+MSG_SECRETS_HEADER="# Записи для аутентификации с использованием PAP"
+MSG_SECRETS_FORMAT="# client    server      secret      допустимые локальные IP-адреса"
+
+MSG_VPN_SUCCESS="VPN-PPTP успешно установлен и запущен!"
+MSG_USER_DATA="Сгенерированные данные пользователя:"
+MSG_USERNAME="Имя пользователя: user1"
+MSG_PASSWORD="Пароль: "
+MSG_INSTRUCTIONS="Инструкции по подключению к VPN-PPTP:\n"
+
+MSG_WINDOWS="На Windows:"
+MSG_WINDOWS_STEP1="1. Откройте 'Панель управления' > 'Сеть и Интернет' > 'Центр управления сетями и общим доступом'."
+MSG_WINDOWS_STEP2="2. Нажмите 'Настроить новое подключение или сеть' > 'Подключиться к рабочему месту' > 'Использовать моё подключение к Интернету (VPN)'."
+MSG_WINDOWS_STEP3="3. Введите IP-адрес сервера: "
+MSG_WINDOWS_STEP4="4. Введите ваше имя пользователя и пароль."
+MSG_WINDOWS_STEP5="5. Нажмите 'Подключиться'.\n"
+
+MSG_MACOS="На macOS:"
+MSG_MACOS_STEP1="1. Откройте 'Системные настройки' > 'Сеть'."
+MSG_MACOS_STEP2="2. Нажмите '+' и выберите 'VPN'."
+MSG_MACOS_STEP3="3. Выберите 'Тип VPN' как 'PPTP'."
+MSG_MACOS_STEP4="4. Введите IP-адрес сервера: "
+MSG_MACOS_STEP5="5. Введите ваше имя пользователя и пароль."
+MSG_MACOS_STEP6="6. Нажмите 'Подключиться'.\n"
+
+MSG_ANDROID="На Android:"
+MSG_ANDROID_STEP1="1. Откройте 'Настройки' > 'Беспроводные сети и сети' > 'VPN'."
+MSG_ANDROID_STEP2="2. Нажмите 'Добавить VPN' и выберите 'PPTP'."
+MSG_ANDROID_STEP3="3. Введите IP-адрес сервера: "
+MSG_ANDROID_STEP4="4. Введите ваше имя пользователя и пароль."
+MSG_ANDROID_STEP5="5. Нажмите 'Сохранить' и 'Подключиться'.\n"
+
+MSG_IOS="На iOS:"
+MSG_IOS_STEP1="1. Откройте 'Настройки' > 'Основные' > 'VPN'."
+MSG_IOS_STEP2="2. Нажмите 'Добавить конфигурацию VPN' и выберите 'PPTP'."
+MSG_IOS_STEP3="3. Введите IP-адрес сервера: "
+MSG_IOS_STEP4="4. Введите ваше имя пользователя и пароль."
+MSG_IOS_STEP5="5. Нажмите 'Готово' и 'Подключиться'."
+
+# function add_user_to_pptp
+MSG_CONTAINER_NOT_FOUND1="Контейнер "
+MSG_CONTAINER_NOT_FOUND2=" не установлен."
+MSG_ENTER_USERNAME="Введите имя нового пользователя: "
+MSG_ENTER_PASSWORD="Введите пароль для нового пользователя: "
+MSG_USER_ADDED1="Новый пользователь "
+MSG_USER_ADDED2=" добавлен."
+MSG_CONTAINER_STOPPED="остановлен."
+MSG_CONTAINER_REMOVED="удален."
+MSG_FIREWALL_RULE_REMOVED="Правило брандмауэра для порта 1723 удалено."
+
 # 8_server_testing.sh
 MSG_SERVER_TESTING_PORT_SPEED="скорость порта"
 MSG_SERVER_TESTING_PORT_MAIL="почта"
