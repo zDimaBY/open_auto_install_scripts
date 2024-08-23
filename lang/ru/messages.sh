@@ -39,7 +39,7 @@ MSG_WINDOWS_APPS="Windows - nekoray, v2rayNG: "
 
 MSG_LINUX_APPS="Linux: "
 
-MSG_MACOS_APPS="MacOS (Intel + Apple): "
+MSG_MACOS_APPS="MacOS: "
 
 MSG_IOS_APPS="iOS: "
 MSG_IOS_APPS_LINK="https://apps.apple.com/us/app/napsternetv/id1629465476\nhttps://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
@@ -69,15 +69,14 @@ MSG_LINUX_INSTRUCTIONS="Подключение к VPN серверу с помо
 MSG_LINUX_STEP_1="-"
 
 # Инструкции для MacOS
-MSG_MACOS_INSTRUCTIONS="MacOS (Intel + Apple) - nekoray:"
+MSG_MACOS_INSTRUCTIONS="MacOS - nekoray:"
 MSG_MACOS_STEP_1="-"
 
 # Инструкции для iOS
 MSG_IOS_INSTRUCTIONS="iOS - napsternetv, v2box-v2ray-client:"
 MSG_IOS_STEP_1="-"
 
-MSG_CLIPBOARD_STRING_HEADER="У вас должна быть так называемая clipboard string, выглядит примерно так:"
-MSG_CLIPBOARD_STRING="vmess://XXXXXXXXXX"
+MSG_CLIPBOARD_STRING_HEADER="Общое: У вас должна быть так называемая clipboard string, выглядит примерно так: $MSG_VMESS_EXAMPLE"
 MSG_QR_CODE="Или QR-код, который содержит ту же строку."
 MSG_PROXY_DATA="В этой строке заданы данные для подключения к proxy-серверу."
 MSG_IMPORT_INSTRUCTIONS="Вам нужно только импортировать её в приложение. Во всех приложениях это называется примерно 'Add config from clipboard'. Приложение само берет из буфера обмена строку, либо вам нужно вставить её в поле."
@@ -121,7 +120,7 @@ MSG_REMOVE_3X_UI="3. Удалить $MSG_3X_UI"
 MSG_AVAILABLE_3X_UI_VERSIONS="\n${GREEN}Список доступных версий для ${YELLOW}ghcr.io/mhsanaei/3x-ui:${RESET}"
 MSG_SELECT_VERSION="Введите номер версии, которую вы хотите установить (1-9): "
 MSG_INVALID_CHOICE="Неверный выбор. Пожалуйста, выберите число от 1 до 9."
-MSG_X_UI_INSTALLED="${YELLOW}\n\n3x-UI установлен на сервере. Для доступа к панели администратора используйте следующую информацию:${RESET}"
+MSG_X_UI_INSTALLED="${YELLOW}\n\n$MSG_3X_UI установлен на сервере. Для доступа к панели администратора используйте следующую информацию:${RESET}"
 MSG_ADMIN_USERNAME="Имя пользователя: admin"
 MSG_ADMIN_PASSWORD="Пароль: admin\n"
 MSG_UPDATE_FUNCTION_NOT_IMPLEMENTED="Функция не реализована"

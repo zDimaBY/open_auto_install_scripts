@@ -39,7 +39,7 @@ MSG_WINDOWS_APPS="Windows - nekoray, v2rayNG: "
 
 MSG_LINUX_APPS="Linux: "
 
-MSG_MACOS_APPS="MacOS (Intel + Apple): "
+MSG_MACOS_APPS="MacOS: "
 
 MSG_IOS_APPS="iOS: "
 MSG_IOS_APPS_LINK="https://apps.apple.com/us/app/napsternetv/id1629465476\nhttps://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
@@ -69,15 +69,14 @@ MSG_LINUX_INSTRUCTIONS="Connecting to VPN server using Linux - nekoray:"
 MSG_LINUX_STEP_1="-"
 
 # Instructions for MacOS
-MSG_MACOS_INSTRUCTIONS="MacOS (Intel + Apple) - nekoray:"
+MSG_MACOS_INSTRUCTIONS="MacOS - nekoray:"
 MSG_MACOS_STEP_1="-"
 
 # Instructions for iOS
 MSG_IOS_INSTRUCTIONS="iOS - napsternetv, v2box-v2ray-client:"
 MSG_IOS_STEP_1="-"
 
-MSG_CLIPBOARD_STRING_HEADER="You should have a so-called clipboard string, which looks something like this:"
-MSG_CLIPBOARD_STRING="vmess://XXXXXXXXXX"
+MSG_CLIPBOARD_STRING_HEADER="You should have a so-called clipboard string, which looks something like this: $MSG_VMESS_EXAMPLE"
 MSG_QR_CODE="Or a QR code that contains the same string."
 MSG_PROXY_DATA="This string contains the data needed to connect to the proxy server."
 MSG_IMPORT_INSTRUCTIONS="You just need to import it into the app. In all apps, this is roughly called 'Add config from clipboard'. The app will automatically take the string from the clipboard, or you may need to paste it into a field."
@@ -121,7 +120,7 @@ MSG_REMOVE_3X_UI="3. Remove $MSG_3X_UI"
 MSG_AVAILABLE_3X_UI_VERSIONS="\n${GREEN}List of available versions for ${YELLOW}ghcr.io/mhsanaei/3x-ui:${RESET}"
 MSG_SELECT_VERSION="Enter the version number you want to install (1-9): "
 MSG_INVALID_CHOICE="Invalid choice. Please select a number between 1 and 9."
-MSG_X_UI_INSTALLED="${YELLOW}\n\n3x-UI has been installed on the server. To access the admin panel, use the following information:${RESET}"
+MSG_X_UI_INSTALLED="${YELLOW}\n\n$MSG_3X_UI has been installed on the server. To access the admin panel, use the following information:${RESET}"
 MSG_ADMIN_USERNAME="Username: admin"
 MSG_ADMIN_PASSWORD="Password: admin\n"
 MSG_UPDATE_FUNCTION_NOT_IMPLEMENTED="Function not implemented"

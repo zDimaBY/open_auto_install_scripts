@@ -89,7 +89,6 @@ info_for_client_programs() {
     echo -e "${MSG_IOS_STEP_1}"
 
     echo -e "${YELLOW}${MSG_CLIPBOARD_STRING_HEADER}${RESET}"
-    echo -e "${MSG_CLIPBOARD_STRING}"
     echo -e "${MSG_QR_CODE}\n"
     echo -e "${MSG_PROXY_DATA}"
     echo -e "${MSG_IMPORT_INSTRUCTIONS}"
@@ -99,10 +98,116 @@ info_for_client_programs() {
 }
 
 #_______________________________________________________________________________________________________________________________________
+menu_3x_ui() {
+    if ! check_docker_availability; then
+        return 1
+    fi
+    name_docker_container="3x-ui"
+    while true; do
+        check_info_server
+        check_info_control_panel
+
+        echo -e "${YELLOW}${MSG_3X_UI_AVAILABLE_WINDOWS}${RESET}"
+        echo -e "${MSG_3X_UI_STEP_1}"
+        echo -e "${MSG_3X_UI_STEP_2}"
+        echo -e "${MSG_3X_UI_STEP_3}"
+        echo -e "${MSG_3X_UI_STEP_4}"
+        echo -e "${MSG_3X_UI_STEP_5}"
+        echo -e "${MSG_3X_UI_STEP_6}"
+        echo -e "${YELLOW}${MSG_3X_UI_NOTE}${RESET}"
+
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
+        echo -e "${MSG_INSTALL_3X_UI}"
+        echo -e "${MSG_STOP_3X_UI}"
+        echo -e "${MSG_REMOVE_3X_UI}"
+        #echo "4. Оновлення 3X-UI"
+
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
+
+        read -p "${MSG_CHOOSE_OPTION}" choice
+
+        case $choice in
+        1) list_3x_ui_versions_install ;;
+        2) stop_3x_ui ;;
+        3) remove_3x_ui ;;
+        4) update_3x_ui ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+install_3x_ui() {
+    local version="$1"
+    create_folder "/root/VPN/3x_ui/db/" && create_folder "/root/VPN/3x_ui/cert/"
+    docker run -itd \
+        -e XRAY_VMESS_AEAD_FORCED=false \
+        -v /root/VPN/3x_ui/db/:/etc/x-ui/ \
+        -v /root/VPN/3x_ui/cert/:/root/cert/ \
+        --network=host \
+        --restart=unless-stopped \
+        --name ${name_docker_container} \
+        ghcr.io/mhsanaei/3x-ui:$version
+
+    # Функція для додавання правил файерволу з скриптів functions_controller.sh
+    add_firewall_rule 2053
+    docker ps -a
+}
+
+list_3x_ui_versions_install() {
+    local versions=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9)
+    echo -e "${MSG_AVAILABLE_3X_UI_VERSIONS}"
+    local i=1
+    for ver in $versions; do
+        echo "$i. $ver"
+        ((i++))
+    done
+    read -p "${MSG_SELECT_VERSION}" choice
+    if ((choice >= 1 && choice <= 9)); then
+        version=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9 | sed -n "${choice}p")
+        install_3x_ui "$version"
+    else
+        echo "${MSG_INVALID_CHOICE}"
+        return 1
+    fi
+
+    echo -e "${MSG_X_UI_INSTALLED}"
+    echo -e "http://${server_IPv4[0]}:2053"
+    echo -e "${MSG_ADMIN_USERNAME}"
+    echo -e "${MSG_ADMIN_PASSWORD}"
+
+    info_for_client_programs
+}
+
+stop_3x_ui() {
+    docker stop "$name_docker_container"
+    echo -e "${YELLOW}${name_docker_container} ${MSG_XUI_STOPPED}${RESET}"
+}
+
+remove_3x_ui() {
+    if [ -z "$name_docker_container" ]; then
+        echo "Error: Container name cannot be empty."
+        return 1
+    fi
+    docker stop "$name_docker_container"
+    docker rm "$name_docker_container"
+    echo -e "${RED}${name_docker_container} ${MSG_XUI_REMOVED}${RESET}"
+    docker ps -a
+    # Function for removing firewall rules from functions_controller.sh scripts
+    remove_firewall_rule 2053
+}
+
+update_3x_ui() {
+    echo "${MSG_UPDATE_FUNCTION_NOT_IMPLEMENTED}"
+}
+
+#_______________________________________________________________________________________________________________________________________
 menu_x_ui() {
     if ! check_docker_availability; then
         return 1
     fi
+    name_docker_container="x-ui"
     while true; do
         check_info_server
         check_info_control_panel
@@ -129,7 +234,6 @@ menu_x_ui() {
 }
 install_x_ui() {
     local version="$1"
-    name_docker_container="x-ui"
     create_folder "/root/VPN/x_ui/db/" && create_folder "/root/VPN/x_ui/cert/"
     docker run -itd \
         -p 54321:54321 -p 443:443 -p 80:80 \
@@ -188,109 +292,6 @@ remove_x_ui() {
 
 update_x_ui() {
     echo -e "${YELLOW}${MSG_XUI_UPDATE_NOT_IMPLEMENTED}${RESET}"
-}
-
-#_______________________________________________________________________________________________________________________________________
-menu_3x_ui() {
-    if ! check_docker_availability; then
-        return 1
-    fi
-    while true; do
-        check_info_server
-        check_info_control_panel
-
-        echo -e "${YELLOW}${MSG_3X_UI_AVAILABLE_WINDOWS}${RESET}"
-        echo -e "${MSG_3X_UI_STEP_1}"
-        echo -e "${MSG_3X_UI_STEP_2}"
-        echo -e "${MSG_3X_UI_STEP_3}"
-        echo -e "${MSG_3X_UI_STEP_4}"
-        echo -e "${MSG_3X_UI_STEP_5}"
-        echo -e "${MSG_3X_UI_STEP_6}"
-        echo -e "${YELLOW}${MSG_3X_UI_NOTE}${RESET}"
-
-        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
-        echo -e "${MSG_INSTALL_3X_UI}"
-        echo -e "${MSG_STOP_3X_UI}"
-        echo -e "${MSG_REMOVE_3X_UI}"
-        #echo "4. Оновлення 3X-UI"
-
-        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
-        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
-
-        read -p "${MSG_CHOOSE_OPTION}" choice
-
-        case $choice in
-        1) list_3x_ui_versions_install ;;
-        2) stop_3x_ui ;;
-        3) remove_3x_ui ;;
-        4) update_3x_ui ;;
-        0) break ;;
-        00) 0_funExit ;;
-        *) 0_invalid ;;
-        esac
-    done
-}
-install_3x_ui() {
-    name_docker_container="3x-ui"
-    local version="$1"
-    create_folder "/root/VPN/3x_ui/db/" && create_folder "/root/VPN/3x_ui/cert/"
-    docker run -itd \
-        -e XRAY_VMESS_AEAD_FORCED=false \
-        -v /root/VPN/3x_ui/db/:/etc/x-ui/ \
-        -v /root/VPN/3x_ui/cert/:/root/cert/ \
-        --network=host \
-        --restart=unless-stopped \
-        --name ${name_docker_container} \
-        ghcr.io/mhsanaei/3x-ui:$version
-
-    # Функція для додавання правил файерволу з скриптів functions_controller.sh
-    add_firewall_rule 2053
-    docker ps -a
-}
-
-list_3x_ui_versions_install() {
-    local versions=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9)
-    echo -e "${MSG_AVAILABLE_3X_UI_VERSIONS}"
-    local i=1
-    for ver in $versions; do
-        echo "$i. $ver"
-        ((i++))
-    done
-    read -p "${MSG_SELECT_VERSION}" choice
-    if ((choice >= 1 && choice <= 9)); then
-        version=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9 | sed -n "${choice}p")
-        install_3x_ui "$version"
-    else
-        echo "${MSG_INVALID_CHOICE}"
-        return 1
-    fi
-
-    echo -e "${MSG_X_UI_INSTALLED}"
-    echo -e "http://${server_IPv4[0]}:2053"
-    echo -e "${MSG_ADMIN_USERNAME}"
-    echo -e "${MSG_ADMIN_PASSWORD}"
-
-    info_for_client_programs
-}
-
-stop_3x_ui() {
-    docker stop "$name_docker_container"
-    echo -e "${YELLOW}${name_docker_container} ${MSG_XUI_STOPPED}${RESET}"
-}
-
-remove_3x_ui() {
-    docker stop "$name_docker_container"
-    docker rm "$name_docker_container"
-    #docker rmi "$name_docker_container"
-    echo -e "${RED}${name_docker_container} ${MSG_XUI_REMOVED}${RESET}"
-    docker ps -a
-
-    # Function for removing firewall rules from functions_controller.sh scripts
-    remove_firewall_rule 2053
-}
-
-update_3x_ui() {
-    echo "${MSG_UPDATE_FUNCTION_NOT_IMPLEMENTED}"
 }
 
 #_______________________________________________________________________________________________________________________________________
@@ -552,6 +553,7 @@ menu_IPsec_L2TP_IKEv2() {
     if ! check_docker_availability; then
         return 1
     fi
+    name_docker_container="ipsec-vpn-server"
     while true; do
         check_info_server
         check_info_control_panel

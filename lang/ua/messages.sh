@@ -39,7 +39,7 @@ MSG_WINDOWS_APPS="Windows - nekoray, v2rayNG: "
 
 MSG_LINUX_APPS="Linux: "
 
-MSG_MACOS_APPS="MacOS (Intel + Apple): "
+MSG_MACOS_APPS="MacOS: "
 
 MSG_IOS_APPS="iOS: "
 MSG_IOS_APPS_LINK="https://apps.apple.com/us/app/napsternetv/id1629465476\nhttps://apps.apple.com/us/app/v2box-v2ray-client/id6446814690"
@@ -69,15 +69,14 @@ MSG_LINUX_INSTRUCTIONS="Підключення до VPN сервера за до
 MSG_LINUX_STEP_1="-"
 
 # Інструкції для MacOS
-MSG_MACOS_INSTRUCTIONS="MacOS (Intel + Apple) - nekoray:"
+MSG_MACOS_INSTRUCTIONS="MacOS - nekoray:"
 MSG_MACOS_STEP_1="-"
 
 # Інструкції для iOS
 MSG_IOS_INSTRUCTIONS="iOS - napsternetv, v2box-v2ray-client:"
 MSG_IOS_STEP_1="-"
 
-MSG_CLIPBOARD_STRING_HEADER="У вас повинна бути так звана clipboard string, виглядає приблизно так:"
-MSG_CLIPBOARD_STRING="vmess://XXXXXXXXXX"
+MSG_CLIPBOARD_STRING_HEADER="У вас повинна бути так звана clipboard string, виглядає приблизно так: $MSG_VMESS_EXAMPLE"
 MSG_QR_CODE="Або QR-код, який містить ту ж саму рядок."
 MSG_PROXY_DATA="В цій рядку задані дані для підключення до proxy-сервера."
 MSG_IMPORT_INSTRUCTIONS="Вам потрібно лише імпортувати її в додаток. У всіх додатках це називається приблизно 'Add config from clipboard'. Додаток сам бере з буфера обміну рядок, або вам потрібно вставити її в поле."
@@ -121,7 +120,7 @@ MSG_REMOVE_3X_UI="3. Видалити $MSG_3X_UI"
 MSG_AVAILABLE_3X_UI_VERSIONS="\n${GREEN}Список доступних версій для ${YELLOW}ghcr.io/mhsanaei/3x-ui:${RESET}"
 MSG_SELECT_VERSION="Введіть номер версії, яку ви хочете встановити (1-9): "
 MSG_INVALID_CHOICE="Недійсний вибір. Будь ласка, виберіть номер від 1 до 9."
-MSG_X_UI_INSTALLED="${YELLOW}\n\n3x-UI було встановлено на сервері. Для доступу до панелі адміністратора використовуйте наступну інформацію:${RESET}"
+MSG_X_UI_INSTALLED="${YELLOW}\n\n$MSG_3X_UI було встановлено на сервері. Для доступу до панелі адміністратора використовуйте наступну інформацію:${RESET}"
 MSG_ADMIN_USERNAME="Ім'я користувача: admin"
 MSG_ADMIN_PASSWORD="Пароль: admin\n"
 MSG_UPDATE_FUNCTION_NOT_IMPLEMENTED="Функція не реалізована"
