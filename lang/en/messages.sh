@@ -441,6 +441,9 @@ MSG_RELEASE_DATA_ERROR="Failed to retrieve release data from"
 MSG_FILE_TYPES_ERROR="Failed to find files of type"
 MSG_IN_RELEASES_FROM="in releases from"
 
+# function remove_docker_container stop_docker_container
+MSG_ERROR_CONTAINER_NAME="Error: Container name cannot be empty."
+
 # linuxinfo.sh
 MSG_ERROR_NO_DOWNLOAD_TOOL="Error: 'wget' or 'curl' not found. Please install one of them to continue."
 

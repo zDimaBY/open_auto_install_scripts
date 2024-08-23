@@ -440,6 +440,10 @@ MSG_RELEASE_DATA_ERROR="Не вдалося отримати дані випус
 MSG_FILE_TYPES_ERROR="Не вдалося знайти файли типу"
 MSG_IN_RELEASES_FROM="у випусках від"
 
+# function remove_docker_container stop_docker_container
+MSG_ERROR_CONTAINER_NAME="Помилка: назва контейнера не може бути порожньою."
+
+
 # linuxinfo.sh
 MSG_ERROR_NO_DOWNLOAD_TOOL="Помилка: 'wget' або 'curl' не знайдено. Будь ласка, встановіть один з них для продовження."
 

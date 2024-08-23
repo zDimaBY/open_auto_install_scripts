@@ -129,8 +129,11 @@ menu_3x_ui() {
 
         case $choice in
         1) list_3x_ui_versions_install ;;
-        2) stop_3x_ui ;;
-        3) remove_3x_ui ;;
+        2) stop_docker_container "$name_docker_container" "$MSG_XUI_STOPPED" ;;
+        3)
+            remove_docker_container "$name_docker_container" "$MSG_XUI_REMOVED"
+            remove_firewall_rule 2053
+            ;;
         4) update_3x_ui ;;
         0) break ;;
         00) 0_funExit ;;
@@ -180,24 +183,6 @@ list_3x_ui_versions_install() {
     info_for_client_programs
 }
 
-stop_3x_ui() {
-    docker stop "$name_docker_container"
-    echo -e "${YELLOW}${name_docker_container} ${MSG_XUI_STOPPED}${RESET}"
-}
-
-remove_3x_ui() {
-    if [ -z "$name_docker_container" ]; then
-        echo "Error: Container name cannot be empty."
-        return 1
-    fi
-    docker stop "$name_docker_container"
-    docker rm "$name_docker_container"
-    echo -e "${RED}${name_docker_container} ${MSG_XUI_REMOVED}${RESET}"
-    docker ps -a
-    # Function for removing firewall rules from functions_controller.sh scripts
-    remove_firewall_rule 2053
-}
-
 update_3x_ui() {
     echo "${MSG_UPDATE_FUNCTION_NOT_IMPLEMENTED}"
 }
@@ -223,8 +208,13 @@ menu_x_ui() {
 
         case $choice in
         1) list_x_ui_versions_install ;;
-        2) stop_x_ui ;;
-        3) remove_x_ui ;;
+        2) stop_docker_container "$name_docker_container" "$MSG_XUI_STOPPED" ;;
+        3)
+            remove_docker_container "$name_docker_container" "$MSG_XUI_REMOVED"
+            remove_firewall_rule 80
+            remove_firewall_rule 443
+            remove_firewall_rule 54321
+            ;;
         4) update_x_ui ;;
         0) break ;;
         00) 0_funExit ;;
@@ -274,22 +264,6 @@ list_x_ui_versions_install() {
     info_for_client_programs
 }
 
-stop_x_ui() {
-    docker stop "$name_docker_container"
-    echo -e "${YELLOW}${name_docker_container} ${MSG_XUI_STOPPED}${RESET}"
-}
-
-remove_x_ui() {
-    docker stop "$name_docker_container"
-    docker rm "$name_docker_container"
-    #docker rmi "$name_docker_container"
-    echo -e "${RED}${name_docker_container} ${MSG_XUI_REMOVED}${RESET}"
-    docker ps -a
-    remove_firewall_rule 80
-    remove_firewall_rule 443
-    remove_firewall_rule 54321
-}
-
 update_x_ui() {
     echo -e "${YELLOW}${MSG_XUI_UPDATE_NOT_IMPLEMENTED}${RESET}"
 }
@@ -315,8 +289,8 @@ menu_wireguard_easy() {
 
         case $choice in
         1) install_wg_easy ;;
-        2) stop_wg_easy ;;
-        3) remove_wg_easy ;;
+        2) stop_docker_container "$name_docker_container" "$MSG_STOP_WG_EASY" ;;
+        3) remove_docker_container "$name_docker_container" "$MSG_REMOVE_WG_EASY" ;;
         4) update_wg_easy ;;
         0) break ;;
         00) 0_funExit ;;
@@ -377,17 +351,6 @@ install_wg_easy() {
     else
         echo -e "\n${RED}${MSG_INSTALL_WG_EASY_ERROR}${RESET}"
     fi
-}
-
-stop_wg_easy() {
-    docker stop "$name_docker_container"
-    echo "${MSG_STOP_WG_EASY}"
-}
-
-remove_wg_easy() {
-    docker stop "$name_docker_container"
-    docker rm "$name_docker_container"
-    echo "${MSG_REMOVE_WG_EASY}"
 }
 
 update_wg_easy() {
@@ -567,12 +530,11 @@ menu_IPsec_L2TP_IKEv2() {
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
         read -p "${MSG_CHOOSE_OPTION}" choice
-
         case $choice in
         1) install_ipsec_vpn_server ;;
         2) add_client_ipsec_vpn_server ;;
-        3) stop_ipsec_vpn_server ;;
-        4) remove_ipsec_vpn_server ;;
+        3) stop_docker_container "$name_docker_container" "$MSG_IPSEC_STOPPED" ;;
+        4) remove_docker_container "$name_docker_container" "$MSG_IPSEC_REMOVED" ;;
         5) update_ipsec_vpn_server ;;
         0) break ;;
         00) 0_funExit ;;
@@ -607,7 +569,7 @@ install_ipsec_vpn_server() {
 
     if ! docker ps -a --format '{{.Names}}' | grep -q "^ipsec-vpn-server$"; then
         docker run \
-            --name ipsec-vpn-server \
+            --name "$name_docker_container" \
             --env-file /root/VPN/IPsec_L2TP/vpn.env \
             --restart=always \
             -v ikev2-vpn-data:/etc/ipsec.d \
@@ -620,9 +582,9 @@ install_ipsec_vpn_server() {
         wget -N -P /root/VPN/IPsec_L2TP/ https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat
         wget -N -P /root/VPN/IPsec_L2TP/ https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd
 
-        copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.p12" "/root/VPN/IPsec_L2TP"
-        copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.sswan" "/root/VPN/IPsec_L2TP"
-        copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/vpnclient.mobileconfig" "/root/VPN/IPsec_L2TP"
+        copy_file_from_container "$name_docker_container" "/etc/ipsec.d/vpnclient.p12" "/root/VPN/IPsec_L2TP"
+        copy_file_from_container "$name_docker_container" "/etc/ipsec.d/vpnclient.sswan" "/root/VPN/IPsec_L2TP"
+        copy_file_from_container "$name_docker_container" "/etc/ipsec.d/vpnclient.mobileconfig" "/root/VPN/IPsec_L2TP"
 
         if [ $? -eq 0 ]; then
             echo -e "\n${GREEN}${MSG_FILES_COPIED_SUCCESS}${RESET}"
@@ -657,35 +619,24 @@ add_client_ipsec_vpn_server() {
         return 1
     fi
 
-    if docker exec -it ipsec-vpn-server ls "/etc/ipsec.d/$connection_name.p12" &>/dev/null; then
+    if docker exec -it "$name_docker_container" ls "/etc/ipsec.d/$connection_name.p12" &>/dev/null; then
         echo "${RED}${MSG_CONNECTION_EXISTS1}${connection_name}${MSG_CONNECTION_EXISTS2}${RESET}"
         return 1
     fi
     create_folder "/root/VPN/IPsec_L2TP/$connection_name"
-    docker exec -it ipsec-vpn-server /opt/src/ikev2.sh --addclient "$connection_name"
-    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.p12" "/root/VPN/IPsec_L2TP/$connection_name/"
-    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.sswan" "/root/VPN/IPsec_L2TP/$connection_name/"
-    copy_file_from_container "ipsec-vpn-server" "/etc/ipsec.d/$connection_name.mobileconfig" "/root/VPN/IPsec_L2TP/$connection_name/"
+    docker exec -it "$name_docker_container" /opt/src/ikev2.sh --addclient "$connection_name"
+    copy_file_from_container "$name_docker_container" "/etc/ipsec.d/$connection_name.p12" "/root/VPN/IPsec_L2TP/$connection_name/"
+    copy_file_from_container "$name_docker_container" "/etc/ipsec.d/$connection_name.sswan" "/root/VPN/IPsec_L2TP/$connection_name/"
+    copy_file_from_container "$name_docker_container" "/etc/ipsec.d/$connection_name.mobileconfig" "/root/VPN/IPsec_L2TP/$connection_name/"
     wget -N -P /root/VPN/IPsec_L2TP/${connection_name}/ https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/file/VPN/IPsec_and_IKEv2/IPSec_NAT_Config.bat
     wget -N -P /root/VPN/IPsec_L2TP/${connection_name}/ https://raw.githubusercontent.com/zDimaBY/open_auto_install_scripts/main/file/VPN/IPsec_and_IKEv2/ikev2_config_import.cmd
 
     echo -e "${GREEN}${MSG_CONFIG_FILES_COPIED}${connection_name}${RESET}"
 }
 
-stop_ipsec_vpn_server() {
-    docker stop ipsec-vpn-server
-    echo "${MSG_IPSEC_STOPPED}"
-}
-
-remove_ipsec_vpn_server() {
-    docker stop ipsec-vpn-server
-    docker rm ipsec-vpn-server
-    echo "${MSG_IPSEC_REMOVED}"
-}
-
 update_ipsec_vpn_server() {
-    docker stop ipsec-vpn-server
-    docker rm ipsec-vpn-server
+    docker stop "$name_docker_container"
+    docker rm "$name_docker_container"
     docker pull hwdsl2/ipsec-vpn-server
     echo "${MSG_IPSEC_UPDATED}"
 }

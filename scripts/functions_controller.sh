@@ -586,3 +586,34 @@ function get_latest_files_url() {
 
     return 0
 }
+
+
+remove_docker_container() { # Видалення контейнера
+    local container_name="$1"
+    local removal_message="$2"
+
+    if [ -z "$container_name" ]; then
+        echo "$MSG_ERROR_CONTAINER_NAME"
+        return 1
+    fi
+
+    docker stop "$container_name" && docker rm "$container_name" > /dev/null 2>&1
+    #docker rmi "$container_name"
+    echo -e "${RED}${container_name} ${removal_message}${RESET}"
+    docker ps -a
+}
+
+stop_docker_container() {
+    local container_name="$1"
+    local stop_message="$2"
+
+    if [ -z "$container_name" ]; then
+        echo "$MSG_ERROR_CONTAINER_NAME"
+        return 1
+    fi
+
+    docker stop "$container_name" > /dev/null 2>&1
+
+    echo -e "${RED}${container_name} ${stop_message}${RESET}"
+    docker ps -a
+}
