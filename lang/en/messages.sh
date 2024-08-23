@@ -181,30 +181,30 @@ MSG_OPENVPN_MANUAL_MENU="2. OpenVPN management menu and manual installation"
 # function avtoInstall_openVPN
 MSG_OPENVPN_INSTALL_SUCCESS="OpenVPN successfully installed!"
 MSG_OPENVPN_DOCUMENTATION="Documentation at: https://github.com/angristan/openvpn-install"
-MSG_WINDOWS_INSTRUCTIONS_HEADER="Instructions for Windows platform"
-MSG_WINDOWS_INSTRUCTIONS="1. Download the OpenVPN installer for Windows from the official OpenVPN website.\n\
+MSG_OPENVPN_WINDOWS_INSTRUCTIONS_HEADER="Instructions for Windows platform"
+MSG_OPENVPN_WINDOWS_INSTRUCTIONS="1. Download the OpenVPN installer for Windows from the official OpenVPN website.\n\
 2. Install the program using the standard installation process.\n\
 3. Launch OpenVPN.\n\
 4. After launching the program, go to 'File' -> 'Import configuration file'.\n\
 5. Select the configuration file you received from your VPN server.\n\
 6. After importing, a new profile with your VPN name will appear. Click on it to connect."
-MSG_ANDROID_INSTRUCTIONS_HEADER="Instructions for Android platform"
-MSG_ANDROID_INSTRUCTIONS="1. Download and install the OpenVPN app for Android from the Google Play Store.\n\
+MSG_OPENVPN_ANDROID_INSTRUCTIONS_HEADER="Instructions for Android platform"
+MSG_OPENVPN_ANDROID_INSTRUCTIONS="1. Download and install the OpenVPN app for Android from the Google Play Store.\n\
 2. Transfer the configuration file (with .ovpn extension) to your Android device.\n\
 3. In the OpenVPN app, tap the '+' icon to add a new profile.\n\
 4. Choose 'Import from file' and select your configuration file.\n\
 5. After importing, the profile will be available for connection."
-MSG_MACOS_INSTRUCTIONS_HEADER="Instructions for macOS (OS X) platform"
-MSG_MACOS_INSTRUCTIONS="1. Install Tunnelblick, a free OpenVPN client for macOS, by downloading it from the official website.\n\
+MSG_OPENVPN_MACOS_INSTRUCTIONS_HEADER="Instructions for macOS (OS X) platform"
+MSG_OPENVPN_MACOS_INSTRUCTIONS="1. Install Tunnelblick, a free OpenVPN client for macOS, by downloading it from the official website.\n\
 2. Open the installer and follow the instructions to complete the installation process.\n\
 3. After installation, move the configuration file (with .ovpn extension) to the 'configurations' folder in your home directory.\n\
 4. Launch Tunnelblick and select 'Connect' for your VPN profile."
-MSG_LINUX_INSTRUCTIONS_HEADER="Instructions for Linux platform"
-MSG_LINUX_INSTRUCTIONS="1. Install the OpenVPN package using your distribution's package manager (e.g., apt for Ubuntu or yum for CentOS).\n\
+MSG_OPENVPN_LINUX_INSTRUCTIONS_HEADER="Instructions for Linux platform"
+MSG_OPENVPN_LINUX_INSTRUCTIONS="1. Install the OpenVPN package using your distribution's package manager (e.g., apt for Ubuntu or yum for CentOS).\n\
 2. Transfer the configuration file (with .ovpn extension) to the /etc/openvpn directory.\n\
 3. In the terminal, enter 'sudo openvpn configuration_file_name.ovpn' to connect to the VPN."
-MSG_IOS_INSTRUCTIONS_HEADER="Instructions for iOS (iPhone and iPad) platform"
-MSG_IOS_INSTRUCTIONS="1. Install the OpenVPN Connect app from the App Store on your iOS device.\n\
+MSG_OPENVPN_IOS_INSTRUCTIONS_HEADER="Instructions for iOS (iPhone and iPad) platform"
+MSG_OPENVPN_IOS_INSTRUCTIONS="1. Install the OpenVPN Connect app from the App Store on your iOS device.\n\
 2. Transfer the configuration file (with .ovpn extension) to your device via iTunes or other available methods.\n\
 3. In the OpenVPN Connect app, go to 'Settings' and select 'Import OpenVPN file'.\n\
 4. Choose your configuration file and follow the instructions for import.\n\

@@ -179,32 +179,32 @@ MSG_OPENVPN_AUTO_INSTALL="1. Автоматическая установка Ope
 MSG_OPENVPN_MANUAL_MENU="2. Меню управления OpenVPN и ручная установка"
 
 # function avtoInstall_openVPN
-MSG_OPENVPN_INSTALL_SUCCESS="OpenVPN успешно установлен!"
-MSG_OPENVPN_DOCUMENTATION="Документация по адресу: https://github.com/angristan/openvpn-install"
-MSG_WINDOWS_INSTRUCTIONS_HEADER="Инструкции для платформы Windows"
-MSG_WINDOWS_INSTRUCTIONS="1. Скачайте установщик OpenVPN для Windows с официального сайта OpenVPN.\n\
+MSG_OPENVPN_OPENVPN_INSTALL_SUCCESS="OpenVPN успешно установлен!"
+MSG_OPENVPN_OPENVPN_DOCUMENTATION="Документация по адресу: https://github.com/angristan/openvpn-install"
+MSG_OPENVPN_WINDOWS_INSTRUCTIONS_HEADER="Инструкции для платформы Windows"
+MSG_OPENVPN_WINDOWS_INSTRUCTIONS="1. Скачайте установщик OpenVPN для Windows с официального сайта OpenVPN.\n\
 2. Установите программу, используя стандартный процесс установки.\n\
 3. Запустите OpenVPN.\n\
 4. После запуска программы перейдите в 'Файл' -> 'Импортировать конфигурационный файл'.\n\
 5. Выберите конфигурационный файл, который вы получили от вашего VPN-сервера.\n\
 6. После импорта появится новый профиль с именем вашего VPN. Нажмите на него, чтобы подключиться."
-MSG_ANDROID_INSTRUCTIONS_HEADER="Инструкции для платформы Android"
-MSG_ANDROID_INSTRUCTIONS="1. Скачайте и установите приложение OpenVPN для Android из Google Play Store.\n\
+MSG_OPENVPN_ANDROID_INSTRUCTIONS_HEADER="Инструкции для платформы Android"
+MSG_OPENVPN_ANDROID_INSTRUCTIONS="1. Скачайте и установите приложение OpenVPN для Android из Google Play Store.\n\
 2. Перенесите конфигурационный файл (с расширением .ovpn) на ваше Android-устройство.\n\
 3. В приложении OpenVPN нажмите иконку '+' для добавления нового профиля.\n\
 4. Выберите 'Импортировать из файла' и выберите ваш конфигурационный файл.\n\
 5. После импорта профиль будет доступен для подключения."
-MSG_MACOS_INSTRUCTIONS_HEADER="Инструкции для платформы macOS (OS X)"
-MSG_MACOS_INSTRUCTIONS="1. Установите Tunnelblick, бесплатный клиент OpenVPN для macOS, скачав его с официального сайта.\n\
+MSG_OPENVPN_MACOS_INSTRUCTIONS_HEADER="Инструкции для платформы macOS (OS X)"
+MSG_OPENVPN_MACOS_INSTRUCTIONS="1. Установите Tunnelblick, бесплатный клиент OpenVPN для macOS, скачав его с официального сайта.\n\
 2. Откройте установочный файл и следуйте инструкциям для завершения процесса установки.\n\
 3. После установки переместите конфигурационный файл (с расширением .ovpn) в папку 'configurations' в вашем домашнем каталоге.\n\
 4. Запустите Tunnelblick и выберите 'Подключиться' для вашего VPN-профиля."
-MSG_LINUX_INSTRUCTIONS_HEADER="Инструкции для платформы Linux"
-MSG_LINUX_INSTRUCTIONS="1. Установите пакет OpenVPN с помощью менеджера пакетов вашей дистрибуции (например, apt для Ubuntu или yum для CentOS).\n\
+MSG_OPENVPN_LINUX_INSTRUCTIONS_HEADER="Инструкции для платформы Linux"
+MSG_OPENVPN_LINUX_INSTRUCTIONS="1. Установите пакет OpenVPN с помощью менеджера пакетов вашей дистрибуции (например, apt для Ubuntu или yum для CentOS).\n\
 2. Перенесите конфигурационный файл (с расширением .ovpn) в каталог /etc/openvpn.\n\
 3. В терминале введите 'sudo openvpn имя_файла_конфигурации.ovpn', чтобы подключиться к VPN."
-MSG_IOS_INSTRUCTIONS_HEADER="Инструкции для платформы iOS (iPhone и iPad)"
-MSG_IOS_INSTRUCTIONS="1. Установите приложение OpenVPN Connect из App Store на ваше устройство iOS.\n\
+MSG_OPENVPN_IOS_INSTRUCTIONS_HEADER="Инструкции для платформы iOS (iPhone и iPad)"
+MSG_OPENVPN_IOS_INSTRUCTIONS="1. Установите приложение OpenVPN Connect из App Store на ваше устройство iOS.\n\
 2. Перенесите конфигурационный файл (с расширением .ovpn) на ваше устройство с помощью iTunes или других доступных методов.\n\
 3. В приложении OpenVPN Connect перейдите в 'Настройки' и выберите 'Импортировать OpenVPN файл'.\n\
 4. Выберите ваш конфигурационный файл и следуйте инструкциям для импорта.\n\

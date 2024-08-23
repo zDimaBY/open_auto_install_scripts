@@ -95,7 +95,7 @@ info_for_client_programs() {
     echo -e "${MSG_IMPORT_INSTRUCTIONS}"
     echo -e "${MSG_CONNECTION_IMPORT}"
 
-    echo -e "https://itdog.info/klienty-vless-shadowsocks-trojan-xray-sing-box-dlya-windows-android-ios-macos-linux/"
+    print_color_message 135 206 235 "https://itdog.info/klienty-vless-shadowsocks-trojan-xray-sing-box-dlya-windows-android-ios-macos-linux/"
 }
 
 #_______________________________________________________________________________________________________________________________________
@@ -515,24 +515,24 @@ avtoInstall_openVPN() {
         echo -e "${MSG_OPENVPN_DOCUMENTATION}"
 
         # Instructions for Windows
-        echo -e "\n${YELLOW}${MSG_WINDOWS_INSTRUCTIONS_HEADER}${RESET}"
-        echo -e "${MSG_WINDOWS_INSTRUCTIONS}"
+        echo -e "\n${YELLOW}${MSG_OPENVPN_WINDOWS_INSTRUCTIONS_HEADER}${RESET}"
+        echo -e "${MSG_OPENVPN_WINDOWS_INSTRUCTIONS}"
 
         # Instructions for Android
-        echo -e "\n${YELLOW}${MSG_ANDROID_INSTRUCTIONS_HEADER}${RESET}"
-        echo -e "${MSG_ANDROID_INSTRUCTIONS}"
+        echo -e "\n${YELLOW}${MSG_OPENVPN_ANDROID_INSTRUCTIONS_HEADER}${RESET}"
+        echo -e "${MSG_OPENVPN_ANDROID_INSTRUCTIONS}"
 
         # Instructions for macOS
-        echo -e "\n${YELLOW}${MSG_MACOS_INSTRUCTIONS_HEADER}${RESET}"
-        echo -e "${MSG_MACOS_INSTRUCTIONS}"
+        echo -e "\n${YELLOW}${MSG_OPENVPN_MACOS_INSTRUCTIONS_HEADER}${RESET}"
+        echo -e "${MSG_OPENVPN_MACOS_INSTRUCTIONS}"
 
         # Instructions for Linux
-        echo -e "\n${YELLOW}${MSG_LINUX_INSTRUCTIONS_HEADER}${RESET}"
-        echo -e "${MSG_LINUX_INSTRUCTIONS}"
+        echo -e "\n${YELLOW}${MSG_OPENVPN_LINUX_INSTRUCTIONS_HEADER}${RESET}"
+        echo -e "${MSG_OPENVPN_LINUX_INSTRUCTIONS}"
 
         # Instructions for iOS
-        echo -e "\n${YELLOW}${MSG_IOS_INSTRUCTIONS_HEADER}${RESET}"
-        echo -e "${MSG_IOS_INSTRUCTIONS}"
+        echo -e "\n${YELLOW}${MSG_OPENVPN_IOS_INSTRUCTIONS_HEADER}${RESET}"
+        echo -e "${MSG_OPENVPN_IOS_INSTRUCTIONS}"
     else
         echo -e "\n${RED}${MSG_INSTALLATION_ERROR}${RESET}"
     fi
