@@ -22,11 +22,13 @@ function select_language() {
     read -p "Select a language pack number (1/2/3): " lang_choice
 
     case $lang_choice in
-        1) LANG_open_auto_install_scripts="en" ;;
-        3) LANG_open_auto_install_scripts="ru" ;;
-        2) LANG_open_auto_install_scripts="ua" ;;
-        *) echo -e "${RED}Wrong choice. Set by default: 'en'.${RESET}"
-           LANG_open_auto_install_scripts="en" ;;
+    1) LANG_open_auto_install_scripts="en" ;;
+    3) LANG_open_auto_install_scripts="ru" ;;
+    2) LANG_open_auto_install_scripts="ua" ;;
+    *)
+        echo -e "${RED}Wrong choice. Set by default: 'en'.${RESET}"
+        LANG_open_auto_install_scripts="en"
+        ;;
     esac
 }
 
@@ -112,14 +114,14 @@ function selectionFunctions() {
         check_info_server
         check_info_control_panel
         print_color_message 255 255 0 "\n${MSG_ACTION_SELECTION}\n"
-        print_color_message 255 255 255 "1. ${MSG_INSTALL_SOFTWARE} ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx'), OpenSSH)"
-        print_color_message 255 255 255 "2. ${MSG_CONTROL_PANEL_FUNCTIONS} $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "1. ${MSG_INSTALL_SOFTWARE} ($(print_color_message 218 165 32 'Composer'), $(print_color_message 255 140 0 'Docker'), $(print_color_message 0 128 128 'RouterOS 7.5'), $(print_color_message 148 0 211 'Elasticsearch'), $(print_color_message 0 190 0 'proxy nginx'), $(print_color_message 0 100 0 'OpenSSH'))"
+        print_color_message 255 255 255 "2. ${MSG_CONTROL_PANEL_FUNCTIONS} $(print_color_message 255 69 0 '(test)')"
         print_color_message 255 255 255 "3. $(print_color_message 220 20 60 "${MSG_DDOS_ANALYSIS}")"
-        print_color_message 255 255 255 "4. ${MSG_VPN_CONFIGURATION} ($(print_color_message 255 215 0 "$MSG_3X_UI"), $(print_color_message 255 215 0 "$MSG_XUI"), $(print_color_message 255 215 0 "$MSG_WIREGUARD_EASY"), $(print_color_message 255 215 0 "$MSG_NAME_OPENVPN"), $(print_color_message 169 169 169 'IPsec/L2TP, Cisco IPsec, IKEv2'), $MSG_VPN_PPTP)"
-        print_color_message 255 255 255 "5. ${MSG_FTP_CONFIGURATION} $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "6. ${MSG_DATABASE_CONFIGURATION} $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "7. ${MSG_OPERATING_SYSTEMS_INSTALLATION} $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "8. ${MSG_SERVER_TESTING}: $(print_color_message 255 215 0 "${MSG_SERVER_TESTING_PORT_SPEED},") $(print_color_message 100 149 237 "${MSG_SERVER_TESTING_PORT_MAIL}")"
+        print_color_message 255 255 255 "4. ${MSG_VPN_CONFIGURATION} ($(print_color_message 255 215 0 "$MSG_3X_UI"), $(print_color_message 0 191 255 "$MSG_XUI"), $(print_color_message 210 0 90 "$MSG_WIREGUARD_EASY"), $(print_color_message 0 255 127 "$MSG_NAME_OPENVPN"), $(print_color_message 169 169 169 'IPsec/L2TP, Cisco IPsec, IKEv2'), $(print_color_message 173 216 230 "$MSG_VPN_PPTP"))"
+        print_color_message 255 255 255 "5. ${MSG_FTP_CONFIGURATION} ($(print_color_message 255 99 71 'MySQL'), $(print_color_message 0 255 0 'MariaDB'), $(print_color_message 255 20 147 'MongoDB'), $(print_color_message 30 144 255 'PostgreSQL')) $(print_color_message 255 69 0 '(test)')"
+        print_color_message 255 255 255 "6. ${MSG_DATABASE_CONFIGURATION} $(print_color_message 255 69 0 '(test)')"
+        print_color_message 255 255 255 "7. ${MSG_OPERATING_SYSTEMS_INSTALLATION} $(print_color_message 255 69 0 '(test)')"
+        print_color_message 255 255 255 "8. ${MSG_SERVER_TESTING}: ($(print_color_message 255 215 0 "${MSG_SERVER_TESTING_PORT_SPEED},") $(print_color_message 100 149 237 "${MSG_SERVER_TESTING_PORT_MAIL}"))"
         print_color_message 255 255 255 "0. ${MSG_EXIT_SCRIPT}\n"
 
         read -p "${MSG_CHOOSE_OPTION}" choice
