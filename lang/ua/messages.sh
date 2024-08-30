@@ -76,11 +76,11 @@ MSG_MACOS_STEP_1="-"
 MSG_IOS_INSTRUCTIONS="iOS - napsternetv, v2box-v2ray-client:"
 MSG_IOS_STEP_1="-"
 
-MSG_CLIPBOARD_STRING_HEADER="У вас повинна бути так звана clipboard string, виглядає приблизно так: $MSG_VMESS_EXAMPLE"
-MSG_QR_CODE="Або QR-код, який містить ту ж саму рядок."
-MSG_PROXY_DATA="В цій рядку задані дані для підключення до proxy-сервера."
+MSG_CLIPBOARD_STRING_HEADER="\nЗагалом у вас повинна бути так звана clipboard string, виглядає приблизно так: $MSG_VMESS_EXAMPLE"
+MSG_QR_CODE="Або QR-код, який містить той самий рядок."
+MSG_PROXY_DATA="В у цьому рядку задані дані для підключення до proxy-сервера."
 MSG_IMPORT_INSTRUCTIONS="Вам потрібно лише імпортувати її в додаток. У всіх додатках це називається приблизно 'Add config from clipboard'. Додаток сам бере з буфера обміну рядок, або вам потрібно вставити її в поле."
-MSG_CONNECTION_IMPORT="Після імпорту у вас з’явиться підключення. Зазвичай його потрібно вибрати і натиснути кнопку внизу. Або в десктопних додатках правою кнопкою на підключення і в контекстному меню вибрати 'Start'. Підключень може бути кілька, і між ними можна легко перемикатися."
+MSG_CONNECTION_IMPORT="Після імпорту у вас з’явиться підключення. Зазвичай його потрібно вибрати і натиснути кнопку внизу. Або в десктопних додатках правою кнопкою на підключення і в контекстному меню вибрати 'Start'. Підключень може бути кілька, і між ними можна легко перемикатися.\n"
 
 # function menu_x_ui
 MSG_XUI="X-UI"
@@ -173,43 +173,44 @@ MSG_WIREGUARD_DOCUMENTATION="Документацію можна знайти з
 MSG_WIREGUARD_INSTALL_ERROR="Сталася помилка під час встановлення WireGuard. Будь ласка, перевірте конфігурацію та спробуйте ще раз."
 
 # function menu_openVPNLocal
-MSG_OPENVPN_INSTALLER_HEADER="Інсталятор OpenVPN. Виберіть дію:"
-MSG_OPENVPN_AUTO_INSTALL="1. Автоматичне встановлення OpenVPN"
-MSG_OPENVPN_MANUAL_MENU="2. Меню управління OpenVPN та ручне встановлення"
+MSG_NAME_OPENVPN="OpenVPN"
+MSG_OPENVPN_INSTALLER_HEADER="Інсталятор $MSG_NAME_OPENVPN. Виберіть дію:"
+MSG_OPENVPN_AUTO_INSTALL="1. Автоматичне встановлення $MSG_NAME_OPENVPN"
+MSG_OPENVPN_MANUAL_MENU="2. Меню управління $MSG_NAME_OPENVPN та ручне встановлення"
 
 # function avtoInstall_openVPN
-MSG_OPENVPN_INSTALL_SUCCESS="OpenVPN успішно встановлено!"
+MSG_OPENVPN_INSTALL_SUCCESS="$MSG_NAME_OPENVPN успішно встановлено!"
 MSG_OPENVPN_DOCUMENTATION="Документація: https://github.com/angristan/openvpn-install"
 MSG_OPENVPN_WINDOWS_INSTRUCTIONS_HEADER="Інструкції для платформи Windows"
-MSG_OPENVPN_WINDOWS_INSTRUCTIONS="1. Завантажте інсталятор OpenVPN для Windows з офіційного сайту OpenVPN.\n\
+MSG_OPENVPN_WINDOWS_INSTRUCTIONS="1. Завантажте інсталятор $MSG_NAME_OPENVPN для Windows з офіційного сайту $MSG_NAME_OPENVPN.\n\
 2. Встановіть програму, використовуючи стандартний процес установки.\n\
-3. Запустіть OpenVPN.\n\
+3. Запустіть $MSG_NAME_OPENVPN.\n\
 4. Після запуску програми перейдіть до 'Файл' -> 'Імпортувати конфігураційний файл'.\n\
 5. Виберіть конфігураційний файл, який ви отримали від вашого VPN-сервера.\n\
 6. Після імпорту новий профіль з вашим VPN-іменем з’явиться. Натисніть на нього для підключення."
 MSG_OPENVPN_ANDROID_INSTRUCTIONS_HEADER="Інструкції для платформи Android"
-MSG_OPENVPN_ANDROID_INSTRUCTIONS="1. Завантажте та встановіть додаток OpenVPN для Android з Google Play Store.\n\
+MSG_OPENVPN_ANDROID_INSTRUCTIONS="1. Завантажте та встановіть додаток $MSG_NAME_OPENVPN для Android з Google Play Store.\n\
 2. Перенесіть конфігураційний файл (з розширенням .ovpn) на ваш Android-пристрій.\n\
-3. У додатку OpenVPN натисніть іконку '+' для додавання нового профілю.\n\
+3. У додатку $MSG_NAME_OPENVPN натисніть іконку '+' для додавання нового профілю.\n\
 4. Виберіть 'Імпортувати з файлу' і виберіть ваш конфігураційний файл.\n\
 5. Після імпорту профіль буде доступний для підключення."
 MSG_OPENVPN_MACOS_INSTRUCTIONS_HEADER="Інструкції для платформи macOS (OS X)"
-MSG_OPENVPN_MACOS_INSTRUCTIONS="1. Встановіть Tunnelblick, безкоштовний клієнт OpenVPN для macOS, завантаживши його з офіційного сайту.\n\
+MSG_OPENVPN_MACOS_INSTRUCTIONS="1. Встановіть Tunnelblick, безкоштовний клієнт $MSG_NAME_OPENVPN для macOS, завантаживши його з офіційного сайту.\n\
 2. Відкрийте інсталятор і дотримуйтесь інструкцій для завершення процесу установки.\n\
 3. Після установки перемістіть конфігураційний файл (з розширенням .ovpn) до папки 'configurations' у вашій домашній директорії.\n\
 4. Запустіть Tunnelblick і виберіть 'Підключити' для вашого VPN-профілю."
 MSG_OPENVPN_LINUX_INSTRUCTIONS_HEADER="Інструкції для платформи Linux"
-MSG_OPENVPN_LINUX_INSTRUCTIONS="1. Встановіть пакет OpenVPN, використовуючи менеджер пакетів вашого дистрибутива (наприклад, apt для Ubuntu або yum для CentOS).\n\
+MSG_OPENVPN_LINUX_INSTRUCTIONS="1. Встановіть пакет $MSG_NAME_OPENVPN, використовуючи менеджер пакетів вашого дистрибутива (наприклад, apt для Ubuntu або yum для CentOS).\n\
 2. Перенесіть конфігураційний файл (з розширенням .ovpn) до директорії /etc/openvpn.\n\
 3. У терміналі введіть 'sudo openvpn configuration_file_name.ovpn', щоб підключитися до VPN."
 MSG_OPENVPN_IOS_INSTRUCTIONS_HEADER="Інструкції для платформи iOS (iPhone і iPad)"
-MSG_OPENVPN_IOS_INSTRUCTIONS="1. Встановіть додаток OpenVPN Connect з App Store на вашому iOS-пристрої.\n\
+MSG_OPENVPN_IOS_INSTRUCTIONS="1. Встановіть додаток $MSG_NAME_OPENVPN Connect з App Store на вашому iOS-пристрої.\n\
 2. Перенесіть конфігураційний файл (з розширенням .ovpn) на ваш пристрій через iTunes або іншими доступними методами.\n\
-3. У додатку OpenVPN Connect перейдіть до 'Налаштування' та виберіть 'Імпортувати файл OpenVPN'.\n\
+3. У додатку $MSG_NAME_OPENVPN Connect перейдіть до 'Налаштування' та виберіть 'Імпортувати файл $MSG_NAME_OPENVPN'.\n\
 4. Виберіть ваш конфігураційний файл та дотримуйтесь інструкцій для імпорту.\n\
 5. Після імпорту ваш VPN-профіль буде доступний для підключення."
 MSG_DOWNLOAD_INSTALL_SCRIPT_FAILED="Не вдалося завантажити та встановити openvpn-install.sh"
-MSG_INSTALLATION_ERROR="Сталася помилка під час установки OpenVPN. Будь ласка, перевірте ваші налаштування та спробуйте ще раз."
+MSG_INSTALLATION_ERROR="Сталася помилка під час установки $MSG_NAME_OPENVPN. Будь ласка, перевірте ваші налаштування та спробуйте ще раз."
 
 # function menu_IPsec_L2TP_IKEv2
 MSG_IPSEC="ipsec-vpn-server"

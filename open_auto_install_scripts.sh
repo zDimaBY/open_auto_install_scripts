@@ -115,7 +115,7 @@ function selectionFunctions() {
         print_color_message 255 255 255 "1. ${MSG_INSTALL_SOFTWARE} ($(print_color_message 255 215 0 'Composer'), $(print_color_message 255 215 0 'Docker'), $(print_color_message 255 215 0 'RouterOS 7.5'), $(print_color_message 255 215 0 'Elasticsearch'), $(print_color_message 169 169 169 'proxy nginx'), OpenSSH)"
         print_color_message 255 255 255 "2. ${MSG_CONTROL_PANEL_FUNCTIONS} $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "3. $(print_color_message 220 20 60 "${MSG_DDOS_ANALYSIS}")"
-        print_color_message 255 255 255 "4. ${MSG_VPN_CONFIGURATION} ${VPN_SERVERS}"
+        print_color_message 255 255 255 "4. ${MSG_VPN_CONFIGURATION} ($(print_color_message 255 215 0 "$MSG_3X_UI"), $(print_color_message 255 215 0 "$MSG_XUI"), $(print_color_message 255 215 0 "$MSG_WIREGUARD_EASY"), $(print_color_message 255 215 0 "$MSG_NAME_OPENVPN"), $(print_color_message 169 169 169 'IPsec/L2TP, Cisco IPsec, IKEv2'), $MSG_VPN_PPTP)"
         print_color_message 255 255 255 "5. ${MSG_FTP_CONFIGURATION} $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "6. ${MSG_DATABASE_CONFIGURATION} $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "7. ${MSG_OPERATING_SYSTEMS_INSTALLATION} $(print_color_message 255 99 71 '(test)')"
