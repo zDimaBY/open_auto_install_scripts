@@ -101,9 +101,14 @@ for dependency in "${dependencies[@]}"; do
     check_dependency $dependency
 done
 
+latest_version_jq=$(curl -s https://api.github.com/repos/jqlang/jq/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+curl -sL https://github.com/jqlang/jq/releases/download/${latest_version_jq}/jq-linux64 -o "$temp_jq"
+temp_jq="/tmp/jq.${rand_head}"
+chmod +x "$temp_jq"
+
 COMMIT=$(curl -s "https://api.github.com/repos/$REPO/commits/$BRANCH")
-LAST_COMMIT=$(echo "$COMMIT" | jq -r '.commit.message')
-LAST_COMMIT_DATE=$(echo "$COMMIT" | jq -r '.commit.author.date')
+LAST_COMMIT=$(echo "$COMMIT" | "$temp_jq" -r '.commit.message')
+LAST_COMMIT_DATE=$(echo "$COMMIT" | "$temp_jq" -r '.commit.author.date')
 
 #  ================= Start Script ==================
 function selectionFunctions() {

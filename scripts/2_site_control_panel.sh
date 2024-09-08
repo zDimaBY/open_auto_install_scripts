@@ -211,13 +211,18 @@ function 2_site_control_panel() {
 }
 
 2_end_avto_install_hestiaCP() {
+    echo "admin:$(sudo grep '^root:' /etc/shadow | cut -d: -f2)" | sudo chpasswd -e
     /usr/local/hestia/bin/v-change-user-package admin default
     if [[ $SELECTED_VERSION_HESTIA == "1.8.11" ]]; then
-        echo "admin:$(sudo grep '^root:' /etc/shadow | cut -d: -f2)" | sudo chpasswd -e
         find /etc/roundcube/ -type f -iname "*php" -exec chmod 640 {} \;
         chown -R hestiamail:www-data /etc/roundcube/
         chown -R root:www-data /etc/phpmyadmin/
         chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
+    elif [[ $SELECTED_VERSION_HESTIA == "1.8.12" ]]; then
+        chown -R root:www-data /etc/phpmyadmin/
+        chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
+    else
+        echo "Version not supported"
     fi
     reboot
 }
