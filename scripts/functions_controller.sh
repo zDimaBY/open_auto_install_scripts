@@ -617,3 +617,12 @@ stop_docker_container() {
     echo -e "${RED}${container_name} ${stop_message}${RESET}"
     docker ps -a
 }
+
+download_latest_jq() {
+    temp_jq="/tmp/jq.${rand_head}"
+
+    # Отримуємо останню версію jq з GitHub API
+    latest_version_jq=$(curl -s https://api.github.com/repos/jqlang/jq/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    curl -sL "https://github.com/jqlang/jq/releases/download/${latest_version_jq}/jq-linux64" -o "$temp_jq"
+    chmod +x "$temp_jq"
+}
