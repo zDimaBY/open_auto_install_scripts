@@ -571,7 +571,7 @@ function get_latest_files_url() {
     local jq_expression=".assets[] | select(.name | test(\"(${jq_filter})$\")) | .browser_download_url"
 
     # Отримуємо URL для всіх файлів з вказаними розширеннями
-    local file_urls=$(echo "$release_data" | jq -r "$jq_expression")
+    local file_urls=$(echo "$release_data" | "$local_temp_jq" -r "$jq_expression")
 
     # Перевіряємо, чи URL не порожній
     if [ -z "$file_urls" ]; then
@@ -619,10 +619,9 @@ stop_docker_container() {
 }
 
 download_latest_jq() {
-    temp_jq="/tmp/jq.${rand_head}"
-
     # Отримуємо останню версію jq з GitHub API
     latest_version_jq=$(curl -s https://api.github.com/repos/jqlang/jq/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    curl -sL "https://github.com/jqlang/jq/releases/download/${latest_version_jq}/jq-linux64" -o "$temp_jq"
-    chmod +x "$temp_jq"
+    local_temp_jq="/tmp/jq.${latest_version_jq}"
+    curl -sL "https://github.com/jqlang/jq/releases/download/${latest_version_jq}/jq-linux64" -o "$local_temp_jq"
+    chmod +x "$local_temp_jq"
 }

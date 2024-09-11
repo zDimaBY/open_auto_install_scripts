@@ -17,16 +17,16 @@ function 1_outputOfAllDomains() {
     answer=$(curl -k -s -X POST -d "$postvars" "https://$hestia_hostname:$hestia_port/api/")
 
     # Parse JSON output
-    data=$(echo "$answer" | jq .)
+    data=$(echo "$answer" | "$local_temp_jq" .)
     echo "$data"
 
     # Parse JSON output domains
-    domain_list=$(echo "$answer" | jq -r 'keys[]')
+    domain_list=$(echo "$answer" | "$local_temp_jq" -r 'keys[]')
     for domain in $domain_list; do
         echo "$domain"
     done
 
     # Parse JSON output "DOCUMENT_ROOT"
-    document_roots=$(echo "$answer" | jq -r '.[].DOCUMENT_ROOT')
+    document_roots=$(echo "$answer" | "$local_temp_jq" -r '.[].DOCUMENT_ROOT')
     echo "$document_roots"
 }

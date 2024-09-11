@@ -159,7 +159,7 @@ install_3x_ui() {
 }
 
 list_3x_ui_versions_install() {
-    local versions=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9)
+    local versions=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | "$local_temp_jq" -r '.[].name' | head -n 9)
     echo -e "${MSG_AVAILABLE_3X_UI_VERSIONS}"
     local i=1
     for ver in $versions; do
@@ -168,7 +168,7 @@ list_3x_ui_versions_install() {
     done
     read -p "${MSG_SELECT_VERSION}" choice
     if ((choice >= 1 && choice <= 9)); then
-        version=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | jq -r '.[].name' | head -n 9 | sed -n "${choice}p")
+        version=$(curl -s https://api.github.com/repos/MHSanaei/3x-ui/tags | "$local_temp_jq" -r '.[].name' | head -n 9 | sed -n "${choice}p")
         install_3x_ui "$version"
     else
         echo "${MSG_INVALID_CHOICE}"
@@ -241,7 +241,7 @@ install_x_ui() {
 }
 
 list_x_ui_versions_install() {
-    local versions=$(curl -s https://api.github.com/repos/alireza0/x-ui/tags | jq -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9)
+    local versions=$(curl -s https://api.github.com/repos/alireza0/x-ui/tags | "$local_temp_jq" -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9)
     echo -e "${YELLOW}${MSG_XUI_AVAILABLE_VERSIONS}${RESET}"
     local i=1
     for ver in $versions; do
@@ -250,7 +250,7 @@ list_x_ui_versions_install() {
     done
     read -p "${MSG_XUI_SELECT_VERSION}" choice
     if ((choice >= 1 && choice <= 9)); then
-        install_x_ui "$(curl -s https://api.github.com/repos/alireza0/x-ui/tags | jq -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9 | sed -n "${choice}p")"
+        install_x_ui "$(curl -s https://api.github.com/repos/alireza0/x-ui/tags | "$local_temp_jq" -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9 | sed -n "${choice}p")"
     else
         echo -e "${RED}${MSG_XUI_INVALID_SELECTION}${RESET}"
         return 1

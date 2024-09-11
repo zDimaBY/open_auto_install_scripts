@@ -104,13 +104,13 @@ function 2_site_control_panel() {
     hst_backups="/root/hst_install_backups/$(date +%d%m%Y%H%M)"
 
     # Перевірка, чи встановлено curl та jq
-    if ! command -v jq &>/dev/null || ! command -v wget &>/dev/null; then
-        echo "curl, jq та/або wget не встановлено. Встановіть їх і повторіть спробу."
+    if ! command -v curl &>/dev/null || ! command -v wget &>/dev/null; then
+        echo "curl та/або wget не встановлено. Встановіть їх і повторіть спробу."
         exit 1
     fi
 
     # Завантаження списку доступних версій
-    VERSIONS_CP=$(curl -s "$HESITACP_GITHUB" | jq -r '.[].name' | sort -Vr)
+    VERSIONS_CP=$(curl -s "$HESITACP_GITHUB" | "$local_temp_jq" -r '.[].name' | sort -Vr)
 
     print_versions_cp() {
         local index=1
@@ -259,9 +259,9 @@ function 2_site_control_panel() {
 }
 
 2_custom_install_hestiaCP() {
-    # Перевірка, чи встановлено curl, wget та jq
-    if ! command -v curl &>/dev/null || ! command -v wget &>/dev/null || ! command -v jq &>/dev/null; then
-        echo "curl, wget та/або jq не встановлено. Встановіть їх і повторіть спробу."
+    # Перевірка, чи встановлено curl, wget
+    if ! command -v curl &>/dev/null || ! command -v wget &>/dev/null; then
+        echo "curl та/або wget не встановлено. Встановіть їх і повторіть спробу."
         return 1
     fi
 
@@ -277,7 +277,7 @@ function 2_site_control_panel() {
     print_versions() {
         local index=1
         for VERSION_DB in $VERSIONS_DB; do
-            EOL_DATE=$(echo "$EOL_DATA" | jq -r --arg VERSION_DB "$VERSION_DB" '.[] | select(.cycle == $VERSION_DB) | .eol')
+            EOL_DATE=$(echo "$EOL_DATA" | "$local_temp_jq" -r --arg VERSION_DB "$VERSION_DB" '.[] | select(.cycle == $VERSION_DB) | .eol')
             echo "$index) Версія: $(print_color_message 255 255 0 "${VERSION_DB}") - Закінчення підтримки: $(print_color_message 200 0 0 "${EOL_DATE:-не визначено}")"
             ((index++))
         done
@@ -297,7 +297,7 @@ function 2_site_control_panel() {
 
     # Обираємо версію за номером
     SELECTED_VERSION_DB=$(echo "$VERSIONS_DB" | sed -n "${VERSION_NUMBER}p")
-    EOL_DATE=$(echo "$EOL_DATA" | jq -r --arg SELECTED_VERSION_DB "$SELECTED_VERSION_DB" '.[] | select(.cycle == $SELECTED_VERSION_DB) | .eol')
+    EOL_DATE=$(echo "$EOL_DATA" | "$local_temp_jq" -r --arg SELECTED_VERSION_DB "$SELECTED_VERSION_DB" '.[] | select(.cycle == $SELECTED_VERSION_DB) | .eol')
 
     echo "Версія: $(print_color_message 255 255 0 "${SELECTED_VERSION_DB}") - Закінчення підтримки: $(print_color_message 200 0 0 "${EOL_DATE:-не визначено}")"
     sed -i "s/mariadb_v=\".*\"/mariadb_v=\"$SELECTED_VERSION_DB\"/" hst-install-ubuntu.sh

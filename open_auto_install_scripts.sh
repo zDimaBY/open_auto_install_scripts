@@ -94,7 +94,6 @@ dependencies=(
     "tail coreutils"
     "head coreutils"
     "basename coreutils"
-    "jq jq"
 )
 
 for dependency in "${dependencies[@]}"; do
@@ -104,8 +103,8 @@ done
 download_latest_jq
 
 COMMIT=$(curl -s "https://api.github.com/repos/$REPO/commits/$BRANCH")
-LAST_COMMIT=$(echo "$COMMIT" | "$temp_jq" -r '.commit.message')
-LAST_COMMIT_DATE=$(echo "$COMMIT" | "$temp_jq" -r '.commit.author.date')
+LAST_COMMIT=$(echo "$COMMIT" | "$local_temp_jq" -r '.commit.message')
+LAST_COMMIT_DATE=$(echo "$COMMIT" | "$local_temp_jq" -r '.commit.author.date')
 
 #  ================= Start Script ==================
 function selectionFunctions() {
