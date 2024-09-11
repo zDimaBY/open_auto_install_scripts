@@ -568,7 +568,21 @@ deleting_old_admin_user() {
     DB_PASSWORD="wp_p_$(generate_random_part_16)"
     DB_PASSWORD=$(trim_to_16 "$DB_PASSWORD")
 
-    HTACCESS_CONTENT="# BEGIN WordPress\n<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteBase /\nRewriteRule ^index\.php$ - [L]\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.php [L]\n</IfModule>\n# END WordPress"
+    HTACCESS_CONTENT='RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    RewriteRule ^index\.php$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress'
 
     # Обрана папка
     CONTROLPANEL_USER="${folders[$((choice - 1))]}"
@@ -577,6 +591,7 @@ deleting_old_admin_user() {
 
     check_domain $WP_SITE_DOMEN
     if [ $? -eq 0 ]; then
+        $CLI_dir/v-add-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN '' yes
         $CLI_dir/v-schedule-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
     else
         WEB_DIR=/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN
@@ -686,6 +701,8 @@ deleting_old_admin_user() {
     echo -e "\n\n${GREEN}Wordpress встановлено: http://${WP_SITE_DOMEN}/wp-login.php${RESET}"
     echo -e "Логін: ${WP_USER}"
     echo -e "Пароль: ${SITE_PASSWORD}\n\n"
+
+    source /etc/os-release
 }
 
 2_install_CMS_DLE() {

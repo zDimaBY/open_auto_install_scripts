@@ -621,7 +621,7 @@ stop_docker_container() {
 download_latest_jq() {
     # Отримуємо останню версію jq з GitHub API
     latest_version_jq=$(curl -s https://api.github.com/repos/jqlang/jq/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    local_temp_jq="/tmp/jq.${latest_version_jq}"
+    local_temp_jq="/tmp/${latest_version_jq}"
     curl -sL "https://github.com/jqlang/jq/releases/download/${latest_version_jq}/jq-linux64" -o "$local_temp_jq"
     chmod +x "$local_temp_jq"
 }
