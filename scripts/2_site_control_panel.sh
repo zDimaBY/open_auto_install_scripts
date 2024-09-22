@@ -110,7 +110,7 @@ function 2_site_control_panel() {
     fi
 
     # Завантаження списку доступних версій
-    VERSIONS_CP=$(curl -s "$HESITACP_GITHUB" | "$local_temp_jq" -r '.[].name' | sort -Vr)
+    VERSIONS_CP=$("$local_temp_curl" -s "$HESITACP_GITHUB" | "$local_temp_jq" -r '.[].name' | sort -Vr)
 
     print_versions_cp() {
         local index=1
@@ -270,8 +270,8 @@ function 2_site_control_panel() {
     EOL_URL="https://endoflife.date/api/mariadb.json"
 
     # Завантаження сторінки та пошук доступних версій
-    VERSIONS_DB=$(curl -s "$REPO_URL" | grep -oP 'href="\K[0-9]+\.[0-9]+' | sort -uVr)
-    EOL_DATA=$(curl -s "$EOL_URL")
+    VERSIONS_DB=$("$local_temp_curl" -s "$REPO_URL" | grep -oP 'href="\K[0-9]+\.[0-9]+' | sort -uVr)
+    EOL_DATA=$("$local_temp_curl" -s "$EOL_URL")
 
     # Функція для виводу версій та дат закінчення підтримки
     print_versions() {
@@ -683,7 +683,7 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
         echo -e "${RED}Команда 'wp' не знайдена. ${YELLOW}Встановлюємо WP-CLI...${RESET}"
 
         # Встановлюємо WP-CLI
-        curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+        "$local_temp_curl" -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
         chmod +x wp-cli.phar
         mv wp-cli.phar /usr/local/bin/wp
 

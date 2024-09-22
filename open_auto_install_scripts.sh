@@ -87,7 +87,6 @@ dependencies=(
     "sort coreutils"
     "uniq coreutils"
     "cut coreutils"
-    "iptables iptables"
     "timeout coreutils"
     "bc bc"
     "curl curl"
@@ -100,9 +99,11 @@ for dependency in "${dependencies[@]}"; do
     check_dependency $dependency
 done
 
-download_latest_jq
+# Отримуємо шляхи до бінарників
+local_temp_curl=$(download_latest_tool "moparisthebest/static-curl" "curl" "curl-amd64")
+local_temp_jq=$(download_latest_tool "jqlang/jq" "jq" "jq-linux64")
 
-COMMIT=$(curl -s "https://api.github.com/repos/$REPO/commits/$BRANCH")
+COMMIT=$("$local_temp_curl" -s "https://api.github.com/repos/$REPO/commits/$BRANCH")
 LAST_COMMIT=$(echo "$COMMIT" | "$local_temp_jq" -r '.commit.message')
 LAST_COMMIT_DATE=$(echo "$COMMIT" | "$local_temp_jq" -r '.commit.author.date')
 

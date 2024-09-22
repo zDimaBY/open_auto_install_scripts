@@ -169,7 +169,7 @@ function check_docker_availability() {
         read -p "${MSG_PROMPT_INSTALL_DOCKER}" install_docker
         if [[ "$install_docker" =~ ^(yes|Yes|y|Y)$ ]]; then
             echo -e "${YELLOW}${MSG_INSTALLING_DOCKER}${RESET}"
-            curl -fsSL https://get.docker.com | sh
+            "$local_temp_curl" -fsSL https://get.docker.com | sh
             sudo usermod -aG docker "$(whoami)"
         else
             echo -e "\n${RED}${MSG_DOCKER_INSTALLATION_CANCELED}${RESET}"
@@ -210,12 +210,13 @@ function check_docker_availability() {
 }
 
 function create_folder() {
-    path="$1"
+    local path="$1"
     if [ -d "$path" ]; then
-        echo -e "${YELLOW}${MSG_FOLDER_ALREADY_EXISTS} ${path}.${RESET}"
+        echo -e "${YELLOW}${MSG_FOLDER_ALREADY_EXISTS} ${path}${RESET}"
+        return 1  # Папка вже існує
     else
-        mkdir -p "$path"
-        echo -e "${GREEN}${MSG_FOLDER_CREATED} ${path}.${RESET}"
+        mkdir -p "$path" && echo -e "${GREEN}${MSG_FOLDER_CREATED} ${path}${RESET}"
+        return 0  # Папка створена
     fi
 }
 
@@ -558,7 +559,7 @@ function get_latest_files_url() {
 
     # Формуємо URL для отримання останнього релізу
     local api_url="${repo_url}/releases/latest"
-    local release_data=$(curl -s "$api_url")
+    local release_data=$("$local_temp_curl" -s "$api_url")
     
     # Перевіряємо, чи JSON-дані не порожні
     if [ -z "$release_data" ]; then
@@ -618,10 +619,18 @@ stop_docker_container() {
     docker ps -a
 }
 
-download_latest_jq() {
-    # Отримуємо останню версію jq з GitHub API
-    latest_version_jq=$(curl -s https://api.github.com/repos/jqlang/jq/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    local_temp_jq="/tmp/${latest_version_jq}"
-    curl -sL "https://github.com/jqlang/jq/releases/download/${latest_version_jq}/jq-linux64" -o "$local_temp_jq"
-    chmod +x "$local_temp_jq"
+function download_latest_tool() {
+    local REPO=$1
+    local TOOL_NAME=$2
+    local TOOL_BINARY=$3
+
+    # Отримуємо останню версію з GitHub API
+    local latest_version=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep -oP '"tag_name": "\K[^"]+')
+    local temp_tool_folder_name="/tmp/tool_folder/${TOOL_NAME}"
+    create_folder "$temp_tool_folder_name"  # Виводимо статус створення папки
+    local local_temp_tool="$temp_tool_folder_name/$latest_version"
+
+    curl -sL "https://github.com/$REPO/releases/download/${latest_version}/${TOOL_BINARY}" -o "$local_temp_tool"
+    chmod +x "$local_temp_tool"
+    echo "$local_temp_tool"  # Повертаємо тільки шлях до бінарного файлу
 }

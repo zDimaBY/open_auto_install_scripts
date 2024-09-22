@@ -65,16 +65,16 @@ function select_tag_and_install() {
     # Отримання списку тегів для вибраної бази даних
     case $db_name in
     "mariadb")
-        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/mariadb/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
+        tags=($("$local_temp_curl" -s "https://hub.docker.com/v2/repositories/library/mariadb/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
         ;;
     "mysql")
-        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/mysql/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
+        tags=($("$local_temp_curl" -s "https://hub.docker.com/v2/repositories/library/mysql/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
         ;;
     "mongodb")
-        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/mongo/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
+        tags=($("$local_temp_curl" -s "https://hub.docker.com/v2/repositories/library/mongo/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
         ;;
     "postgresql")
-        tags=($(curl -s "https://hub.docker.com/v2/repositories/library/postgres/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
+        tags=($("$local_temp_curl" -s "https://hub.docker.com/v2/repositories/library/postgres/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
         ;;
     *)
         echo "${RED}Помилка: Невідома база даних: $db_name${RESET}"

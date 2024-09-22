@@ -66,7 +66,7 @@ function 1_installComposer() {
 
     if ! command -v composer &>/dev/null; then
         echo -e "${RED}Composer не знайдено. Встановлюємо...${RESET}"
-        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+        "$local_temp_curl" -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
         if [ $? -eq 0 ]; then
             echo -e "\n${GREEN}Composer встановлено успішно.${RESET}\n"
             yes | composer -V
@@ -459,7 +459,7 @@ EOF
 1_installOpenSSH() {
     URL_OpenSSH="https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/"
     # Завантажити список доступних версій
-    versions=$(curl -s "$URL_OpenSSH" | grep -oP 'openssh-\d+\.\d+p?\d*\.tar\.gz' | sed -r 's/openssh-(\d+\.\d+p?\d*)\.tar\.gz/\1/' | sort -Vr | uniq)
+    versions=$("$local_temp_curl" -s "$URL_OpenSSH" | grep -oP 'openssh-\d+\.\d+p?\d*\.tar\.gz' | sed -r 's/openssh-(\d+\.\d+p?\d*)\.tar\.gz/\1/' | sort -Vr | uniq)
 
     # Вивести номери версій з порядковим номером для вибору
     echo "$versions" | nl -s ") "
