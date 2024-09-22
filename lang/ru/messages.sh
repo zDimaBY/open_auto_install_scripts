@@ -386,8 +386,8 @@ MSG_DOCKER_FAILED_AUTOSTART="Ошибка: Docker не был добавлен �
 MSG_DOCKER_STATUS="Статус Docker:"
 
 # function create_folder
-MSG_FOLDER_ALREADY_EXISTS="Папка уже существует."
-MSG_FOLDER_CREATED="Папка создана."
+MSG_FOLDER_ALREADY_EXISTS="Папка уже существует"
+MSG_FOLDER_CREATED="Папка создана"
 
 # function copy_file_from_container
 MSG_WAITING_FOR_FILE="Ожидание создания файла в контейнере..."

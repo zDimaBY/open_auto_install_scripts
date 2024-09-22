@@ -387,8 +387,8 @@ MSG_DOCKER_FAILED_AUTOSTART="Error: Docker was not added to autostart."
 MSG_DOCKER_STATUS="Docker status:"
 
 # function create_folder
-MSG_FOLDER_ALREADY_EXISTS="Folder already exists."
-MSG_FOLDER_CREATED="Folder created."
+MSG_FOLDER_ALREADY_EXISTS="Folder already exists"
+MSG_FOLDER_CREATED="Folder created"
 
 # function copy_file_from_container
 MSG_WAITING_FOR_FILE="Waiting for file to be created in container..."

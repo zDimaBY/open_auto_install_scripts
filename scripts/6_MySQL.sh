@@ -59,28 +59,57 @@ function install_database() {
 function select_tag_and_install() {
     local db_name="$1"
     local tags=()
+    local list_docker_tags_databases
 
-    read -p "Вкажіть, скільки версій баз даних вивести (за замовчуванням 100): " list_docker_tags_databases
-    list_docker_tags_databases=${list_docker_tags_databases:-100}
+    read -p "Вкажіть, скільки версій баз даних вивести (за замовчуванням 50) (0 - щоб вийти у попереднє меню): " list_docker_tags_databases
+    list_docker_tags_databases=${list_docker_tags_databases:-50}  # Використовуємо 100, якщо не введено число
+    
+    if [[ "$list_docker_tags_databases" -eq 0 ]]; then
+        return  # Повертаємося у попереднє меню
+    fi
+
     # Отримання списку тегів для вибраної бази даних
+    local next_url=""
     case $db_name in
     "mariadb")
-        tags=($("$local_temp_curl" -s "https://hub.docker.com/v2/repositories/library/mariadb/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
+        next_url="https://hub.docker.com/v2/repositories/library/mariadb/tags/?page_size=$list_docker_tags_databases"
         ;;
     "mysql")
-        tags=($("$local_temp_curl" -s "https://hub.docker.com/v2/repositories/library/mysql/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
+        next_url="https://hub.docker.com/v2/repositories/library/mysql/tags/?page_size=$list_docker_tags_databases"
         ;;
     "mongodb")
-        tags=($("$local_temp_curl" -s "https://hub.docker.com/v2/repositories/library/mongo/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
+        next_url="https://hub.docker.com/v2/repositories/library/mongo/tags/?page_size=$list_docker_tags_databases"
         ;;
     "postgresql")
-        tags=($("$local_temp_curl" -s "https://hub.docker.com/v2/repositories/library/postgres/tags/?page_size=$list_docker_tags_databases" | "$local_temp_jq" -r '.results[].name' | sort -r))
+        next_url="https://hub.docker.com/v2/repositories/library/postgres/tags/?page_size=$list_docker_tags_databases"
         ;;
     *)
         echo "${RED}Помилка: Невідома база даних: $db_name${RESET}"
         return 1
         ;;
     esac
+
+    while [ -n "$next_url" ]; do
+        response="$("$local_temp_curl" -s "$next_url")"
+        tags+=($(echo "$response" | "$local_temp_jq" -r '.results[].name'))
+
+        next_url=$(echo "$response" | "$local_temp_jq" -r '.next')  # Отримуємо URL наступної сторінки
+        if [ "$next_url" == "null" ]; then
+            next_url=""  # Завершуємо, якщо немає наступної сторінки
+        fi
+
+        # Перевіряємо, чи досягли бажаної кількості тегів
+        if [[ ${#tags[@]} -ge $list_docker_tags_databases ]]; then
+            break
+        fi
+    done
+
+    # Зрізаємо масив до максимальної кількості, якщо потрібно
+    tags=("${tags[@]:0:list_docker_tags_databases}")
+
+    # Сортуємо теги
+    IFS=$'\n' tags=($(sort -r <<<"${tags[*]}"))
+    unset IFS
 
     echo -e "\n${BLUE}latest${RESET}: Цей тег вказує на найновішу версію образу, доступну на Docker Hub."
     echo -e "${YELLOW}oraclelinux8${RESET}: Це означає, що образ побудований на базі Oracle Linux 8."
@@ -90,10 +119,14 @@ function select_tag_and_install() {
     echo -e "${RED}11.3-rc-jammy, 11.3-rc${RESET}: це для версій, що перебувають у стадії реліз-кандидатів (RC), тобто перед остаточним релізом."
     echo -e "${GREEN}----------------------------------------------------------------------------${RESET}"
     echo -e "${RED}innovation${RESET}: Це спеціальна версія з новими функціями або експериментальні версії.\n"
-
+    echo -e "${YELLOW}Ведіть ${RED}\"0\"${YELLOW} - щоб вийти у попереднє меню з опціями баз даних.${RESET}\n"
+    
     echo "Виберіть образ для встановлення:"
     select tag in "${tags[@]}"; do
-        if [[ -n "$tag" ]]; then
+        if [[ "$tag" == "0" ]]; then
+            echo "Вихід у попереднє меню."
+            return  # Повертаємося у попереднє меню
+        elif [[ -n "$tag" ]]; then
             run_container "$db_name" "$tag"
         fi
         break
@@ -170,7 +203,7 @@ function start_container() {
 
 remove_images() {
     if ! docker images --format '{{.Repository}}' | grep -q "$db_name"; then
-        echo "Не знайдено контейнера баз даних з іменем системи ${RED}$db_name${RESET}, про те є інші:"
+        echo -e "Не знайдено контейнера баз даних з іменем системи ${RED}$db_name${RESET}, про те можливо є інші:"
         docker images --format '{{.Repository}}' | grep -q ":"
         return 1
     fi

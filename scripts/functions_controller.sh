@@ -212,10 +212,10 @@ function check_docker_availability() {
 function create_folder() {
     local path="$1"
     if [ -d "$path" ]; then
-        echo -e "${YELLOW}${MSG_FOLDER_ALREADY_EXISTS} ${path}${RESET}"
+        echo -e "${YELLOW}${MSG_FOLDER_ALREADY_EXISTS}: ${path}${RESET}"
         return 1  # Папка вже існує
     else
-        mkdir -p "$path" && echo -e "${GREEN}${MSG_FOLDER_CREATED} ${path}${RESET}"
+        mkdir -p "$path" && echo -e "${GREEN}${MSG_FOLDER_CREATED}: ${path}${RESET}"
         return 0  # Папка створена
     fi
 }
@@ -627,7 +627,7 @@ function download_latest_tool() {
     # Отримуємо останню версію з GitHub API
     local latest_version=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep -oP '"tag_name": "\K[^"]+')
     local temp_tool_folder_name="/tmp/tool_folder/${TOOL_NAME}"
-    create_folder "$temp_tool_folder_name"  # Виводимо статус створення папки
+    create_folder "$temp_tool_folder_name" > /dev/null 2>&1
     local local_temp_tool="$temp_tool_folder_name/$latest_version"
 
     curl -sL "https://github.com/$REPO/releases/download/${latest_version}/${TOOL_BINARY}" -o "$local_temp_tool"
