@@ -393,8 +393,7 @@ MSG_FOLDER_CREATED="Папка создана"
 MSG_WAITING_FOR_FILE="Ожидание создания файла в контейнере..."
 MSG_FILE_COPIED="Файл был скопирован в целевую директорию."
 
-# function mask_to_cidr get_public_interface
-MSG_INVALID_SUBNET_MASK="Недействительная маска подсети"
+# function get_public_interface
 MSG_NO_ADAPTER_FOUND="Не удалось найти адаптер с IP-адресом, совпадающим с результатом команды hostname -i:"
 
 # function get_selected_interface

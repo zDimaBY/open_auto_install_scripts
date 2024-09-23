@@ -394,8 +394,7 @@ MSG_FOLDER_CREATED="Folder created"
 MSG_WAITING_FOR_FILE="Waiting for file to be created in container..."
 MSG_FILE_COPIED="File was copied to target directory."
 
-# function mask_to_cidr get_public_interface
-MSG_INVALID_SUBNET_MASK="Invalid subnet mask"
+# function get_public_interface
 MSG_NO_ADAPTER_FOUND="Could not find adapter with IP address matching hostname -i result:"
 
 # function get_selected_interface

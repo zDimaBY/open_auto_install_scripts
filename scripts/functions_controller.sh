@@ -234,19 +234,6 @@ function copy_file_from_container() {
     echo "${MSG_FILE_COPIED} $file_path to $target_directory"
 }
 
-
-function mask_to_cidr() { # cidr
-    local IFS=.
-    read -r i1 i2 i3 i4 <<<"$1"
-    local binary=$(echo "obase=2;$i1*256*256*256+$i2*256*256+$i3*256+$i4" | bc)
-    local cidr=$(echo -n "${binary}" | tr -d 0 | wc -c)
-    if [ "$cidr" -eq 0 ]; then
-        echo "$MSG_INVALID_SUBNET_MASK"
-        return 1
-    fi
-    echo "${cidr}"
-}
-
 function get_public_interface() { #server_IPv4[0] selected_adapter mask gateway
     adapters=$(ip addr show | grep "^[0-9]" | awk '{print $2}' | sed 's/://')
     selected_adapter=""
@@ -304,7 +291,7 @@ function get_selected_interface() { #server_IP selected_adapter mask gateway
 
 total_free_swap_end_ram() {
     free_swap_end_ram_mb=$(free -mt | awk '/^Total:/ {print $4}')
-    free_swap_end_ram_gb=$(echo "scale=2; $free_swap_end_ram_mb / 1024" | bc)
+    free_swap_end_ram_gb=$(awk -v mb="$free_swap_end_ram_mb" 'BEGIN { printf "%.2f", mb / 1024 }')
 }
 
 # Функція для виведння розміру обраного диска або розділа
