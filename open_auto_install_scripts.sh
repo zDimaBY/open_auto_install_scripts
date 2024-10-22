@@ -88,7 +88,6 @@ dependencies=(
     "uniq coreutils"
     "cut coreutils"
     "timeout coreutils"
-    "curl curl"
     "tail coreutils"
     "head coreutils"
     "basename coreutils"

@@ -144,18 +144,24 @@ menu_3x_ui() {
 install_3x_ui() {
     local version="$1"
 
-    generate_random_user_password
+    generate_random_password_show
+    read -p "Вкажіть пароль користувача admin для ${name_docker_container} (за замовчуванням випадковий): " X_UI_PASSWORD
+
+    X_UI_USERNAME="admin"  # Встановіть нове ім'я користувача
+    X_UI_PASSWORD=${X_UI_PASSWORD:-$rand_password}  # Встановіть новий пароль
+    X_UI_PORT=2053  # Встановіть новий порт
+    X_UI_WEB_BASE_PATH="/$(trim_to_10 "$(generate_random_part_16)")"  # Встановіть новий webBasePath
 
     create_folder "/root/VPN/3x_ui/db/" && create_folder "/root/VPN/3x_ui/cert/"
     docker run -itd \
         -e XRAY_VMESS_AEAD_FORCED=false \
-        -e XUI_PASSWORD=${passwd_x_ui} \
         -v /root/VPN/3x_ui/db/:/etc/x-ui/ \
         -v /root/VPN/3x_ui/cert/:/root/cert/ \
         --network=host \
-        --restart=unless-stopped \
-        --name ${name_docker_container} \
+        --name ${name_docker_container} --restart=unless-stopped \
         ghcr.io/mhsanaei/3x-ui:$version
+
+    update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH"
 
     # Функція для додавання правил файерволу з скриптів functions_controller.sh
     add_firewall_rule 2053
@@ -229,17 +235,24 @@ menu_x_ui() {
 install_x_ui() {
     local version="$1"
 
-    generate_random_user_password
+    generate_random_password_show
+    read -p "Вкажіть пароль користувача admin для ${name_docker_container} (за замовчуванням випадковий): " X_UI_PASSWORD
+
+    X_UI_USERNAME="admin"  # Встановіть нове ім'я користувача
+    X_UI_PASSWORD=${X_UI_PASSWORD:-$rand_password}  # Встановіть новий пароль
+    X_UI_PORT=54321  # Встановіть новий порт
+    X_UI_WEB_BASE_PATH="/$(trim_to_10 "$(generate_random_part_16)")"  # Встановіть новий webBasePath
 
     create_folder "/root/VPN/x_ui/db/" && create_folder "/root/VPN/x_ui/cert/"
     docker run -itd \
-        -p 54321:54321 -p 443:443 -p 80:80 \
         -e XRAY_VMESS_AEAD_FORCED=false \
-        -e XUI_PASSWORD=${passwd_x_ui} \
         -v /root/VPN/x_ui/db/:/etc/x-ui/ \
         -v /root/VPN/x_ui/cert/:/root/cert/ \
+        --network=host \
         --name ${name_docker_container} --restart=unless-stopped \
         alireza7/x-ui:$version
+
+    update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH"
 
     # Функція для додавання правил файерволу з скриптів functions_controller.sh
     add_firewall_rule 80
@@ -265,9 +278,9 @@ list_x_ui_versions_install() {
     fi
 
     echo -e "${YELLOW}\n\n${MSG_XUI_INSTALLED}${RESET}"
-    echo -e "http://${server_IPv4[0]}:54321"
-    echo -e "${GREEN}${MSG_XUI_USERNAME}${RESET}"
-    echo -e "${GREEN}${MSG_XUI_PASSWORD}${RESET}\n"
+    echo -e "http://${server_IPv4[0]}:${X_UI_PORT}${X_UI_WEB_BASE_PATH}/xui/"
+    echo -e "${GREEN}${MSG_XUI_USERNAME}${X_UI_USERNAME}${RESET}"
+    echo -e "${GREEN}${MSG_XUI_PASSWORD}${X_UI_PASSWORD}${RESET}\n"
 
     info_for_client_programs
 }

@@ -622,8 +622,32 @@ function download_latest_tool() {
     echo "$local_temp_tool"  # Повертаємо тільки шлях до бінарного файлу
 }
 
-function generate_random_user_password() {
-    generate_random_password_show
-    read -p "Вкажіть пароль користувача admin для ${name_docker_container} (за замовчуванням випадковий): " passwd_x_ui
-    passwd_x_ui=${passwd_x_ui:-$rand_password}
+# Функція для оновлення налаштувань x-ui
+update_xui_settings() {
+    local username="$1"
+    local password="$2"
+    local port="$3"
+    local web_base_path="$4"
+
+    # Оновлення імені користувача та пароля
+    if docker exec -it x-ui /app/x-ui setting -username "$username" -password "$password"; then
+        echo "Username and password updated successfully."
+    else
+        echo "Failed to update username and password."
+    fi
+
+    # Оновлення порту
+    if docker exec -it x-ui /app/x-ui setting -port "$port"; then
+        echo "Port updated successfully."
+    else
+        echo "Failed to update port."
+    fi
+
+    # Оновлення базового шляху
+    if docker exec -it x-ui /app/x-ui setting -webBasePath "$web_base_path"; then
+        echo "Web base path updated successfully."
+    else
+        echo "Failed to update web base path."
+    fi
+
 }

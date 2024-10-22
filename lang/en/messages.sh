@@ -93,8 +93,8 @@ MSG_XUI_AVAILABLE_VERSIONS="List of available alireza7/x-ui image versions:"
 MSG_XUI_SELECT_VERSION="Enter the version number you want to install (1-9): "
 MSG_XUI_INVALID_SELECTION="Invalid choice. Please select a number between 1 and 9."
 MSG_XUI_INSTALLED="Installed X-UI on the server. Use the following credentials to access the admin panel:"
-MSG_XUI_USERNAME="Username: admin"
-MSG_XUI_PASSWORD="Password: admin"
+MSG_XUI_USERNAME="Username: "
+MSG_XUI_PASSWORD="Password: "
 
 # function stop_x_ui remove_x_ui update_x_ui
 MSG_XUI_STOPPED="stopped."
