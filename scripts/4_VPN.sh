@@ -143,9 +143,13 @@ menu_3x_ui() {
 }
 install_3x_ui() {
     local version="$1"
+
+    generate_random_user_password
+
     create_folder "/root/VPN/3x_ui/db/" && create_folder "/root/VPN/3x_ui/cert/"
     docker run -itd \
         -e XRAY_VMESS_AEAD_FORCED=false \
+        -e XUI_PASSWORD=${passwd_x_ui} \
         -v /root/VPN/3x_ui/db/:/etc/x-ui/ \
         -v /root/VPN/3x_ui/cert/:/root/cert/ \
         --network=host \
@@ -224,10 +228,14 @@ menu_x_ui() {
 }
 install_x_ui() {
     local version="$1"
+
+    generate_random_user_password
+
     create_folder "/root/VPN/x_ui/db/" && create_folder "/root/VPN/x_ui/cert/"
     docker run -itd \
         -p 54321:54321 -p 443:443 -p 80:80 \
         -e XRAY_VMESS_AEAD_FORCED=false \
+        -e XUI_PASSWORD=${passwd_x_ui} \
         -v /root/VPN/x_ui/db/:/etc/x-ui/ \
         -v /root/VPN/x_ui/cert/:/root/cert/ \
         --name ${name_docker_container} --restart=unless-stopped \

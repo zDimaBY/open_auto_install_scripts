@@ -621,3 +621,9 @@ function download_latest_tool() {
     chmod +x "$local_temp_tool"
     echo "$local_temp_tool"  # Повертаємо тільки шлях до бінарного файлу
 }
+
+function generate_random_user_password() {
+    generate_random_password_show
+    read -p "Вкажіть пароль користувача admin для ${name_docker_container} (за замовчуванням випадковий): " passwd_x_ui
+    passwd_x_ui=${passwd_x_ui:-$rand_password}
+}
