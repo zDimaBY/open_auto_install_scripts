@@ -121,8 +121,8 @@ MSG_AVAILABLE_3X_UI_VERSIONS="\n${GREEN}List of available versions for ${YELLOW}
 MSG_SELECT_VERSION="Enter the version number you want to install (1-9): "
 MSG_INVALID_CHOICE="Invalid choice. Please select a number between 1 and 9."
 MSG_X_UI_INSTALLED="${YELLOW}\n\n$MSG_3X_UI has been installed on the server. To access the admin panel, use the following information:${RESET}"
-MSG_ADMIN_USERNAME="Username: admin"
-MSG_ADMIN_PASSWORD="Password: admin\n"
+MSG_ADMIN_USERNAME="Username: "
+MSG_ADMIN_PASSWORD="Password: "
 MSG_UPDATE_FUNCTION_NOT_IMPLEMENTED="Function not implemented"
 
 # function menu_wireguard_easy

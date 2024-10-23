@@ -121,8 +121,8 @@ MSG_AVAILABLE_3X_UI_VERSIONS="\n${GREEN}Список доступних верс
 MSG_SELECT_VERSION="Введіть номер версії, яку ви хочете встановити (1-9): "
 MSG_INVALID_CHOICE="Недійсний вибір. Будь ласка, виберіть номер від 1 до 9."
 MSG_X_UI_INSTALLED="${YELLOW}\n\n$MSG_3X_UI було встановлено на сервері. Для доступу до панелі адміністратора використовуйте наступну інформацію:${RESET}"
-MSG_ADMIN_USERNAME="Ім'я користувача: admin"
-MSG_ADMIN_PASSWORD="Пароль: admin\n"
+MSG_ADMIN_USERNAME="Ім'я користувача: "
+MSG_ADMIN_PASSWORD="Пароль: "
 MSG_UPDATE_FUNCTION_NOT_IMPLEMENTED="Функція не реалізована"
 
 # function menu_wireguard_easy

@@ -186,9 +186,9 @@ list_3x_ui_versions_install() {
     fi
 
     echo -e "${MSG_X_UI_INSTALLED}"
-    echo -e "http://${server_IPv4[0]}:2053"
-    echo -e "${MSG_ADMIN_USERNAME}"
-    echo -e "${MSG_ADMIN_PASSWORD}"
+    echo -e "http://${server_IPv4[0]}:$X_UI_PORT/$X_UI_WEB_BASE_PATH/"
+    echo -e "${MSG_ADMIN_USERNAME}${X_UI_USERNAME}"
+    echo -e "${MSG_ADMIN_PASSWORD}${X_UI_PASSWORD}"
 
     info_for_client_programs
 }
