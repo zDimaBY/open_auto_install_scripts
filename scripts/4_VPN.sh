@@ -161,7 +161,7 @@ install_3x_ui() {
         --name ${name_docker_container} --restart=unless-stopped \
         ghcr.io/mhsanaei/3x-ui:$version
 
-    update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH"
+    update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
 
     # Функція для додавання правил файерволу з скриптів functions_controller.sh
     add_firewall_rule 2053
@@ -252,7 +252,7 @@ install_x_ui() {
         --name ${name_docker_container} --restart=unless-stopped \
         alireza7/x-ui:$version
 
-    update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH"
+    update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
 
     # Функція для додавання правил файерволу з скриптів functions_controller.sh
     add_firewall_rule 80

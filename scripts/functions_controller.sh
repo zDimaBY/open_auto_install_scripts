@@ -628,26 +628,32 @@ update_xui_settings() {
     local password="$2"
     local port="$3"
     local web_base_path="$4"
+    local container_x_ui="$5"
 
     # Оновлення імені користувача та пароля
-    if docker exec -it x-ui /app/x-ui setting -username "$username" -password "$password"; then
+    if docker exec -it $container_x_ui /app/x-ui setting -username "$username" -password "$password"; then
         echo "Username and password updated successfully."
     else
         echo "Failed to update username and password."
     fi
 
     # Оновлення порту
-    if docker exec -it x-ui /app/x-ui setting -port "$port"; then
+    if docker exec -it $container_x_ui /app/x-ui setting -port "$port"; then
         echo "Port updated successfully."
     else
         echo "Failed to update port."
     fi
 
     # Оновлення базового шляху
-    if docker exec -it x-ui /app/x-ui setting -webBasePath "$web_base_path"; then
+    if docker exec -it $container_x_ui /app/x-ui setting -webBasePath "$web_base_path"; then
         echo "Web base path updated successfully."
     else
         echo "Failed to update web base path."
     fi
 
+    if docker restart $container_x_ui; then
+        echo "docker restart $container_x_ui."
+    else
+        echo "Failed docker restart $container_x_ui."
+    fi
 }
