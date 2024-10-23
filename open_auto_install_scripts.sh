@@ -78,7 +78,6 @@ for file in "$folder_script_path"/*; do
 done
 rm -rf "$folder_script_path" /root/open_auto_install_scripts.sh
 
-UPDATE_DONE=false
 dependencies=(
     "grep grep"
     "sh dash"
@@ -93,9 +92,8 @@ dependencies=(
     "basename coreutils"
 )
 
-for dependency in "${dependencies[@]}"; do
-    check_dependency $dependency
-done
+# Викликаємо функцію, передаючи масив пакетів
+check_and_install_dependencies "${dependencies[@]}"
 
 # Отримуємо шляхи до бінарників
 local_temp_curl=$(download_latest_tool "moparisthebest/static-curl" "curl" "curl-amd64")

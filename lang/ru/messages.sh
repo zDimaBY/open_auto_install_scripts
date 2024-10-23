@@ -89,6 +89,8 @@ MSG_STOP_XUI="2. Остановить $MSG_XUI"
 MSG_REMOVE_XUI="3. Удалить $MSG_XUI"
 
 # function list_x_ui_versions_install
+MSG_XUI_ENTER_ADMIN_PASSWORD_1="Укажите пароль пользователя admin для"
+MSG_XUI_ENTER_ADMIN_PASSWORD_2="(по умолчанию случайный): "
 MSG_XUI_AVAILABLE_VERSIONS="Список доступных версий образа alireza7/x-ui:"
 MSG_XUI_SELECT_VERSION="Введите номер версии, которую вы хотите установить (1-9): "
 MSG_XUI_INVALID_SELECTION="Неверный выбор. Пожалуйста, выберите число от 1 до 9."
@@ -355,13 +357,16 @@ MSG_SERVER_TESTING_PORT_MAIL="почта"
 
 # functions_controller.sh
 # function check_dependency
-MSG_ERROR_INFO_UNSUPPORTED_OS="Похоже, вы используете этот установщик не на системах Debian, Ubuntu, Fedora, CentOS, Oracle, AlmaLinux или Arch Linux. Ваша система: "
+MSG_DEPENDENCY_NOT_INSTALLED=" не установлен."
+MSG_DEPENDENCY_INSTALLED=" установлен."
+MSG_ERROR_INFO_UNSUPPORTED_OS="Неподдерживаемая операционная система: "
 MSG_ERROR_OS_DETECTION_FAILED="Не удалось определить операционную систему."
-MSG_ERROR_INSTALL_FAILED="Не удалось установить "
-MSG_ERROR_MANUAL_INSTALL_REQUIRED="Пожалуйста, установите его вручную."
-MSG_DEPENDENCY_NOT_INSTALLED=" не установлен. Устанавливаю..."
-MSG_DEPENDENCY_INSTALLED=" уже установлен."
-MSG_DEPENDENCY_SUCCESSFULLY_INSTALLED=" успешно установлен."
+MSG_MISSING_PACKAGES="Отсутствующие пакеты:"
+MSG_INSTALL_PROMPT="Установить отсутствующие пакеты? (y/n): "
+MSG_INSTALLATION_CANCELLED="Установка отсутствующих пакетов отменена."
+MSG_ALL_PACKAGES_INSTALLED="Все необходимые пакеты уже установлены."
+MSG_ALL_PACKAGES_SUCCESSFULLY_INSTALLED="Все отсутствующие пакеты успешно установлены."
+MSG_UNSUPPORTED_INSTALL_METHOD="Неподдерживаемый метод установки."
 
 # function install_package
 MSG_PACKAGE_INSTALL_FAILED="Не удалось установить "

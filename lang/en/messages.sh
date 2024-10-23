@@ -89,6 +89,8 @@ MSG_STOP_XUI="2. Stop $MSG_XUI"
 MSG_REMOVE_XUI="3. Remove $MSG_XUI"
 
 # function list_x_ui_versions_install
+MSG_XUI_ENTER_ADMIN_PASSWORD_1="Enter admin user password for"
+MSG_XUI_ENTER_ADMIN_PASSWORD_2="(default is random): "
 MSG_XUI_AVAILABLE_VERSIONS="List of available alireza7/x-ui image versions:"
 MSG_XUI_SELECT_VERSION="Enter the version number you want to install (1-9): "
 MSG_XUI_INVALID_SELECTION="Invalid choice. Please select a number between 1 and 9."
@@ -356,13 +358,16 @@ MSG_SERVER_TESTING_PORT_MAIL="post"
 
 # functions_controller.sh ----------------------------------------------------------------------------
 # function check_dependency
-MSG_ERROR_INFO_UNSUPPORTED_OS="It looks like you are not using this installer on Debian, Ubuntu, Fedora, CentOS, Oracle, AlmaLinux, or Arch Linux systems. Your system: "
-MSG_ERROR_OS_DETECTION_FAILED="Failed to determine the operating system."
-MSG_ERROR_INSTALL_FAILED="Failed to install "
-MSG_ERROR_MANUAL_INSTALL_REQUIRED="Please install it manually."
-MSG_DEPENDENCY_NOT_INSTALLED=" is not installed. Installing..."
-MSG_DEPENDENCY_INSTALLED=" is already installed."
-MSG_DEPENDENCY_SUCCESSFULLY_INSTALLED=" successfully installed."
+MSG_DEPENDENCY_NOT_INSTALLED=" not installed."
+MSG_DEPENDENCY_INSTALLED=" installed."
+MSG_ERROR_INFO_UNSUPPORTED_OS="Unsupported operating system: "
+MSG_ERROR_OS_DETECTION_FAILED="Failed to detect the operating system."
+MSG_MISSING_PACKAGES="Missing packages:"
+MSG_INSTALL_PROMPT="Install missing packages? (y/n): "
+MSG_INSTALLATION_CANCELLED="Installation of missing packages cancelled."
+MSG_ALL_PACKAGES_INSTALLED="All required packages are already installed."
+MSG_ALL_PACKAGES_SUCCESSFULLY_INSTALLED="All missing packages have been successfully installed."
+MSG_UNSUPPORTED_INSTALL_METHOD="Unsupported installation method."
 
 # function install_package
 MSG_PACKAGE_INSTALL_FAILED="Failed to install "

@@ -1,103 +1,78 @@
 #!/bin/bash -n
 # shellcheck disable=SC2148,SC2154
-function check_dependency() {
-    local dependency_name=$1
-    local package_name=$2
+# Функція для перевірки та встановлення пакетів
+function check_and_install_dependencies() {
+    local dependencies=("$@")  # Приймаємо пакети як аргументи
+    local missing_packages=()    # Масив для зберігання відсутніх пакетів
 
+    # Перевірка операційної системи
     if [[ -e /etc/os-release ]]; then
         source /etc/os-release
         case "$ID" in
-        debian | ubuntu | fedora | centos | oracle | arch | sysrescue | almalinux)
-            operating_system="$ID"
-            ;;
-        *)
-            echo "${MSG_ERROR_INFO_UNSUPPORTED_OS}$ID"
-            exit 1
-            ;;
+            debian | ubuntu | fedora | centos | oracle | arch | sysrescue | almalinux)
+                operating_system="$ID"
+                ;;
+            *)
+                echo -e "${RED}${MSG_ERROR_INFO_UNSUPPORTED_OS}$ID${RESET}"
+                exit 1
+                ;;
         esac
     else
-        echo "$MSG_ERROR_OS_DETECTION_FAILED"
+        echo -e "${RED}${MSG_ERROR_OS_DETECTION_FAILED}${RESET}"
         exit 1
     fi
 
-    # Перевірка наявності залежності
-    if ! command -v $dependency_name &>/dev/null; then
-        echo -e "${RED}${dependency_name}${MSG_DEPENDENCY_NOT_INSTALLED}${RESET}"
-
-        # Перевірка чи вже було виконано оновлення системи
-        if ! $UPDATE_DONE; then
-            case $operating_system in
-            debian | ubuntu)
-                apt-get update
-                if ! apt-get install -y "$package_name"; then
-                    echo -e "${RED}${MSG_ERROR_INSTALL_FAILED}$package_name. ${MSG_ERROR_MANUAL_INSTALL_REQUIRED}${RESET}"
-                    exit 1
-                fi
-                ;;
-            fedora)
-                dnf update
-                if ! dnf install -y "$package_name"; then
-                    echo -e "${RED}${MSG_ERROR_INSTALL_FAILED}$package_name. ${MSG_ERROR_MANUAL_INSTALL_REQUIRED}${RESET}"
-                    exit 1
-                fi
-                ;;
-            centos | oracle | almalinux | rocky)
-                yum update
-                if ! yum install epel-release -y || ! yum install -y "$package_name"; then
-                    echo -e "${RED}${MSG_ERROR_INSTALL_FAILED}$package_name. ${MSG_ERROR_MANUAL_INSTALL_REQUIRED}${RESET}"
-                    exit 1
-                fi
-                ;;
-            arch | sysrescue)
-                pacman -Sy
-                if ! pacman -Sy --noconfirm "$package_name"; then
-                    echo -e "${RED}${MSG_ERROR_INSTALL_FAILED}$package_name. ${MSG_ERROR_MANUAL_INSTALL_REQUIRED}${RESET}"
-                    exit 1
-                fi
-                ;;
-            *)
-                echo -e "${RED}${MSG_ERROR_INSTALL_FAILED}$dependency_name. ${MSG_ERROR_MANUAL_INSTALL_REQUIRED}${RESET}"
-                exit 1
-                ;;
-            esac
-
-            UPDATE_DONE=true
+    # Перевіряємо кожну залежність
+    for dependency in "${dependencies[@]}"; do
+        # Отримуємо команду і назву пакета
+        command_name=$(echo "$dependency" | awk '{print $1}')
+        package_name=$(echo "$dependency" | awk '{print $2}')
+        
+        # Перевірка наявності залежності
+        if ! command -v "$command_name" &>/dev/null; then
+            echo -e "${RED}${command_name}${MSG_DEPENDENCY_NOT_INSTALLED}${RESET}"
+            missing_packages+=("$package_name")  # Додаємо пакет до списку відсутніх
         else
-            case $operating_system in
-            debian | ubuntu)
-                if ! apt-get install -y "$package_name"; then
-                    echo -e "${RED}${MSG_ERROR_INSTALL_FAILED}$package_name. ${MSG_ERROR_MANUAL_INSTALL_REQUIRED}${RESET}"
-                    exit 1
-                fi
-                ;;
-            fedora)
-                if ! dnf install -y "$package_name"; then
-                    echo -e "${RED}${MSG_ERROR_INSTALL_FAILED}$package_name. ${MSG_ERROR_MANUAL_INSTALL_REQUIRED}${RESET}"
-                    exit 1
-                fi
-                ;;
-            centos | oracle | almalinux | rocky)
-                if ! yum install -y "$package_name"; then
-                    echo -e "${RED}${MSG_ERROR_INSTALL_FAILED}$package_name. ${MSG_ERROR_MANUAL_INSTALL_REQUIRED}${RESET}"
-                    exit 1
-                fi
-                ;;
-            arch | sysrescue)
-                if ! pacman -Sy --noconfirm "$package_name"; then
-                    echo -e "${RED}${MSG_ERROR_INSTALL_FAILED}$package_name. ${MSG_ERROR_MANUAL_INSTALL_REQUIRED}${RESET}"
-                    exit 1
-                fi
-                ;;
-            *)
-                echo -e "${RED}${MSG_ERROR_INSTALL_FAILED}$dependency_name. ${MSG_ERROR_MANUAL_INSTALL_REQUIRED}${RESET}"
-                exit 1
-                ;;
-            esac
+            echo -e "${GREEN}${command_name}${MSG_DEPENDENCY_INSTALLED}${RESET}"
         fi
+    done
 
-        echo -e "${GREEN}${dependency_name}${MSG_DEPENDENCY_SUCCESSFULLY_INSTALLED}${RESET}"
+    # Якщо є відсутні пакети, запитуємо користувача про встановлення
+    if [ ${#missing_packages[@]} -gt 0 ]; then
+        echo -e "\n${MSG_MISSING_PACKAGES}"
+        for pkg in "${missing_packages[@]}"; do
+            echo "- $pkg"
+        done
+
+        read -p "${MSG_INSTALL_PROMPT}" answer
+
+        if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
+            case $operating_system in
+                debian | ubuntu)
+                    sudo apt-get update
+                    sudo apt-get install -y "${missing_packages[@]}"
+                    ;;
+                fedora)
+                    sudo dnf install -y "${missing_packages[@]}"
+                    ;;
+                centos | oracle | almalinux | rocky)
+                    sudo yum install -y "${missing_packages[@]}"
+                    ;;
+                arch | sysrescue)
+                    sudo pacman -Sy --noconfirm "${missing_packages[@]}"
+                    ;;
+                *)
+                    echo -e "${RED}${MSG_UNSUPPORTED_INSTALL_METHOD}${RESET}"
+                    exit 1
+                    ;;
+            esac
+
+            echo -e "${GREEN}${MSG_ALL_PACKAGES_SUCCESSFULLY_INSTALLED}${RESET}"
+        else
+            echo "${MSG_INSTALLATION_CANCELLED}"
+        fi
     else
-        echo -e "${GREEN}${dependency_name}${MSG_DEPENDENCY_INSTALLED}${RESET}"
+        echo "${MSG_ALL_PACKAGES_INSTALLED}"
     fi
 }
 
@@ -304,6 +279,33 @@ calculate_size() {
     else
         echo -e "${YELLOW}$size MB${RESET}"
     fi
+}
+
+# Функція для пошуку випадкового вільного порту в заданому діапазоні
+find_random_free_port() {
+    local min_port=$1
+    local max_port=$2
+
+    # Перевірка чи порт вільний
+    is_port_free() {
+        local port=$1
+        (echo >/dev/tcp/127.0.0.1/$port) &>/dev/null
+        if [ $? -eq 0 ]; then
+            return 1  # Порт зайнятий
+        else
+            return 0  # Порт вільний
+        fi
+    }
+
+    while true; do
+        # Генеруємо випадковий порт у вказаному діапазоні
+        random_port=$(shuf -i $min_port-$max_port -n 1)
+
+        # Перевіряємо чи цей порт вільний
+        if is_port_free $random_port; then
+            return
+        fi
+    done
 }
 
 # Функція для додавання правил файерволу або iptables, add_firewall_rule 80

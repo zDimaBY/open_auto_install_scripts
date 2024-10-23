@@ -145,12 +145,12 @@ install_3x_ui() {
     local version="$1"
 
     generate_random_password_show
-    read -p "Вкажіть пароль користувача admin для ${name_docker_container} (за замовчуванням випадковий): " X_UI_PASSWORD
+    read -p "${MSG_XUI_ENTER_ADMIN_PASSWORD_1} ${name_docker_container} ${MSG_XUI_ENTER_ADMIN_PASSWORD_2}" X_UI_PASSWORD
 
     X_UI_USERNAME="admin"  # Встановіть нове ім'я користувача
     X_UI_PASSWORD=${X_UI_PASSWORD:-$rand_password}  # Встановіть новий пароль
-    X_UI_PORT=2053  # Встановіть новий порт
-    X_UI_WEB_BASE_PATH="/$(trim_to_10 "$(generate_random_part_16)")"  # Встановіть новий webBasePath
+    X_UI_PORT=$(find_random_free_port 1024 65535)  # Встановіть новий порт
+    X_UI_WEB_BASE_PATH="$(trim_to_10 "$(generate_random_part_16)")"  # Встановіть новий webBasePath
 
     create_folder "/root/VPN/3x_ui/db/" && create_folder "/root/VPN/3x_ui/cert/"
     docker run -itd \
@@ -186,7 +186,7 @@ list_3x_ui_versions_install() {
     fi
 
     echo -e "${MSG_X_UI_INSTALLED}"
-    echo -e "http://${server_IPv4[0]}:$X_UI_PORT/$X_UI_WEB_BASE_PATH/"
+    echo -e "http://${server_IPv4[0]}:${X_UI_PORT}/${X_UI_WEB_BASE_PATH}/"
     echo -e "${MSG_ADMIN_USERNAME}${X_UI_USERNAME}"
     echo -e "${MSG_ADMIN_PASSWORD}${X_UI_PASSWORD}"
 
@@ -236,12 +236,12 @@ install_x_ui() {
     local version="$1"
 
     generate_random_password_show
-    read -p "Вкажіть пароль користувача admin для ${name_docker_container} (за замовчуванням випадковий): " X_UI_PASSWORD
+    read -p "${MSG_XUI_ENTER_ADMIN_PASSWORD_1} ${name_docker_container} ${MSG_XUI_ENTER_ADMIN_PASSWORD_2}" X_UI_PASSWORD
 
     X_UI_USERNAME="admin"  # Встановіть нове ім'я користувача
     X_UI_PASSWORD=${X_UI_PASSWORD:-$rand_password}  # Встановіть новий пароль
-    X_UI_PORT=54321  # Встановіть новий порт
-    X_UI_WEB_BASE_PATH="/$(trim_to_10 "$(generate_random_part_16)")"  # Встановіть новий webBasePath
+    X_UI_PORT=$(find_random_free_port 1024 65535)  # Встановіть новий порт
+    X_UI_WEB_BASE_PATH="$(trim_to_10 "$(generate_random_part_16)")"  # Встановіть новий webBasePath
 
     create_folder "/root/VPN/x_ui/db/" && create_folder "/root/VPN/x_ui/cert/"
     docker run -itd \
@@ -278,7 +278,7 @@ list_x_ui_versions_install() {
     fi
 
     echo -e "${YELLOW}\n\n${MSG_XUI_INSTALLED}${RESET}"
-    echo -e "http://${server_IPv4[0]}:${X_UI_PORT}${X_UI_WEB_BASE_PATH}/xui/"
+    echo -e "http://${server_IPv4[0]}:${X_UI_PORT}/${X_UI_WEB_BASE_PATH}/xui/"
     echo -e "${GREEN}${MSG_XUI_USERNAME}${X_UI_USERNAME}${RESET}"
     echo -e "${GREEN}${MSG_XUI_PASSWORD}${X_UI_PASSWORD}${RESET}\n"
 
