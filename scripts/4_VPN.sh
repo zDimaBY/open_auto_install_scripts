@@ -131,8 +131,8 @@ menu_3x_ui() {
         1) list_3x_ui_versions_install ;;
         2) stop_docker_container "$name_docker_container" "$MSG_XUI_STOPPED" ;;
         3)
+            remove_firewall_rule "$(get_docker_port_x_ui $name_docker_container)"
             remove_docker_container "$name_docker_container" "$MSG_XUI_REMOVED"
-            remove_firewall_rule 2053
             ;;
         4) update_3x_ui ;;
         0) break ;;
@@ -164,7 +164,7 @@ install_3x_ui() {
     update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
 
     # Функція для додавання правил файерволу з скриптів functions_controller.sh
-    add_firewall_rule 2053
+    add_firewall_rule "$X_UI_PORT"
     docker ps -a
 }
 
@@ -220,10 +220,10 @@ menu_x_ui() {
         1) list_x_ui_versions_install ;;
         2) stop_docker_container "$name_docker_container" "$MSG_XUI_STOPPED" ;;
         3)
-            remove_docker_container "$name_docker_container" "$MSG_XUI_REMOVED"
+            remove_firewall_rule "$(get_docker_port_x_ui $name_docker_container)"
             remove_firewall_rule 80
             remove_firewall_rule 443
-            remove_firewall_rule 54321
+            remove_docker_container "$name_docker_container" "$MSG_XUI_REMOVED"
             ;;
         4) update_x_ui ;;
         0) break ;;
@@ -257,7 +257,7 @@ install_x_ui() {
     # Функція для додавання правил файерволу з скриптів functions_controller.sh
     add_firewall_rule 80
     add_firewall_rule 443
-    add_firewall_rule 54321
+    add_firewall_rule "$X_UI_PORT"
     docker ps -a
 }
 

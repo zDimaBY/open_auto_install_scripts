@@ -285,24 +285,22 @@ calculate_size() {
 find_random_free_port() {
     local min_port=$1
     local max_port=$2
+    local random_port
 
-    # Перевірка чи порт вільний
-    is_port_free() {
+    # Функція для перевірки, чи порт зайнятий
+    is_port_used() {
         local port=$1
-        (echo >/dev/tcp/127.0.0.1/$port) &>/dev/null
-        if [ $? -eq 0 ]; then
-            return 1  # Порт зайнятий
-        else
-            return 0  # Порт вільний
-        fi
+        (echo > /dev/tcp/127.0.0.1/$port) &>/dev/null
+        return $?  # 0 - порт зайнятий, 1 - порт вільний
     }
 
     while true; do
         # Генеруємо випадковий порт у вказаному діапазоні
         random_port=$(shuf -i $min_port-$max_port -n 1)
 
-        # Перевіряємо чи цей порт вільний
-        if is_port_free $random_port; then
+        # Перевіряємо, чи порт вільний
+        if ! is_port_used $random_port; then
+            echo "$random_port"  # Виводимо вільний порт
             return
         fi
     done
@@ -657,5 +655,22 @@ update_xui_settings() {
         echo "docker restart $container_x_ui."
     else
         echo "Failed docker restart $container_x_ui."
+    fi
+}
+
+# Функція для отримання номера порта з команди контейнера x-ui
+get_docker_port_x_ui() {
+    local container_name=$1
+    local command="docker exec -it $container_name /app/x-ui setting --show"
+
+    # Виконуємо команду та зберігаємо вивід
+    output=$($command 2>&1)
+
+    # Витягуємо номер порта за допомогою регулярного виразу
+    if [[ $output =~ port:\ ([0-9]+) ]]; then
+        port_number="${BASH_REMATCH[1]}"
+        echo "$port_number"  # Виводимо номер порта
+    else
+        return 1
     fi
 }

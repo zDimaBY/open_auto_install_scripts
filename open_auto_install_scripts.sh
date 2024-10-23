@@ -92,7 +92,7 @@ dependencies=(
     "basename coreutils"
 )
 
-# Викликаємо функцію, передаючи масив пакетів
+# Викликаємо функцію перевірки dependencies пакетів, передаючи масив.
 check_and_install_dependencies "${dependencies[@]}"
 
 # Отримуємо шляхи до бінарників
