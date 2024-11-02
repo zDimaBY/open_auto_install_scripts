@@ -1,22 +1,17 @@
 #!/bin/bash -n
 # shellcheck disable=SC2148,SC2154
 
-function detect_control_panel() {
-
-    for panel in "${all_control_panels[@]}"; do
-        if [[ -e $panel ]]; then
-            return 0
-        fi
-    done
-    return 1
-}
-
+# Основна функція для управління панеллю
 function 2_site_control_panel() {
-    detect_control_panel || {
+    panel_name=$(check_info_control_panel_for_functions)
+    exit_code=$?  # Зберігаємо код завершення функції
+
+    if [ "$exit_code" -eq 0 ]; then
+        echo "Виявлено панель керування: $panel_name"
+    else
         echo -e "${RED}Не вдалося визначити панель керування сайтами, запускаю скрипт для встановлення.${RESET}"
         2_install_control_panel
-        return
-    }
+    fi
 
     #Перевіряємо яка панель керування встановлена
     if [ -e "/usr/local/vesta" ]; then

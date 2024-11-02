@@ -128,6 +128,54 @@ function install_package() {
     esac
 }
 
+# Функція для перевірки наявності панелей керування
+check_info_control_panel_for_functions() { 
+    for panel_dir in "${all_control_panels[@]}"; do
+        if [ -d "$panel_dir" ]; then
+            case $panel_dir in
+            "/usr/local/hestia")
+                echo "hestia"
+                return 0
+                ;;
+            "/usr/local/vesta")
+                echo "vesta"
+                return 0
+                ;;
+            "/usr/local/mgr5")
+                echo "mgr5"
+                return 0
+                ;;
+            "/usr/local/cpanel")
+                echo "cpanel"
+                return 0
+                ;;
+            "/usr/local/fastpanel2")
+                echo "fastpanel2"
+                return 0
+                ;;
+            "/usr/local/brainycp")
+                echo "brainycp"
+                return 0
+                ;;
+            "/www/server/panel/BTPanel/")
+                echo "BTPanel"
+                return 0
+                ;;
+            "/usr/local/CyberCP/")
+                echo "CyberCP"
+                return 0
+                ;;
+            "/usr/local/CyberPanel/")
+                echo "CyberPanel"
+                return 0
+                ;;
+            esac
+            return
+        fi
+    done
+    return 1  # Повертає 1, якщо жодна панель не знайдена
+}
+
 function generate_random_password_show() {
     rand_password=$(openssl rand -base64 12)
     echo -e "\n${MSG_GENERATED_RANDOM_PASSWORD} ${RED}$rand_password${RESET}"
