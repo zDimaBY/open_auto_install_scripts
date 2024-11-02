@@ -365,49 +365,49 @@ function add_firewall_rule() {
     if [ $? -eq 0 ]; then
         case $panel_name in
             "hestia")
-                echo "Виявлено панель керування: Hestia"
+                echo "Виявлено панель керування Hestia, додаю правило для $port"
                 # Options: ACTION IP PORT [PROTOCOL] [COMMENT] [RULE]
                 /usr/local/hestia/bin/v-add-firewall-rule "ACCEPT" "0.0.0.0/0" "$port" "tcp" "$comment"
                 return 1
                 ;;
             "vesta")
-                echo "Виявлено панель керування: Vesta"
+                echo "Виявлено панель керування Vesta, додаю правило для $port"
                 # Options: ACTION IP PORT [PROTOCOL] [COMMENT] [RULE]
                 /usr/local/vesta/bin/v-add-firewall-rule "ACCEPT" "0.0.0.0/0" "$port" "tcp" "$comment"
                 return 1
                 ;;
             "mgr5")
-                echo "Виявлено панель керування: ISPmanager"
+                echo "Виявлено панель керування: ISPmanager, відкрийте порт $port вручну у панелі керування."
                 # Додаткові дії для ISPmanager
                 return 1
                 ;;
             "cpanel")
-                echo "Виявлено панель керування: cPanel"
+                echo "Виявлено панель керування: cPanel, відкрийте порт $port вручну у панелі керування."
                 # Додаткові дії для cPanel
                 return 1
                 ;;
             "fastpanel2")
-                echo "Виявлено панель керування: FastPanel"
+                echo "Виявлено панель керування: FastPanel, відкрийте порт $port вручну у панелі керування."
                 # Додаткові дії для FastPanel
                 return 1
                 ;;
             "brainycp")
-                echo "Виявлено панель керування: BrainyCP"
+                echo "Виявлено панель керування: BrainyCP, відкрийте порт $port вручну у панелі керування."
                 # Додаткові дії для BrainyCP
                 return 1
                 ;;
             "BTPanel")
-                echo "Виявлено панель керування: BTPanel"
+                echo "Виявлено панель керування: BTPanel, відкрийте порт $port вручну у панелі керування."
                 # Додаткові дії для BTPanel
                 return 1
                 ;;
             "CyberCP")
-                echo "Виявлено панель керування: CyberCP"
+                echo "Виявлено панель керування: CyberCP, відкрийте порт $port вручну у панелі керування."
                 # Додаткові дії для CyberCP
                 return 1
                 ;;
             "CyberPanel")
-                echo "Виявлено панель керування: CyberPanel"
+                echo "Виявлено панель керування: CyberPanel, відкрийте порт $port вручну у панелі керування."
                 # Додаткові дії для CyberPanel
                 return 1
                 ;;
@@ -501,37 +501,37 @@ function remove_firewall_rule() {
                 return $?
                 ;;
             "mgr5")
-                echo "Виявлено панель керування: ISPmanager"
+                echo "Виявлено панель керування: ISPmanager, видаліть відкритий порт "$port" у панелі керування."
                 # Додаткові дії для ISPmanager
                 return 1
                 ;;
             "cpanel")
-                echo "Виявлено панель керування: cPanel"
+                echo "Виявлено панель керування: cPanel, видаліть відкритий порт "$port" у панелі керування."
                 # Додаткові дії для cPanel
                 return 1
                 ;;
             "fastpanel2")
-                echo "Виявлено панель керування: FastPanel"
+                echo "Виявлено панель керування: FastPanel, видаліть відкритий порт "$port" у панелі керування."
                 # Додаткові дії для FastPanel
                 return 1
                 ;;
             "brainycp")
-                echo "Виявлено панель керування: BrainyCP"
+                echo "Виявлено панель керування: BrainyCP, видаліть відкритий порт "$port" у панелі керування."
                 # Додаткові дії для BrainyCP
                 return 1
                 ;;
             "BTPanel")
-                echo "Виявлено панель керування: BTPanel"
+                echo "Виявлено панель керування: BTPanel, видаліть відкритий порт "$port" у панелі керування."
                 # Додаткові дії для BTPanel
                 return 1
                 ;;
             "CyberCP"|"CyberPanel")
-                echo "Виявлено панель керування: $panel_name"
+                echo "Виявлено панель керування: $panel_name, видаліть відкритий порт "$port" у панелі керування."
                 # Додаткові дії для CyberCP/CyberPanel
                 return 1
                 ;;
             *)
-                echo "Не вдається виявити панель керування. Додаю правила для порту $port у iptables"
+    
                 ;;
         esac
     else
