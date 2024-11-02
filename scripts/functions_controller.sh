@@ -357,100 +357,228 @@ find_random_free_port() {
 # Функція для додавання правил файерволу або iptables, add_firewall_rule 80
 function add_firewall_rule() {
     local port="$1"
+    local comment="$2"
     local success=0
 
-    if command -v firewall-cmd &>/dev/null; then
-        if systemctl is-active --quiet firewalld; then
-            if ! firewall-cmd --zone=public --query-port="$port/tcp" &>/dev/null; then
-                firewall-cmd --zone=public --add-port="$port/tcp" --permanent
-                firewall-cmd --reload
-                echo -e "${MSG_PORT}${port} ${MSG_FIREWALLD_NOT_RUNNING_PART1}"
+    panel_name=$(check_info_control_panel_for_functions)
+
+    if [ $? -eq 0 ]; then
+        case $panel_name in
+            "hestia")
+                echo "Виявлено панель керування: Hestia"
+                # Options: ACTION IP PORT [PROTOCOL] [COMMENT] [RULE]
+                /usr/local/hestia/bin/v-add-firewall-rule "ACCEPT" "0.0.0.0/0" "$port" "tcp" "$comment"
+                return 1
+                ;;
+            "vesta")
+                echo "Виявлено панель керування: Vesta"
+                # Options: ACTION IP PORT [PROTOCOL] [COMMENT] [RULE]
+                /usr/local/vesta/bin/v-add-firewall-rule "ACCEPT" "0.0.0.0/0" "$port" "tcp" "$comment"
+                return 1
+                ;;
+            "mgr5")
+                echo "Виявлено панель керування: ISPmanager"
+                # Додаткові дії для ISPmanager
+                return 1
+                ;;
+            "cpanel")
+                echo "Виявлено панель керування: cPanel"
+                # Додаткові дії для cPanel
+                return 1
+                ;;
+            "fastpanel2")
+                echo "Виявлено панель керування: FastPanel"
+                # Додаткові дії для FastPanel
+                return 1
+                ;;
+            "brainycp")
+                echo "Виявлено панель керування: BrainyCP"
+                # Додаткові дії для BrainyCP
+                return 1
+                ;;
+            "BTPanel")
+                echo "Виявлено панель керування: BTPanel"
+                # Додаткові дії для BTPanel
+                return 1
+                ;;
+            "CyberCP")
+                echo "Виявлено панель керування: CyberCP"
+                # Додаткові дії для CyberCP
+                return 1
+                ;;
+            "CyberPanel")
+                echo "Виявлено панель керування: CyberPanel"
+                # Додаткові дії для CyberPanel
+                return 1
+                ;;
+            *)
+                echo "Не можу виявити панель керування. $panel_name додаю правила для порта $port у iptables"
+                ;;
+        esac
+    else
+        if command -v firewall-cmd &>/dev/null; then
+            if systemctl is-active --quiet firewalld; then
+                if ! firewall-cmd --zone=public --query-port="$port/tcp" &>/dev/null; then
+                    firewall-cmd --zone=public --add-port="$port/tcp" --permanent
+                    firewall-cmd --reload
+                    echo -e "${MSG_PORT}${port} ${MSG_FIREWALLD_NOT_RUNNING_PART1}"
+                    success=1
+                else
+                    echo -e "${MSG_PORT}${port} ${MSG_FIREWALLD_NOT_RUNNING_PART1}"
+                    success=1
+                fi
+            else
+                echo -e "${MSG_FIREWALLD_NOT_RUNNING_PART1}"
+            fi
+        fi
+
+        if command -v iptables &>/dev/null; then
+            if ! iptables-save | grep "INPUT -p tcp -m tcp --dport $port -j ACCEPT\b"; then
+                iptables -A INPUT -p tcp --dport "$port" -j ACCEPT
+                service iptables save
+                echo "Порт $port відкрито у iptables."
                 success=1
             else
-                echo -e "${MSG_PORT}${port} ${MSG_FIREWALLD_NOT_RUNNING_PART1}"
+                echo -e "${MSG_PORT}${port} ${MSG_IPTABLES_NOT_INSTALLED_PART1}"
                 success=1
             fi
-        else
-            echo -e "${MSG_FIREWALLD_NOT_RUNNING_PART1}"
         fi
-    fi
 
-    if command -v iptables &>/dev/null; then
-        if ! iptables-save | grep "INPUT -p tcp -m tcp --dport $port -j ACCEPT\b"; then
-            iptables -A INPUT -p tcp --dport "$port" -j ACCEPT
-            service iptables save
-            echo "Порт $port відкрито у iptables."
-            success=1
-        else
-            echo -e "${MSG_PORT}${port} ${MSG_IPTABLES_NOT_INSTALLED_PART1}"
-            success=1
+        if command -v ufw &>/dev/null; then
+            if ! ufw status | grep "$port/tcp" &>/dev/null; then
+                ufw allow "$port/tcp"
+                echo -e "${MSG_PORT}${port} ${MSG_UFW_NOT_INSTALLED_PART1}"
+                success=1
+            else
+                echo -e "${MSG_PORT}${port} ${MSG_UFW_NOT_INSTALLED_PART1}"
+                success=1
+            fi
         fi
-    fi
 
-    if command -v ufw &>/dev/null; then
-        if ! ufw status | grep "$port/tcp" &>/dev/null; then
-            ufw allow "$port/tcp"
-            echo -e "${MSG_PORT}${port} ${MSG_UFW_NOT_INSTALLED_PART1}"
-            success=1
-        else
-            echo -e "${MSG_PORT}${port} ${MSG_UFW_NOT_INSTALLED_PART1}"
-            success=1
+        if [ "$success" -eq 0 ]; then
+            echo -e "${MSG_FIREWALL_NOT_INSTALLED_PART1}${port}"
+            return 1
         fi
-    fi
-
-    if [ "$success" -eq 0 ]; then
-        echo -e "${MSG_FIREWALL_NOT_INSTALLED_PART1}${port}"
-        return 1
     fi
 }
 
-# Функція для видалення правил з файервола та таблиці iptables, remove_firewall_rule 80
+# Функція для видалення правил з файервола та таблиці iptables
 function remove_firewall_rule() {
     local port="$1"
     local success=0
 
-    if command -v firewall-cmd &>/dev/null; then
-        if systemctl is-active --quiet firewalld; then
-            if firewall-cmd --zone=public --query-port="$port/tcp"; then
-                firewall-cmd --zone=public --remove-port="$port/tcp" --permanent
-                firewall-cmd --reload
-                echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_FIREWALLD_NOT_RUNNING_PART2}"
-                success=1
+    # Функція для видалення правила за портом у панелях Hestia та Vesta
+    function delete_firewall_rule_by_port() {
+        local target_port="$1"
+        local rule_id
+
+        # Знаходимо ID правила, пов'язаного з портом
+        rule_id=$(v-list-firewall | awk -v port="$target_port" '$4 == port {print $1}')
+
+        if [ -n "$rule_id" ]; then
+            # Видаляємо правило з знайденим ID
+            v-delete-firewall-rule "$rule_id"
+            if [ $? -eq 0 ]; then
+                echo "Правило з портом $target_port та ID $rule_id успішно видалено."
+                return 0
             else
-                echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_FIREWALLD_NOT_RUNNING_PART2}"
-                success=1
+                echo "Не вдалося видалити правило з ID $rule_id."
+                return 1
             fi
         else
-            echo -e "${MSG_FIREWALLD_NOT_RUNNING_PART2}"
+            echo "Правило з портом $target_port не знайдено."
+            return 1
         fi
-    fi
-    
-    if command -v iptables &>/dev/null; then
-        if iptables-save | grep "INPUT -p tcp -m tcp --dport $port -j ACCEPT\b"; then
-            iptables -D INPUT -p tcp --dport "$port" -j ACCEPT
-            service iptables save
-            echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_IPTABLES_NOT_INSTALLED_PART2}"
-            success=1
-        else
-            echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_IPTABLES_NOT_INSTALLED_PART2}"
-            success=1
-        fi
-    fi
+    }
 
-    if command -v ufw &>/dev/null; then
-        if ufw status | grep "$port/tcp"; then
-            ufw delete allow "$port/tcp"
-            echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_UFW_NOT_INSTALLED_PART2}"
-            success=1
-        else
-            echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_UFW_NOT_INSTALLED_PART2}"
-            success=1
-        fi
-    fi
+    panel_name=$(check_info_control_panel_for_functions)
 
-    if [ "$success" -eq 0 ]; then
-        echo -e "${MSG_FIREWALL_NOT_INSTALLED_PART2}"
-        return 1
+    if [ $? -eq 0 ]; then
+        case $panel_name in
+            "hestia"|"vesta")
+                echo "Виявлено панель керування: $panel_name"
+                delete_firewall_rule_by_port "$port"
+                return $?
+                ;;
+            "mgr5")
+                echo "Виявлено панель керування: ISPmanager"
+                # Додаткові дії для ISPmanager
+                return 1
+                ;;
+            "cpanel")
+                echo "Виявлено панель керування: cPanel"
+                # Додаткові дії для cPanel
+                return 1
+                ;;
+            "fastpanel2")
+                echo "Виявлено панель керування: FastPanel"
+                # Додаткові дії для FastPanel
+                return 1
+                ;;
+            "brainycp")
+                echo "Виявлено панель керування: BrainyCP"
+                # Додаткові дії для BrainyCP
+                return 1
+                ;;
+            "BTPanel")
+                echo "Виявлено панель керування: BTPanel"
+                # Додаткові дії для BTPanel
+                return 1
+                ;;
+            "CyberCP"|"CyberPanel")
+                echo "Виявлено панель керування: $panel_name"
+                # Додаткові дії для CyberCP/CyberPanel
+                return 1
+                ;;
+            *)
+                echo "Не вдається виявити панель керування. Додаю правила для порту $port у iptables"
+                ;;
+        esac
+    else
+
+        if command -v firewall-cmd &>/dev/null; then
+            if systemctl is-active --quiet firewalld; then
+                if firewall-cmd --zone=public --query-port="$port/tcp"; then
+                    firewall-cmd --zone=public --remove-port="$port/tcp" --permanent
+                    firewall-cmd --reload
+                    echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_FIREWALLD_NOT_RUNNING_PART2}"
+                    success=1
+                else
+                    echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_FIREWALLD_NOT_RUNNING_PART2}"
+                    success=1
+                fi
+            else
+                echo -e "${MSG_FIREWALLD_NOT_RUNNING_PART2}"
+            fi
+        fi
+
+        if command -v iptables &>/dev/null; then
+            if iptables-save | grep "INPUT -p tcp -m tcp --dport $port -j ACCEPT\b"; then
+                iptables -D INPUT -p tcp --dport "$port" -j ACCEPT
+                service iptables save
+                echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_IPTABLES_NOT_INSTALLED_PART2}"
+                success=1
+            else
+                echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_IPTABLES_NOT_INSTALLED_PART2}"
+                success=1
+            fi
+        fi
+
+        if command -v ufw &>/dev/null; then
+            if ufw status | grep "$port/tcp"; then
+                ufw delete allow "$port/tcp"
+                echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_UFW_NOT_INSTALLED_PART2}"
+                success=1
+            else
+                echo -e "${MSG_RULE_FOR_PORT}${port} ${MSG_UFW_NOT_INSTALLED_PART2}"
+                success=1
+            fi
+        fi
+
+        if [ "$success" -eq 0 ]; then
+            echo -e "${MSG_FIREWALL_NOT_INSTALLED_PART2}"
+            return 1
+        fi
     fi
 }
 

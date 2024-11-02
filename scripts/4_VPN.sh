@@ -163,8 +163,7 @@ install_3x_ui() {
 
     update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
 
-    # Функція для додавання правил файерволу з скриптів functions_controller.sh
-    add_firewall_rule "$X_UI_PORT"
+    add_firewall_rule "$X_UI_PORT" "WEB-3X-UI-PORT"
     docker ps -a
 }
 
@@ -255,9 +254,9 @@ install_x_ui() {
     update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
 
     # Функція для додавання правил файерволу з скриптів functions_controller.sh
-    add_firewall_rule 80
-    add_firewall_rule 443
-    add_firewall_rule "$X_UI_PORT"
+    add_firewall_rule 80 "WEB-3X-UI-PORT-HTTP"
+    add_firewall_rule 443 "WEB-3X-UI-PORT-HTTPS"
+    add_firewall_rule "$X_UI_PORT" "WEB-X-UI-PORT"
     docker ps -a
 }
 
@@ -701,7 +700,7 @@ install_PPTP() {
 
     docker run -d --privileged --net=host --name "$name_docker_container" -v /root/VPN/PPTP/chap-secrets:/etc/ppp/chap-secrets mobtitude/vpn-pptp
 
-    apply_iptables_rules "$selected_adapter"
+    apply_iptables_rules_install_PPTP "$selected_adapter"
 
     docker ps -a
 
@@ -773,19 +772,33 @@ remove_PPTP() {
     echo "$MSG_FIREWALL_RULE_REMOVED"
 }
 
-apply_iptables_rules() {
+apply_iptables_rules_install_PPTP() {
     local adapter="$1"
-    add_firewall_rule 1723 # Функція для додавання правил файерволу з скриптів functions_controller.sh
-    if ! iptables -C INPUT -p gre -j ACCEPT 2>/dev/null; then
-        iptables -A INPUT -p gre -j ACCEPT
-    fi
-    if ! iptables -C FORWARD -i ppp+ -o "$adapter" -j ACCEPT 2>/dev/null; then
-        iptables -A FORWARD -i ppp+ -o "$adapter" -j ACCEPT
-    fi
-    if ! iptables -C FORWARD -i "$adapter" -o ppp+ -j ACCEPT 2>/dev/null; then
-        iptables -A FORWARD -i "$adapter" -o ppp+ -j ACCEPT
-    fi
-    if ! iptables -t nat -C POSTROUTING -o "$adapter" -j MASQUERADE 2>/dev/null; then
-        iptables -t nat -A POSTROUTING -o "$adapter" -j MASQUERADE
+
+    panel_name=$(check_info_control_panel_for_functions)
+    exit_code=$?  # Зберігаємо код завершення функції
+
+    if [ "$exit_code" -eq 0 ]; then
+        echo "Виявлено панель керування: $panel_name"
+        echo "Потрібно корректно дабавити наступні правила фаєрвола у панель керування, якщо вони сумісні:"
+        echo "iptables -A INPUT -p gre -j ACCEPT"
+        echo "iptables -A FORWARD -i ppp+ -o "$adapter" -j ACCEPT"
+        echo "iptables -A FORWARD -i "$adapter" -o ppp+ -j ACCEPT"
+        echo "iptables -t nat -A POSTROUTING -o "$adapter" -j MASQUERADE"
+        echo "iptables -A INPUT -p tcp --dport 1723 -j ACCEPT"
+    else
+        add_firewall_rule 1723 "PORT-FOR-PPTP-VPN" # Функція для додавання правил файерволу з скриптів functions_controller.sh
+        if ! iptables -C INPUT -p gre -j ACCEPT 2>/dev/null; then
+            iptables -A INPUT -p gre -j ACCEPT
+        fi
+        if ! iptables -C FORWARD -i ppp+ -o "$adapter" -j ACCEPT 2>/dev/null; then
+            iptables -A FORWARD -i ppp+ -o "$adapter" -j ACCEPT
+        fi
+        if ! iptables -C FORWARD -i "$adapter" -o ppp+ -j ACCEPT 2>/dev/null; then
+            iptables -A FORWARD -i "$adapter" -o ppp+ -j ACCEPT
+        fi
+        if ! iptables -t nat -C POSTROUTING -o "$adapter" -j MASQUERADE 2>/dev/null; then
+            iptables -t nat -A POSTROUTING -o "$adapter" -j MASQUERADE
+        fi
     fi
 }

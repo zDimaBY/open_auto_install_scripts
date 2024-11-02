@@ -4,9 +4,8 @@
 # Основна функція для управління панеллю
 function 2_site_control_panel() {
     panel_name=$(check_info_control_panel_for_functions)
-    exit_code=$?  # Зберігаємо код завершення функції
 
-    if [ "$exit_code" -eq 0 ]; then
+    if [ $? -eq 0 ]; then
         echo "Виявлено панель керування: $panel_name"
     else
         echo -e "${RED}Не вдалося визначити панель керування сайтами, запускаю скрипт для встановлення.${RESET}"
