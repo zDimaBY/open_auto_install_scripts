@@ -414,10 +414,21 @@ MSG_GATEWAY="Gateway:"
 
 # function add_firewall_rule
 MSG_PORT="Port "
+MSG_PORT_OPEN="open in iptables."
 MSG_FIREWALLD_NOT_RUNNING_PART1="firewalld is not running or installed. If another firewall is installed, opening ports in it."
 MSG_IPTABLES_NOT_INSTALLED_PART1="iptables is not installed."
 MSG_UFW_NOT_INSTALLED_PART1="ufw is not installed."
 MSG_FIREWALL_NOT_INSTALLED_PART1="Error: Firewall not installed or unknown. Check port "
+
+# function delete_firewall_rule_by_port
+MSG_RULE_DELETED_PART1="Rule with port"
+MSG_RULE_DELETED_PART2="and ID"
+MSG_RULE_DELETED_PART3="has been successfully deleted."
+MSG_RULE_DELETE_FAILED_PART1="Failed to delete rule with ID"
+MSG_RULE_DELETE_FAILED_PART2="."
+MSG_RULE_NOT_FOUND_PART1="Rule with port "
+MSG_RULE_NOT_FOUND_PART2="not found."
+
 
 # function remove_firewall_rule
 MSG_FIREWALLD_NOT_RUNNING_PART2="firewalld is not running or installed. If another firewall is installed, removing rules from it."
@@ -448,6 +459,21 @@ MSG_IN_RELEASES_FROM="in releases from"
 
 # function remove_docker_container stop_docker_container
 MSG_ERROR_CONTAINER_NAME="Error: Container name cannot be empty."
+
+# function update_xui_settings
+MSG_USERNAME_PASSWORD_UPDATED_PART1="Username and password"
+MSG_USERNAME_PASSWORD_UPDATED_PART2=" updated successfully."
+MSG_USERNAME_PASSWORD_FAILED_PART1="Failed to update username and password."
+MSG_PORT_UPDATED_PART1="Port"
+MSG_PORT_UPDATED_PART2=" updated successfully."
+MSG_PORT_FAILED_PART1="Failed to update port."
+MSG_WEB_BASE_PATH_UPDATED_PART1="Web base path"
+MSG_WEB_BASE_PATH_UPDATED_PART2=" updated successfully."
+MSG_WEB_BASE_PATH_FAILED_PART1="Failed to update web base path."
+MSG_DOCKER_RESTART_PART1="Docker container "
+MSG_DOCKER_RESTART_PART2=" restarted successfully."
+MSG_DOCKER_RESTART_FAILED_PART1="Failed to restart docker container "
+
 
 # linuxinfo.sh
 MSG_ERROR_NO_DOWNLOAD_TOOL="Error: 'wget' or 'curl' not found. Please install one of them to continue."

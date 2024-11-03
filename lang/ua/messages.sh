@@ -413,10 +413,21 @@ MSG_GATEWAY="Шлюз:"
 
 # function add_firewall_rule
 MSG_PORT="Порт "
+MSG_PORT_OPEN="відкритий в iptables."
 MSG_FIREWALLD_NOT_RUNNING_PART1="firewalld не запущений або не встановлений. Якщо встановлений інший файрвол, відкрию порти в ньому."
 MSG_IPTABLES_NOT_INSTALLED_PART1="iptables не встановлений."
 MSG_UFW_NOT_INSTALLED_PART1="ufw не встановлений."
 MSG_FIREWALL_NOT_INSTALLED_PART1="Помилка: файервол не встановлений або невідомий. Перевірте порт "
+
+# function delete_firewall_rule_by_port
+MSG_RULE_DELETED_PART1="Правило з портом"
+MSG_RULE_DELETED_PART2="та ID"
+MSG_RULE_DELETED_PART3="успішно видалено."
+MSG_RULE_DELETE_FAILED_PART1="Не вдалося видалити правило з ID "
+MSG_RULE_DELETE_FAILED_PART2="."
+MSG_RULE_NOT_FOUND_PART1="Правило з портом "
+MSG_RULE_NOT_FOUND_PART2="не знайдено."
+
 
 # function remove_firewall_rule
 MSG_FIREWALLD_NOT_RUNNING_PART2="firewalld не запущений або не встановлений. Якщо встановлений інший файрвол, видалю правила з нього."
@@ -447,6 +458,20 @@ MSG_IN_RELEASES_FROM="у випусках від"
 
 # function remove_docker_container stop_docker_container
 MSG_ERROR_CONTAINER_NAME="Помилка: назва контейнера не може бути порожньою."
+
+# function update_xui_settings
+MSG_USERNAME_PASSWORD_UPDATED_PART1="Ім'я користувача та пароль"
+MSG_USERNAME_PASSWORD_UPDATED_PART2=" успішно оновлено."
+MSG_USERNAME_PASSWORD_FAILED_PART1="Не вдалося оновити ім'я користувача та пароль."
+MSG_PORT_UPDATED_PART1="Порт"
+MSG_PORT_UPDATED_PART2=" успішно оновлено."
+MSG_PORT_FAILED_PART1="Не вдалося оновити порт."
+MSG_WEB_BASE_PATH_UPDATED_PART1="Базовий шлях"
+MSG_WEB_BASE_PATH_UPDATED_PART2=" успішно оновлено."
+MSG_WEB_BASE_PATH_FAILED_PART1="Не вдалося оновити базовий шлях."
+MSG_DOCKER_RESTART_PART1="Docker контейнер "
+MSG_DOCKER_RESTART_PART2=" успішно перезапущено."
+MSG_DOCKER_RESTART_FAILED_PART1="Не вдалося перезапустити Docker контейнер "
 
 
 # linuxinfo.sh

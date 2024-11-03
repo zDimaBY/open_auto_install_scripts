@@ -436,7 +436,7 @@ function add_firewall_rule() {
             if ! iptables-save | grep "INPUT -p tcp -m tcp --dport $port -j ACCEPT\b"; then
                 iptables -A INPUT -p tcp --dport "$port" -j ACCEPT
                 service iptables save
-                echo "Порт $port відкрито у iptables."
+                echo "${MSG_PORT} $port ${MSG_PORT_OPEN}"
                 success=1
             else
                 echo -e "${MSG_PORT}${port} ${MSG_IPTABLES_NOT_INSTALLED_PART1}"
@@ -476,17 +476,19 @@ function remove_firewall_rule() {
         rule_id=$(v-list-firewall | awk -v port="$target_port" '$4 == port {print $1}')
 
         if [ -n "$rule_id" ]; then
-            # Видаляємо правило з знайденим ID
             v-delete-firewall-rule "$rule_id"
             if [ $? -eq 0 ]; then
-                echo "Правило з портом $target_port та ID $rule_id успішно видалено."
+                # Виводимо повідомлення успішного видалення
+                echo "$MSG_RULE_DELETED_PART1 $target_port $MSG_RULE_DELETED_PART2 $rule_id $MSG_RULE_DELETED_PART3"
                 return 0
             else
-                echo "Не вдалося видалити правило з ID $rule_id."
+                # Виводимо повідомлення про помилку видалення
+                echo "$MSG_RULE_DELETE_FAILED_PART1 $rule_id $MSG_RULE_DELETE_FAILED_PART2"
                 return 1
             fi
         else
-            echo "Правило з портом $target_port не знайдено."
+            # Виводимо повідомлення про відсутність правила
+            echo "$MSG_RULE_NOT_FOUND_PART1 $target_port $MSG_RULE_NOT_FOUND_PART2"
             return 1
         fi
     }
@@ -799,7 +801,7 @@ function download_latest_tool() {
 }
 
 # Функція для оновлення налаштувань x-ui
-update_xui_settings() {
+function update_xui_settings() {
     local username="$1"
     local password="$2"
     local port="$3"
@@ -808,29 +810,30 @@ update_xui_settings() {
 
     # Оновлення імені користувача та пароля
     if docker exec -it $container_x_ui /app/x-ui setting -username "$username" -password "$password"; then
-        echo "Username and password updated successfully."
+        echo "$MSG_USERNAME_PASSWORD_UPDATED_PART1$MSG_USERNAME_PASSWORD_UPDATED_PART2"
     else
-        echo "Failed to update username and password."
+        echo "$MSG_USERNAME_PASSWORD_FAILED_PART1"
     fi
 
     # Оновлення порту
     if docker exec -it $container_x_ui /app/x-ui setting -port "$port"; then
-        echo "Port updated successfully."
+        echo "$MSG_PORT_UPDATED_PART1$MSG_PORT_UPDATED_PART2"
     else
-        echo "Failed to update port."
+        echo "$MSG_PORT_FAILED_PART1"
     fi
 
     # Оновлення базового шляху
     if docker exec -it $container_x_ui /app/x-ui setting -webBasePath "$web_base_path"; then
-        echo "Web base path updated successfully."
+        echo "$MSG_WEB_BASE_PATH_UPDATED_PART1$MSG_WEB_BASE_PATH_UPDATED_PART2"
     else
-        echo "Failed to update web base path."
+        echo "$MSG_WEB_BASE_PATH_FAILED_PART1"
     fi
 
+    # Перезапуск Docker-контейнера
     if docker restart $container_x_ui; then
-        echo "docker restart $container_x_ui."
+        echo "$MSG_DOCKER_RESTART_PART1$container_x_ui$MSG_DOCKER_RESTART_PART2"
     else
-        echo "Failed docker restart $container_x_ui."
+        echo "$MSG_DOCKER_RESTART_FAILED_PART1$container_x_ui"
     fi
 }
 

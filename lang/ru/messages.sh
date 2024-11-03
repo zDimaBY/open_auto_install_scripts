@@ -413,10 +413,21 @@ MSG_GATEWAY="Шлюз:"
 
 # function add_firewall_rule
 MSG_PORT="Порт "
+MSG_PORT_OPEN="открыт в iptables."
 MSG_FIREWALLD_NOT_RUNNING_PART1="firewalld не запущен или не установлен. Если установлен другой файрвол, открою порты в нем."
 MSG_IPTABLES_NOT_INSTALLED_PART1="iptables не установлен."
 MSG_UFW_NOT_INSTALLED_PART1="ufw не установлен."
 MSG_FIREWALL_NOT_INSTALLED_PART1="Ошибка: файервол не установлен или неизвестен. Проверьте порт "
+
+# function delete_firewall_rule_by_port
+MSG_RULE_DELETED_PART1="Правило с портом"
+MSG_RULE_DELETED_PART2="и ID "
+MSG_RULE_DELETED_PART3="успешно удалено."
+MSG_RULE_DELETE_FAILED_PART1="Не удалось удалить правило с ID"
+MSG_RULE_DELETE_FAILED_PART2="."
+MSG_RULE_NOT_FOUND_PART1="Правило с портом "
+MSG_RULE_NOT_FOUND_PART2="не найдено."
+
 
 # function remove_firewall_rule
 MSG_FIREWALLD_NOT_RUNNING_PART2="firewalld не запущен или не установлен. Если установлен другой файрвол, удалю правила из него."
@@ -447,6 +458,21 @@ MSG_IN_RELEASES_FROM="в релизах от"
 
 # function remove_docker_container stop_docker_container
 MSG_ERROR_CONTAINER_NAME="Ошибка: имя контейнера не может быть пустым."
+
+# function update_xui_settings
+MSG_USERNAME_PASSWORD_UPDATED_PART1="Имя пользователя и пароль"
+MSG_USERNAME_PASSWORD_UPDATED_PART2=" успешно обновлены."
+MSG_USERNAME_PASSWORD_FAILED_PART1="Не удалось обновить имя пользователя и пароль."
+MSG_PORT_UPDATED_PART1="Порт"
+MSG_PORT_UPDATED_PART2=" успешно обновлён."
+MSG_PORT_FAILED_PART1="Не удалось обновить порт."
+MSG_WEB_BASE_PATH_UPDATED_PART1="Базовый путь"
+MSG_WEB_BASE_PATH_UPDATED_PART2=" успешно обновлён."
+MSG_WEB_BASE_PATH_FAILED_PART1="Не удалось обновить базовый путь."
+MSG_DOCKER_RESTART_PART1="Docker контейнер "
+MSG_DOCKER_RESTART_PART2=" успешно перезапущен."
+MSG_DOCKER_RESTART_FAILED_PART1="Не удалось перезапустить Docker контейнер "
+
 
 # linuxinfo.sh
 MSG_ERROR_NO_DOWNLOAD_TOOL="Ошибка: 'wget' или 'curl' не найден. Пожалуйста, установите один из них для продолжения."
