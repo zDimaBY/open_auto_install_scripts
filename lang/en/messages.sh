@@ -97,7 +97,7 @@ MSG_XUI_INVALID_SELECTION="Invalid choice. Please select a number between 1 and 
 MSG_XUI_INSTALLED="Installed X-UI on the server. Use the following credentials to access the admin panel:"
 MSG_XUI_USERNAME="Username: "
 MSG_XUI_PASSWORD="Password: "
-MSG_CONTAINER_EXISTS_PART1="The container already exists, displaying settings:"
+MSG_CONTAINER_EXISTS_PART1="Create container does not work, check containers: docker ps -a"
 
 # function stop_x_ui remove_x_ui update_x_ui
 MSG_XUI_STOPPED="stopped."

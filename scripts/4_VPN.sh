@@ -166,7 +166,8 @@ install_3x_ui() {
     }
 
     if ! run_docker_container; then
-        check_x_ui_panel_settings
+        print_color_message 255 0 0 "\n$MSG_CONTAINER_EXISTS_PART1"
+        check_x_ui_panel_settings "$name_docker_container"
         return 0
     else
         # Функція для додавання правил файерволу з скриптів functions_controller.sh
@@ -266,7 +267,7 @@ install_x_ui() {
 
     if ! run_docker_container; then
         print_color_message 255 0 0 "\n$MSG_CONTAINER_EXISTS_PART1"
-        check_x_ui_panel_settings
+        check_x_ui_panel_settings "$name_docker_container"
         return 0
     else
         # Функція для додавання правил файерволу з скриптів functions_controller.sh
