@@ -474,6 +474,14 @@ MSG_DOCKER_RESTART_PART1="Docker контейнер "
 MSG_DOCKER_RESTART_PART2=" успішно перезапущено."
 MSG_DOCKER_RESTART_FAILED_PART1="Не вдалося перезапустити Docker контейнер "
 
+# function check_x_ui_panel_settings
+MSG_CONTAINER_NOT_FOUND_PART1="Контейнер"
+MSG_CONTAINER_NOT_FOUND_PART2="не знайдено."
+
+MSG_SETTINGS_RETRIEVE_FAILED_PART1="Не вдалося отримати налаштування x-ui для контейнера"
+
+MSG_PARSE_ERROR_PART1="Помилка: Не вдалося витягти всі необхідні дані."
+MSG_DEBUG_INFO_PART1="Відлагоджувальна інформація:"
 
 # linuxinfo.sh
 MSG_ERROR_NO_DOWNLOAD_TOOL="Помилка: 'wget' або 'curl' не знайдено. Будь ласка, встановіть один з них для продовження."

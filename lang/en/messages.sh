@@ -475,6 +475,14 @@ MSG_DOCKER_RESTART_PART1="Docker container "
 MSG_DOCKER_RESTART_PART2=" restarted successfully."
 MSG_DOCKER_RESTART_FAILED_PART1="Failed to restart docker container "
 
+# function check_x_ui_panel_settings
+MSG_CONTAINER_NOT_FOUND_PART1="Container"
+MSG_CONTAINER_NOT_FOUND_PART2="not found."
+
+MSG_SETTINGS_RETRIEVE_FAILED_PART1="Failed to retrieve x-ui settings for container"
+
+MSG_PARSE_ERROR_PART1="Error: Could not extract all required data."
+MSG_DEBUG_INFO_PART1="Debug information:"
 
 # linuxinfo.sh
 MSG_ERROR_NO_DOWNLOAD_TOOL="Error: 'wget' or 'curl' not found. Please install one of them to continue."

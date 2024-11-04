@@ -837,16 +837,34 @@ function update_xui_settings() {
     fi
 }
 
-check_x_ui_panel_settings() {
+function check_x_ui_panel_settings() {
     local container_name="$1"
     local settings_output
 
-    # Виконуємо команду та зберігаємо виведення
-    settings_output=$(docker exec -it "$container_name" /app/x-ui setting --show)
+    # Перевірка наявності контейнера
+    if ! docker ps --format '{{.Names}}' | grep -qw "$container_name"; then
+        echo "$MSG_CONTAINER_NOT_FOUND_PART1 $container_name $MSG_CONTAINER_NOT_FOUND_PART2"
+        return 1
+    fi
 
-    # Використовуємо регулярні вирази для парсингу потрібних даних
+    # Отримання налаштувань та очищення виводу від кольорових символів та стороннього тексту
+    settings_output=$(docker exec -i "$container_name" /app/x-ui setting --show 2>/dev/null | sed 's/[^[:print:]\n]//g')
+
+    # Перевірка на порожній вивід
+    if [[ -z "$settings_output" ]]; then
+        echo "$MSG_SETTINGS_RETRIEVE_FAILED_PART1 $container_name"
+        return 1
+    fi
+
     X_UI_USERNAME=$(echo "$settings_output" | grep -oP '(?<=username: ).*')
     X_UI_PASSWORD=$(echo "$settings_output" | grep -oP '(?<=password: ).*')
     X_UI_PORT=$(echo "$settings_output" | grep -oP '(?<=port: ).*')
     X_UI_WEB_BASE_PATH=$(echo "$settings_output" | grep -oP '(?<=webBasePath: ).*')
+
+    if [[ -z "$X_UI_USERNAME" || -z "$X_UI_PASSWORD" || -z "$X_UI_PORT" || -z "$X_UI_WEB_BASE_PATH" ]]; then
+        echo "$MSG_PARSE_ERROR_PART1"
+        echo "$MSG_DEBUG_INFO_PART1"
+        echo "$settings_output"
+        return 1
+    fi
 }
