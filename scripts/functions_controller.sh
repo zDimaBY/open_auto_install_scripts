@@ -837,7 +837,7 @@ function update_xui_settings() {
     fi
 }
 
-parse_panel_settings() {
+check_x_ui_panel_settings() {
     local container_name="$1"
     local settings_output
 

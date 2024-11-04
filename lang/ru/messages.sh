@@ -97,6 +97,7 @@ MSG_XUI_INVALID_SELECTION="Неверный выбор. Пожалуйста, в
 MSG_XUI_INSTALLED="X-UI установлен на сервере. Для доступа к панели администратора используйте следующие данные:"
 MSG_XUI_USERNAME="Имя пользователя: "
 MSG_XUI_PASSWORD="Пароль: "
+MSG_CONTAINER_EXISTS_PART1="Контейнер уже существует, выводим настройки:"
 
 # function stop_x_ui remove_x_ui update_x_ui
 MSG_XUI_STOPPED="остановлен."

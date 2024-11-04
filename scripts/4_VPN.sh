@@ -131,7 +131,7 @@ menu_3x_ui() {
         1) list_3x_ui_versions_install ;;
         2) stop_docker_container "$name_docker_container" "$MSG_XUI_STOPPED" ;;
         3)
-            parse_panel_settings "$name_docker_container"
+            check_x_ui_panel_settings "$name_docker_container"
             remove_firewall_rule "$X_UI_PORT"
             remove_docker_container "$name_docker_container" "$MSG_XUI_REMOVED"
             ;;
@@ -166,6 +166,7 @@ install_3x_ui() {
     }
 
     if ! run_docker_container; then
+        check_x_ui_panel_settings
         return 0
     else
         # Функція для додавання правил файерволу з скриптів functions_controller.sh
@@ -227,7 +228,7 @@ menu_x_ui() {
         1) list_x_ui_versions_install ;;
         2) stop_docker_container "$name_docker_container" "$MSG_XUI_STOPPED" ;;
         3)
-            parse_panel_settings "$name_docker_container"
+            check_x_ui_panel_settings "$name_docker_container"
             remove_firewall_rule "$X_UI_PORT"
             remove_firewall_rule 80
             remove_firewall_rule 443
@@ -264,6 +265,8 @@ install_x_ui() {
     }
 
     if ! run_docker_container; then
+        print_color_message 255 0 0 "\n$MSG_CONTAINER_EXISTS_PART1"
+        check_x_ui_panel_settings
         return 0
     else
         # Функція для додавання правил файерволу з скриптів functions_controller.sh
