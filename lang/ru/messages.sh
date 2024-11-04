@@ -527,7 +527,7 @@ MSG_DOCKER_NOT_INSTALLED="Docker не установлен."
 # Сообщения для панели управления
 # Сообщения для Hestia Panel
 MSG_HESTIA_INSTALLED="Hestia Control Panel установлена."
-MSG_WEB_ADMIN_PORT="WEB Админ Порт:"
+MSG_WEB_ADMIN_PORT="WEB панель администратора:"
 
 # Сообщения для Vesta Panel
 MSG_VESTA_INSTALLED="Vesta Control Panel установлена."

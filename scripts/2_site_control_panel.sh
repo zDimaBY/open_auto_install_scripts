@@ -211,10 +211,10 @@ display_hestia_info() {
     local root_password=$4
 
     echo "-------------------------------------------"
-    print_color_message 0 255 0 "$panel_name успішно встановлена!"
+    check_info_control_panel
     echo ""
-    print_color_message 255 255 255 "Дані для входу:"
-    print_color_message 255 255 0 "Адреса панелі: https://$(print_color_message 255 0 255 "${server_ip}:$web_admin_port")"
+    print_color_message 255 255 0 "Дані для входу у $panel_name:"
+    print_color_message 255 255 255 "Адреса панелі: $(print_color_message 255 0 255 "https://${server_ip}:$web_admin_port")"
     print_color_message 255 255 255 "Логін: admin"
     print_color_message 255 255 255 "Пароль: $root_password"
     echo ""
@@ -251,7 +251,6 @@ display_hestia_info() {
     elif [[ $SELECTED_VERSION_HESTIA == "1.8.12" ]]; then
         chown -R root:www-data /etc/phpmyadmin/
         chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
-        check_info_control_panel
         display_hestia_info "HestiaCP" "${server_IPv4[0]}" "$WEB_ADMIN_PORT" "<пароль від root>"
     else
         echo "Version not supported"

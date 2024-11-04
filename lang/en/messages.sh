@@ -528,7 +528,7 @@ MSG_DOCKER_NOT_INSTALLED="Docker is not installed."
 # Control Panel Specific Messages
 # Hestia Panel messages
 MSG_HESTIA_INSTALLED="Hestia Control Panel is installed."
-MSG_WEB_ADMIN_PORT="WEB Admin Port:"
+MSG_WEB_ADMIN_PORT="WEB admin panel:"
 
 MSG_HESTIA_PORT_ERROR_PART1="Error: Could not determine the HestiaCP port."
 

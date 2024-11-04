@@ -837,19 +837,16 @@ function update_xui_settings() {
     fi
 }
 
-# Функція для отримання номера порта з команди контейнера x-ui
-get_docker_port_x_ui() {
-    local container_name=$1
-    local command="docker exec -it $container_name /app/x-ui setting --show"
+parse_panel_settings() {
+    local container_name="$1"
+    local settings_output
 
-    # Виконуємо команду та зберігаємо вивід
-    output=$($command 2>&1)
+    # Виконуємо команду та зберігаємо виведення
+    settings_output=$(docker exec -it "$container_name" /app/x-ui setting --show)
 
-    # Витягуємо номер порта за допомогою регулярного виразу
-    if [[ $output =~ port:\ ([0-9]+) ]]; then
-        port_number="${BASH_REMATCH[1]}"
-        echo "$port_number"  # Виводимо номер порта
-    else
-        return 1
-    fi
+    # Використовуємо регулярні вирази для парсингу потрібних даних
+    X_UI_USERNAME=$(echo "$settings_output" | grep -oP '(?<=username: ).*')
+    X_UI_PASSWORD=$(echo "$settings_output" | grep -oP '(?<=password: ).*')
+    X_UI_PORT=$(echo "$settings_output" | grep -oP '(?<=port: ).*')
+    X_UI_WEB_BASE_PATH=$(echo "$settings_output" | grep -oP '(?<=webBasePath: ).*')
 }

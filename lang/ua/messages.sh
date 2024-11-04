@@ -527,7 +527,7 @@ MSG_DOCKER_NOT_INSTALLED="Docker не встановлений."
 # Специфічні повідомлення для панелей керування
 # Повідомлення для Hestia Panel
 MSG_HESTIA_INSTALLED="Панель керування Hestia встановлена."
-MSG_WEB_ADMIN_PORT="Порт WEB адміністратора:"
+MSG_WEB_ADMIN_PORT="WEB панель адміністратора:"
 
 # Повідомлення для Vesta Panel
 MSG_VESTA_INSTALLED="Панель керування Vesta встановлена."

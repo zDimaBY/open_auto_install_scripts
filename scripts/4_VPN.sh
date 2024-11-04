@@ -131,7 +131,8 @@ menu_3x_ui() {
         1) list_3x_ui_versions_install ;;
         2) stop_docker_container "$name_docker_container" "$MSG_XUI_STOPPED" ;;
         3)
-            remove_firewall_rule "$(get_docker_port_x_ui $name_docker_container)"
+            parse_panel_settings "$name_docker_container"
+            remove_firewall_rule "$X_UI_PORT"
             remove_docker_container "$name_docker_container" "$MSG_XUI_REMOVED"
             ;;
         4) update_3x_ui ;;
@@ -165,20 +166,13 @@ install_3x_ui() {
     }
 
     if ! run_docker_container; then
-        # Повертаємося до попереднього меню або виходимо
         return 0
+    else
+        # Функція для додавання правил файерволу з скриптів functions_controller.sh
+        docker ps -a
+        update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
+        add_firewall_rule "$X_UI_PORT" "WEB-3X-UI-PORT"
     fi
-    
-    # Функція для додавання правил файерволу з скриптів functions_controller.sh
-    docker ps -a
-
-    update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
-    
-    
-
-    docker ps -a
-
-    add_firewall_rule "$X_UI_PORT" "WEB-3X-UI-PORT"
 }
 
 list_3x_ui_versions_install() {
@@ -233,7 +227,8 @@ menu_x_ui() {
         1) list_x_ui_versions_install ;;
         2) stop_docker_container "$name_docker_container" "$MSG_XUI_STOPPED" ;;
         3)
-            remove_firewall_rule "$(get_docker_port_x_ui $name_docker_container)"
+            parse_panel_settings "$name_docker_container"
+            remove_firewall_rule "$X_UI_PORT"
             remove_firewall_rule 80
             remove_firewall_rule 443
             remove_docker_container "$name_docker_container" "$MSG_XUI_REMOVED"
@@ -269,18 +264,16 @@ install_x_ui() {
     }
 
     if ! run_docker_container; then
-        # Повертаємося до попереднього меню або виходимо
         return 0
+    else
+        # Функція для додавання правил файерволу з скриптів functions_controller.sh
+        docker ps -a
+        update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
+        add_firewall_rule 80 "WEB-3X-UI-PORT-HTTP"
+        add_firewall_rule 443 "WEB-3X-UI-PORT-HTTPS"
+        add_firewall_rule "$X_UI_PORT" "WEB-X-UI-PORT"
+        return 1
     fi
-    
-    # Функція для додавання правил файерволу з скриптів functions_controller.sh
-    docker ps -a
-    
-    update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
-    
-    add_firewall_rule 80 "WEB-3X-UI-PORT-HTTP"
-    add_firewall_rule 443 "WEB-3X-UI-PORT-HTTPS"
-    add_firewall_rule "$X_UI_PORT" "WEB-X-UI-PORT"
 }
 
 list_x_ui_versions_install() {
