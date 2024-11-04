@@ -244,8 +244,8 @@ check_info_control_panel() { # Function to check control panels
                 cp_operating_system_panel=$(echo "$hestia_info" | awk 'NR==3{print $2}')
                 cp_os_version=$(echo "$hestia_info" | awk 'NR==3{print $3}')
 
-                WEB_ADMIN_PORT=$(ss -utpln | grep "hestia-nginx" | awk '{print $5}')
-                print_color_message 0 102 204 "${MSG_HESTIA_INSTALLED} $(print_color_message 51 153 102 "$hestia_version") backend: $(print_color_message 200 200 0 "$WEB_SYSTEM") | ${MSG_WEB_ADMIN_PORT} $(print_color_message 200 200 0 "$WEB_ADMIN_PORT")"
+                WEB_ADMIN_PORT=$(ss -utpln | grep "hestia-nginx" | awk '{print $5}' | awk -F':' '{print $2}')
+                print_color_message 0 102 204 "${MSG_HESTIA_INSTALLED} $(print_color_message 51 153 102 "$hestia_version") backend: $(print_color_message 200 200 0 "$WEB_SYSTEM") | ${MSG_WEB_ADMIN_PORT} $(print_color_message 200 200 0 "${server_IPv4[0]}:$WEB_ADMIN_PORT")"
                 source /etc/os-release
                 ;;
             "/usr/local/vesta")

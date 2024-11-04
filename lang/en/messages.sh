@@ -530,6 +530,8 @@ MSG_DOCKER_NOT_INSTALLED="Docker is not installed."
 MSG_HESTIA_INSTALLED="Hestia Control Panel is installed."
 MSG_WEB_ADMIN_PORT="WEB Admin Port:"
 
+MSG_HESTIA_PORT_ERROR_PART1="Error: Could not determine the HestiaCP port."
+
 # Vesta Panel messages
 MSG_VESTA_INSTALLED="Vesta Control Panel is installed."
 

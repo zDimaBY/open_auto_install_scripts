@@ -204,6 +204,42 @@ function 2_site_control_panel() {
     echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
 }
 
+display_hestia_info() {
+    local panel_name=$1
+    local server_ip=$2
+    local web_admin_port=$3
+    local root_password=$4
+
+    echo "-------------------------------------------"
+    print_color_message 0 255 0 "$panel_name успішно встановлена!"
+    echo ""
+    print_color_message 255 255 255 "Дані для входу:"
+    print_color_message 255 255 0 "Адреса панелі: https://$(print_color_message 255 0 255 "${server_ip}:$web_admin_port")"
+    print_color_message 255 255 255 "Логін: admin"
+    print_color_message 255 255 255 "Пароль: $root_password"
+    echo ""
+
+    # Інформація про FTP доступ
+    echo "-------------------------------------------"
+    print_color_message 0 255 255 "FTP доступ користувача root:"
+    print_color_message 255 255 255 "Хост: ${server_ip}"
+    print_color_message 255 255 255 "Користувач: root"
+    print_color_message 255 255 255 "Пароль: $root_password"
+    print_color_message 255 255 255 "Порт: 22"
+    echo ""
+
+    print_color_message 0 255 255 "FTP доступ користувача admin:"
+    print_color_message 255 255 255 "Хост: ${server_ip}"
+    print_color_message 255 255 255 "Користувач: admin"
+    print_color_message 255 255 255 "Пароль: $root_password"
+    print_color_message 255 255 255 "Порт: 21"
+    echo ""
+
+    echo "-------------------------------------------"
+    print_color_message 255 0 0 "Рекомендується змінити пароль після першого входу для безпеки."
+}
+
+
 2_end_avto_install_hestiaCP() {
     echo "admin:$(sudo grep '^root:' /etc/shadow | cut -d: -f2)" | sudo chpasswd -e
     /usr/local/hestia/bin/v-change-user-package admin default
@@ -215,6 +251,8 @@ function 2_site_control_panel() {
     elif [[ $SELECTED_VERSION_HESTIA == "1.8.12" ]]; then
         chown -R root:www-data /etc/phpmyadmin/
         chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
+        check_info_control_panel
+        display_hestia_info "HestiaCP" "${server_IPv4[0]}" "$WEB_ADMIN_PORT" "<пароль від root>"
     else
         echo "Version not supported"
     fi

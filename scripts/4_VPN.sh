@@ -152,16 +152,29 @@ install_3x_ui() {
     X_UI_PORT=$(find_random_free_port 1024 65535)  # Встановіть новий порт
     X_UI_WEB_BASE_PATH="$(trim_to_10 "$(generate_random_part_16)")"  # Встановіть новий webBasePath
 
-    create_folder "/root/VPN/3x_ui/db/" && create_folder "/root/VPN/3x_ui/cert/"
-    docker run -itd \
-        -e XRAY_VMESS_AEAD_FORCED=false \
-        -v /root/VPN/3x_ui/db/:/etc/x-ui/ \
-        -v /root/VPN/3x_ui/cert/:/root/cert/ \
-        --network=host \
-        --name ${name_docker_container} --restart=unless-stopped \
-        ghcr.io/mhsanaei/3x-ui:$version
+    create_folder "/root/VPN/$name_docker_container/db/" && create_folder "/root/VPN/$name_docker_container/cert/"
+        
+    run_docker_container() {
+        docker run -itd \
+            -e XRAY_VMESS_AEAD_FORCED=false \
+            -v /root/VPN/$name_docker_container/db/:/etc/x-ui/ \
+            -v /root/VPN/$name_docker_container/cert/:/root/cert/ \
+            --network=host \
+            --name ${name_docker_container} --restart=unless-stopped \
+            ghcr.io/mhsanaei/$name_docker_container:$version || { return 1; }
+    }
+
+    if ! run_docker_container; then
+        # Повертаємося до попереднього меню або виходимо
+        return 0
+    fi
+    
+    # Функція для додавання правил файерволу з скриптів functions_controller.sh
+    docker ps -a
 
     update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
+    
+    
 
     docker ps -a
 
@@ -243,19 +256,28 @@ install_x_ui() {
     X_UI_PORT=$(find_random_free_port 1024 65535)  # Встановіть новий порт
     X_UI_WEB_BASE_PATH="$(trim_to_10 "$(generate_random_part_16)")"  # Встановіть новий webBasePath
 
-    create_folder "/root/VPN/x_ui/db/" && create_folder "/root/VPN/x_ui/cert/"
-    docker run -itd \
-        -e XRAY_VMESS_AEAD_FORCED=false \
-        -v /root/VPN/x_ui/db/:/etc/x-ui/ \
-        -v /root/VPN/x_ui/cert/:/root/cert/ \
-        --network=host \
-        --name ${name_docker_container} --restart=unless-stopped \
-        alireza7/x-ui:$version
+    create_folder "/root/VPN/$name_docker_container/db/" && create_folder "/root/VPN/$name_docker_container/cert/"
+    
+    run_docker_container() {
+        docker run -itd \
+            -e XRAY_VMESS_AEAD_FORCED=false \
+            -v /root/VPN/$name_docker_container/db/:/etc/x-ui/ \
+            -v /root/VPN/$name_docker_container/cert/:/root/cert/ \
+            --network=host \
+            --name ${name_docker_container} --restart=unless-stopped \
+            alireza7/$name_docker_container:$version || { return 1; }
+    }
 
-    update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
-
+    if ! run_docker_container; then
+        # Повертаємося до попереднього меню або виходимо
+        return 0
+    fi
+    
     # Функція для додавання правил файерволу з скриптів functions_controller.sh
     docker ps -a
+    
+    update_xui_settings "$X_UI_USERNAME" "$X_UI_PASSWORD" "$X_UI_PORT" "$X_UI_WEB_BASE_PATH" "$name_docker_container"
+    
     add_firewall_rule 80 "WEB-3X-UI-PORT-HTTP"
     add_firewall_rule 443 "WEB-3X-UI-PORT-HTTPS"
     add_firewall_rule "$X_UI_PORT" "WEB-X-UI-PORT"
