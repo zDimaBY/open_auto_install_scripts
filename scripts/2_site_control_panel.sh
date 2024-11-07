@@ -207,14 +207,13 @@ function 2_site_control_panel() {
 display_hestia_info() {
     local panel_name=$1
     local server_ip=$2
-    local web_admin_port=$3
-    local root_password=$4
+    local root_password=$3
 
     echo "-------------------------------------------"
     check_info_control_panel
     echo ""
     print_color_message 255 255 0 "Дані для входу у $panel_name:"
-    print_color_message 255 255 255 "Адреса панелі: $(print_color_message 255 0 255 "https://${server_ip}:$web_admin_port")"
+    print_color_message 255 255 255 "Адреса панелі: $(print_color_message 255 0 255 "https://${server_ip}:$WEB_ADMIN_PORT")"
     print_color_message 255 255 255 "Логін: admin"
     print_color_message 255 255 255 "Пароль: $root_password"
     echo ""
@@ -239,7 +238,6 @@ display_hestia_info() {
     print_color_message 255 0 0 "Рекомендується змінити пароль після першого входу для безпеки."
 }
 
-
 2_end_avto_install_hestiaCP() {
     echo "admin:$(sudo grep '^root:' /etc/shadow | cut -d: -f2)" | sudo chpasswd -e
     /usr/local/hestia/bin/v-change-user-package admin default
@@ -251,7 +249,7 @@ display_hestia_info() {
     elif [[ $SELECTED_VERSION_HESTIA == "1.8.12" ]]; then
         chown -R root:www-data /etc/phpmyadmin/
         chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
-        display_hestia_info "HestiaCP" "${server_IPv4[0]}" "$WEB_ADMIN_PORT" "<пароль від root>"
+        display_hestia_info "HestiaCP" "${server_IPv4[0]}" "<пароль від root>"
     else
         echo "Version not supported"
     fi
@@ -569,6 +567,9 @@ deleting_old_admin_user() {
         return 1
     fi
 
+    # Збереження імені вибраної папки в змінну
+    selected_folder_user="${folders[$((choice - 1))]}"
+
     read -p "Вкажіть домен для wordpress: " WP_SITE_DOMEN
 
     if [ -z "$WP_SITE_DOMEN" ]; then
@@ -591,7 +592,7 @@ deleting_old_admin_user() {
     SITE_ADMIN_MAIL="admin@$WP_SITE_DOMEN"
 
     WORDPRESS_URL="https://wordpress.org/latest.tar.gz"
-    WP_USER="admin"
+    WP_USER="$selected_folder_user"
     DB_NAME="w$(generate_random_part_16)"
     DB_NAME=$(trim_to_10 "$DB_NAME")
     DB_USER="w$(generate_random_part_16)"
@@ -658,8 +659,7 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
     wget $WORDPRESS_URL -O wordpress.tar.gz
     tar -xf wordpress.tar.gz
     mv wordpress/* .
-    rmdir wordpress
-    rm -rf latest.tar.gz
+    rmdir wordpress && rm -rf wordpress.tar.gz
 
     # Налаштовуємо файл wp-config.php
     echo -e "${YELLOW}Налаштовуємо файл wp-config.php...${RESET}"
@@ -718,12 +718,12 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
         chmod +x wp-cli.phar
         mv wp-cli.phar /usr/local/bin/wp
 
-        wp --allow-root --version
+        sudo -u "$selected_folder_user" --version
     fi
 
-    wp core install --allow-root --url=http://${WP_SITE_DOMEN} --title=${WP_SITE_DOMEN} --admin_user=${WP_USER} --admin_password=${SITE_PASSWORD} --admin_email=${SITE_ADMIN_MAIL}
+    sudo -u "$selected_folder_user" wp core install --url=http://${WP_SITE_DOMEN} --title=${WP_SITE_DOMEN} --admin_user=${WP_USER} --admin_password=${SITE_PASSWORD} --admin_email=${SITE_ADMIN_MAIL}
 
-    wp language core install --allow-root --activate ru_RU
+    sudo -u "$selected_folder_user" wp language core install --activate ru_RU
 
     #wp theme activate ваша_тема
     #wp plugin install назва_плагіна
