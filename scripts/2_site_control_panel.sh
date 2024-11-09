@@ -541,18 +541,18 @@ deleting_old_admin_user() {
     fi
 
     # Шлях до директорії з користувачами
-    user_dir="/usr/local/$control_panel_install/data/users/"
+    USERS_dir="/usr/local/$control_panel_install/data/users/"
     CLI_dir="/usr/local/$control_panel_install/bin"
+
     # Виведення списку папок
     echo "Доступні користувачі панелі керування сайтами:"
-    folders=($(find "$user_dir" -maxdepth 1 -mindepth 1 -type d -printf "%f\n"))
+    folders=($(find "$USERS_dir" -maxdepth 1 -mindepth 1 -type d -printf "%f\n"))
 
     # Перелік індексів папок
     for ((i = 0; i < ${#folders[@]}; i++)); do
         echo "$(($i + 1)). ${folders[$i]}"
     done
 
-    # Запит на вибір папки
     read -p "Виберіть користувача: " choice
 
     # Перевірка правильності вводу
@@ -568,7 +568,8 @@ deleting_old_admin_user() {
     fi
 
     # Збереження імені вибраної папки в змінну
-    selected_folder_user="${folders[$((choice - 1))]}"
+    CONTROLPANEL_USER="${folders[$((choice - 1))]}"
+    USER_dir="/home/$CONTROLPANEL_USER"
 
     read -p "Вкажіть домен для wordpress: " WP_SITE_DOMEN
 
@@ -583,58 +584,33 @@ deleting_old_admin_user() {
         print_color_message 200 0 0 "Домен $WP_SITE_DOMEN не валідний."
     fi
 
-    if [ -d "/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN" ]; then
-        echo "Домен $WP_SITE_DOMEN уже є за шляхом /home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN."
+    if [ -d "$USER_dir/web/$WP_SITE_DOMEN" ]; then
+        echo "Домен $WP_SITE_DOMEN уже є за шляхом $USER_dir/web/$WP_SITE_DOMEN."
         return 1
     fi
+    
+    # Збереження імені вибраного домена за шляхом
+    WEB_DIR="$USER_dir/web/$WP_SITE_DOMEN"
+    WEB_PUBLIC_DIR="$WEB_DIR/public_html"
 
-    SITE_PASSWORD=$(generate_random_part_16)
-    SITE_ADMIN_MAIL="admin@$WP_SITE_DOMEN"
+    $CLI_dir/v-add-web-domain $CONTROLPANEL_USER $WP_SITE_DOMEN "" "yes" "none"
 
-    WORDPRESS_URL="https://wordpress.org/latest.tar.gz"
-    WP_USER="$selected_folder_user"
-    DB_NAME="w$(generate_random_part_16)"
-    DB_NAME=$(trim_to_10 "$DB_NAME")
-    DB_USER="w$(generate_random_part_16)"
-    DB_USER=$(trim_to_10 "$DB_USER")
-    DB_PASSWORD="wp_p_$(generate_random_part_16)"
-    DB_PASSWORD=$(trim_to_16 "$DB_PASSWORD")
-
-    HTACCESS_CONTENT='RewriteEngine On
-RewriteCond %{HTTPS} off
-RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-# BEGIN WordPress
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteBase /
-    RewriteRule ^index\.php$ - [L]
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule . /index.php [L]
-</IfModule>
-# END WordPress'
-
-    # Обрана папка
-    CONTROLPANEL_USER="${folders[$((choice - 1))]}"
-
-    $CLI_dir/v-add-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
-
+    # Функція для перевірки направлений домен на сервер check_domain "example.com"
     check_domain $WP_SITE_DOMEN
+
     if [ $? -eq 0 ]; then
         $CLI_dir/v-add-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN '' yes
         $CLI_dir/v-schedule-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
     else
-        WEB_DIR=/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN
-        SSL_DIR=$WEB_DIR/ssl
+        SSL_DIR="$WEB_DIR/ssl"
 
         create_folder "$SSL_DIR"
 
         # Створення самопідписаного сертифіката
-        openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
-            -subj "/C=UA/ST=Kyiv/L=Kyiv/O=Example/CN=$WP_SITE_DOMEN" \
+        openssl req -new -newkey rsa:4096 -sha256 -days 825 -nodes -x509 \
+            -subj "/C=NL/ST=North Holland/L=Amsterdam/O=SecureNet Inc./CN=$WP_SITE_DOMEN" \
             -keyout $SSL_DIR/$WP_SITE_DOMEN.key -out $SSL_DIR/$WP_SITE_DOMEN.crt
+
         chown -R "$CONTROLPANEL_USER:$CONTROLPANEL_USER" "$SSL_DIR"
         # Додавання сертифіката до HestiaCP
         $CLI_dir/v-add-web-domain-ssl $CONTROLPANEL_USER $WP_SITE_DOMEN $SSL_DIR
@@ -645,21 +621,80 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
         echo "Самопідписаний SSL сертифікат для $WP_SITE_DOMEN створено та додано до $control_panel_install."
     fi
 
-    dir_wp_in_panel="/home/$CONTROLPANEL_USER/web/$WP_SITE_DOMEN/public_html/"
+    SITE_PASSWORD=$(generate_random_part_16)
+    SITE_ADMIN_MAIL="admin@$WP_SITE_DOMEN"
 
-    if [ ! -d "$dir_wp_in_panel" ]; then
-        echo "Папка $dir_wp_in_panel не існує. Вихід..."
+    WORDPRESS_URL="https://wordpress.org/latest.tar.gz"
+    WP_USER="$CONTROLPANEL_USER"
+    DB_NAME="w$(generate_random_part_16)"
+    DB_NAME=$(trim_to_10 "$DB_NAME")
+    DB_USER="w$(generate_random_part_16)"
+    DB_USER=$(trim_to_10 "$DB_USER")
+    DB_PASSWORD="wp_p_$(generate_random_part_16)"
+    DB_PASSWORD=$(trim_to_16 "$DB_PASSWORD")
+
+    if [ ! -d "$WEB_PUBLIC_DIR" ]; then
+        echo "Папка $WEB_PUBLIC_DIR не існує. Вихід..."
         return 1
     fi
 
-    cd $dir_wp_in_panel
+    cd $WEB_PUBLIC_DIR
 
-    # Завантажуємо та розпаковуємо WordPress
-    echo -e "${YELLOW}Завантажуємо та розпаковуємо WordPress...${RESET}"
-    wget $WORDPRESS_URL -O wordpress.tar.gz
-    tar -xf wordpress.tar.gz
-    mv wordpress/* .
-    rmdir wordpress && rm -rf wordpress.tar.gz
+    # Завантаження та розпаковка WordPress
+    if wget $WORDPRESS_URL -O - | tar -xzf - --strip-components=1; then
+        echo -e "${GREEN}WordPress успішно завантажено та розпаковано!${RESET}"
+    else
+        echo -e "${RED}Помилка: Не вдалося завантажити або розпакувати WordPress.${RESET}"
+        return 1
+    fi
+
+    # Перевірка існування файлу .htaccess
+    if [ -f "$INSTALL_DIR/.htaccess" ]; then
+        echo -e "${YELLOW}Файл .htaccess вже існує. Пропускаємо створення.${RESET}"
+    else
+        echo -e "${GREEN}Створюємо файл .htaccess...${RESET}"
+        cat <<EOL >$WEB_PUBLIC_DIR/.htaccess
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+
+# File protection .htaccess та .htpasswd
+<FilesMatch "^\.ht">
+    Require all denied
+</FilesMatch>
+
+# Disabling the display of the directory list
+Options -Indexes
+
+# Protection wp-config.php
+<Files wp-config.php>
+    Require all denied
+</Files>
+EOL
+
+        # Надаємо права $CONTROLPANEL_USER:$CONTROLPANEL_USER на .htaccess
+        if chown $CONTROLPANEL_USER:$CONTROLPANEL_USER $WEB_PUBLIC_DIR/.htaccess; then
+            echo -e "${GREEN}Права доступу $CONTROLPANEL_USER:$CONTROLPANEL_USER успішно встановлені для .htaccess!${RESET}"
+        else
+            echo -e "${RED}Помилка: Не вдалося встановити права доступу для .htaccess.${RESET}"
+        fi
+
+        # Надаємо права 644 для .htaccess
+        chmod 644 $WEB_PUBLIC_DIR/.htaccess
+        echo -e "${GREEN}Файл .htaccess успішно створено та налаштовано!${RESET}"
+    fi
 
     # Налаштовуємо файл wp-config.php
     echo -e "${YELLOW}Налаштовуємо файл wp-config.php...${RESET}"
@@ -692,18 +727,6 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
     s|put your unique phrase here|$(openssl rand -base64 64 | tr -d '\n' | tr -d '\r')|;
 }" wp-config.php
 
-    # Створюємо .htaccess, якщо його немає
-    if [ ! -e .htaccess ]; then
-        echo $HTACCESS_CONTENT >.htaccess
-        echo -e "${YELLOW}Створено файл .htaccess.${RESET}"
-    else
-        echo -e "${GREEN}Файл .htaccess вже існує.${RESET}"
-    fi
-
-    # Встановлюємо права доступу
-    echo -e "${YELLOW}Встановлюємо права доступу...${RESET}"
-    chown -R $CONTROLPANEL_USER:$CONTROLPANEL_USER * && chown -R $CONTROLPANEL_USER:$CONTROLPANEL_USER .htaccess
-
     # Створюємо базу даних та користувача, якщо база даних не існує
     echo -e "${YELLOW}Створюємо базу даних та користувача...${RESET}"
 
@@ -718,12 +741,12 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
         chmod +x wp-cli.phar
         mv wp-cli.phar /usr/local/bin/wp
 
-        sudo -u "$selected_folder_user" --version
+        sudo -u "$CONTROLPANEL_USER" --version
     fi
 
-    sudo -u "$selected_folder_user" wp core install --url=http://${WP_SITE_DOMEN} --title=${WP_SITE_DOMEN} --admin_user=${WP_USER} --admin_password=${SITE_PASSWORD} --admin_email=${SITE_ADMIN_MAIL}
+    sudo -u "$CONTROLPANEL_USER" wp core install --url=http://${WP_SITE_DOMEN} --title=${WP_SITE_DOMEN} --admin_user=${WP_USER} --admin_password=${SITE_PASSWORD} --admin_email=${SITE_ADMIN_MAIL}
 
-    sudo -u "$selected_folder_user" wp language core install --activate ru_RU
+    sudo -u "$CONTROLPANEL_USER" wp language core install --activate ru_RU
 
     #wp theme activate ваша_тема
     #wp plugin install назва_плагіна

@@ -439,9 +439,6 @@ MSG_UFW_NOT_INSTALLED_PART2="ufw is not installed."
 MSG_FIREWALL_NOT_INSTALLED_PART2="Error: Firewall not installed or unknown."
 
 # function check_domain
-MSG_DOMAIN_POINTED="Domain "
-MSG_DOMAIN_TARGET_SERVER=" is pointing to this server ("
-MSG_DOMAIN_NOT_TARGET_SERVER=" is not pointing to this server"
 
 # function select_disk_and_partition
 MSG_SELECT_DISK="Select a disk:"

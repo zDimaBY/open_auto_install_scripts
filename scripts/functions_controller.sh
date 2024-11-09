@@ -599,19 +599,35 @@ trim_to_10() {
     echo "${1:0:10}"
 }
 
-# Функція для перевірки направлений домен на сервер
-function check_domain() { # check_domain "example.com"
+# Функція для перевірки направлений домен на сервер check_domain "example.com"
+function check_domain() {
     domain="$1"
+    
+    # Перевірка для IPv4
+    for ip in "${server_IPv4[@]}"; do
+        domain_ips_v4=$(dig +short A "$domain")
+        for domain_ip in $domain_ips_v4; do
+            if [ "$domain_ip" == "$ip" ]; then
+                echo -e "${GREEN}Домен ${domain} направлений на сервер за IPv4 (${ip}).${RESET}"
+                return 0
+            fi
+        done
+    done
 
-    domain_ip=$(nslookup "$domain" | awk '/^Address: / { print $2 }')
+    # Перевірка для IPv6
+    for ip in "${server_IPv6[@]}"; do
+        domain_ips_v6=$(dig +short AAAA "$domain")
+        for domain_ip in $domain_ips_v6; do
+            if [ "$domain_ip" == "$ip" ]; then
+                echo -e "${GREEN}Домен ${domain} направлений на сервер за IPv6 (${ip}).${RESET}"
+                return 0
+            fi
+        done
+    done
 
-    if [ "${domain_ip}" == "${server_IPv4[0]}" ]; then
-        echo -e "${MSG_DOMAIN_POINTED}${domain}${MSG_DOMAIN_TARGET_SERVER}${server_IPv4[0]})"
-        return 0
-    else
-        echo -e "${MSG_DOMAIN_POINTED}${domain}${MSG_DOMAIN_NOT_TARGET_SERVER}"
-        return 1
-    fi
+    # Якщо жодна з IP-адрес не збігається
+    echo -e "${RED}Домен ${domain} не направлений на сервер.${RESET}"
+    return 1
 }
 
 # Функція для вибору диска та розділу

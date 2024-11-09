@@ -438,9 +438,6 @@ MSG_UFW_NOT_INSTALLED_PART2="ufw не установлен."
 MSG_FIREWALL_NOT_INSTALLED_PART2="Ошибка: файервол не установлен или неизвестен."
 
 # function check_domain
-MSG_DOMAIN_POINTED="Домен "
-MSG_DOMAIN_TARGET_SERVER=" указывает на этот сервер ("
-MSG_DOMAIN_NOT_TARGET_SERVER=" не указывает на этот сервер"
 
 # function select_disk_and_partition
 MSG_SELECT_DISK="Выберите диск:"
