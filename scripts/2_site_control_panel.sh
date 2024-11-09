@@ -588,7 +588,7 @@ deleting_old_admin_user() {
         echo "Домен $WP_SITE_DOMEN уже є за шляхом $USER_dir/web/$WP_SITE_DOMEN."
         return 1
     fi
-    
+
     # Збереження імені вибраного домена за шляхом
     WEB_DIR="$USER_dir/web/$WP_SITE_DOMEN"
     WEB_PUBLIC_DIR="$WEB_DIR/public_html"
@@ -640,6 +640,24 @@ deleting_old_admin_user() {
 
     cd $WEB_PUBLIC_DIR
 
+    # Перевірка, що директорія порожня або містить лише приховані файли
+    if [ "$(ls -A $WEB_PUBLIC_DIR | grep -v '^\.\|^\.\.$' | wc -l)" -ne 0 ]; then
+        # Якщо директорія не порожня, виводимо всі файли
+        echo -e "${YELLOW}У директорії $WEB_PUBLIC_DIR знайдено наступні файли:${RESET}"
+        ls -A $WEB_PUBLIC_DIR
+
+        # Запит на видалення всіх файлів
+        read -p "Ви хочете видалити всі файли в цій директорії? (y/n): " confirm
+        if [[ "$confirm" =~ ^[YyYyes]+$ ]]; then
+            echo -e "${GREEN}Видаляю файли...${RESET}"
+            rm -rf $WEB_PUBLIC_DIR/*
+            echo -e "${RED}Файли видалено.${RESET}"
+        else
+            echo -e "${RED}Операція скасована. Скрипт не буде виконаний.${RESET}"
+            return 1
+        fi
+    fi
+
     # Завантаження та розпаковка WordPress
     if wget $WORDPRESS_URL -O - | tar -xzf - --strip-components=1; then
         echo -e "${GREEN}WordPress успішно завантажено та розпаковано!${RESET}"
@@ -648,8 +666,14 @@ deleting_old_admin_user() {
         return 1
     fi
 
+    if chown -R $CONTROLPANEL_USER:$CONTROLPANEL_USER $WEB_PUBLIC_DIR; then
+        echo -e "${GREEN}Права доступу $CONTROLPANEL_USER:$CONTROLPANEL_USER успішно встановлені!${RESET}"
+    else
+        echo -e "${RED}Помилка: Не вдалося встановити права доступу $CONTROLPANEL_USER:$CONTROLPANEL_USER.${RESET}"
+    fi
+
     # Перевірка існування файлу .htaccess
-    if [ -f "$INSTALL_DIR/.htaccess" ]; then
+    if [ -f "$WEB_PUBLIC_DIR/.htaccess" ]; then
         echo -e "${YELLOW}Файл .htaccess вже існує. Пропускаємо створення.${RESET}"
     else
         echo -e "${GREEN}Створюємо файл .htaccess...${RESET}"
