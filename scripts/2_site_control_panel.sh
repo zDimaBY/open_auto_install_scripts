@@ -418,6 +418,7 @@ deleting_old_admin_user() {
     rm -fr ioncube
 }
 
+#--------------------------------------------------------------------------------------------------------------------------------
 2_install_list_CMS() {
     while true; do
         check_info_server
@@ -654,7 +655,7 @@ deleting_old_admin_user() {
             echo -e "${RED}Файли видалено.${RESET}"
         else
             echo -e "${RED}Операція скасована. Скрипт не буде виконаний.${RESET}"
-            return 1
+            return
         fi
     fi
 
@@ -722,18 +723,18 @@ EOL
 
     # Налаштовуємо файл wp-config.php
     echo -e "${YELLOW}Налаштовуємо файл wp-config.php...${RESET}"
-    cp wp-config-sample.php wp-config.php
+    sudo -u "$CONTROLPANEL_USER" cp wp-config-sample.php wp-config.php
     if [ -f "/usr/local/$control_panel_install/bin/v-add-database-prefix-on" ]; then
-        sed -i "s|database_name_here|${DB_NAME}|" wp-config.php
-        sed -i "s|username_here|${DB_USER}|" wp-config.php
-        sed -i "s|password_here|$DB_PASSWORD|" wp-config.php
+        sudo -u "$CONTROLPANEL_USER" sed -i "s|database_name_here|${DB_NAME}|" wp-config.php
+        sudo -u "$CONTROLPANEL_USER" sed -i "s|username_here|${DB_USER}|" wp-config.php
+        sudo -u "$CONTROLPANEL_USER" sed -i "s|password_here|$DB_PASSWORD|" wp-config.php
     else
         echo -e "${GREEN}Вмикаємо ${YELLOW}префікс баз даних для панелі керування $control_panel_install.${RESET}"
-        sed -i "s|database_name_here|${CONTROLPANEL_USER}_${DB_NAME}|" wp-config.php
-        sed -i "s|username_here|${CONTROLPANEL_USER}_${DB_USER}|" wp-config.php
-        sed -i "s|password_here|$DB_PASSWORD|" wp-config.php
+        sudo -u "$CONTROLPANEL_USER" sed -i "s|database_name_here|${CONTROLPANEL_USER}_${DB_NAME}|" wp-config.php
+        sudo -u "$CONTROLPANEL_USER" sed -i "s|username_here|${CONTROLPANEL_USER}_${DB_USER}|" wp-config.php
+        sudo -u "$CONTROLPANEL_USER" sed -i "s|password_here|$DB_PASSWORD|" wp-config.php
     fi
-    sed -i -e "/put your unique phrase here/{
+    sudo -u "$CONTROLPANEL_USER" sed -i -e "/put your unique phrase here/{
     s|put your unique phrase here|$(openssl rand -base64 64 | tr -d '\n' | tr -d '\r')|;
     n;
     s|put your unique phrase here|$(openssl rand -base64 64 | tr -d '\n' | tr -d '\r')|;
@@ -753,24 +754,64 @@ EOL
 
     # Створюємо базу даних та користувача, якщо база даних не існує
     echo -e "${YELLOW}Створюємо базу даних та користувача...${RESET}"
-
-    $CLI_dir/v-add-database $CONTROLPANEL_USER $DB_NAME $DB_USER $DB_PASSWORD
     
-    local_temp_wp_cli_path=$(download_latest_tool "wp-cli/wp-cli" "wp-cli" "wp-cli.phar")
+    $CLI_dir/v-add-database $CONTROLPANEL_USER $DB_NAME $DB_USER $DB_PASSWORD
 
+    # Завантажуємо WP-CLI
+    local_temp_wp_cli_path=$(download_latest_tool "wp-cli/wp-cli" "wp-cli" "wp-cli.phar")
+    
+    # Встановлюємо WordPress
     sudo -u "$CONTROLPANEL_USER" "$local_temp_wp_cli_path" core install --url=http://${WP_SITE_DOMEN} --title=${WP_SITE_DOMEN} --admin_user=${WP_USER} --admin_password=${SITE_PASSWORD} --admin_email=${SITE_ADMIN_MAIL}
 
-    sudo -u "$CONTROLPANEL_USER" "$local_temp_wp_cli_path" language core install --activate ru_RU
+    # Встановлюємо мови в залежності від налаштувань
+    case "$LANG_open_auto_install_scripts" in
+    "en")
+        sudo -u "$CONTROLPANEL_USER" "$local_temp_wp_cli_path" language core install --activate en_US
+        ;;
+    "ru")
+        sudo -u "$CONTROLPANEL_USER" "$local_temp_wp_cli_path" language core install --activate ru_RU
+        ;;
+    "ua")
+        sudo -u "$CONTROLPANEL_USER" "$local_temp_wp_cli_path" language core install --activate uk
+        ;;
+    *)
+        print_color_message 255 0 0 "Unsupported language."
+        ;;
+    esac
 
     #"$local_temp_wp_cli_path" theme activate ваша_тема
     #"$local_temp_wp_cli_path" plugin install назва_плагіна
     #"$local_temp_wp_cli_path" plugin activate назва_плагіна
 
-    echo -e "\n\n${GREEN}Wordpress встановлено: http://${WP_SITE_DOMEN}/wp-login.php${RESET}"
-    echo -e "Логін: ${WP_USER}"
-    echo -e "Пароль: ${SITE_PASSWORD}\n\n"
+    display_wordpress_info "$WP_SITE_DOMEN" "$WP_USER" "$SITE_PASSWORD" "${server_IPv4[0]}"
 
     source /etc/os-release
+}
+
+display_wordpress_info() {
+    local wp_site_domen=$1
+    local wp_site_user=$2
+    local wp_site_password=$3
+    local server_ip=$4
+
+    echo "-------------------------------------------"
+    print_color_message 255 255 0 "Дані для входу у Wordpress:"
+    print_color_message 255 255 255 "Адреса панелі: $(print_color_message 255 0 255 "http://${wp_site_domen}/wp-login.php")"
+    print_color_message 255 255 255 "Логін: ${wp_site_user}"
+    print_color_message 255 255 255 "Пароль: ${wp_site_password}"
+    echo ""
+
+    # Інформація про FTP доступ
+    echo "-------------------------------------------"
+    print_color_message 0 255 255 "Загальний FTP доступ користувача $CONTROLPANEL_USER:"
+    print_color_message 255 255 255 "Хост: $server_ip"
+    print_color_message 255 255 255 "Користувач: $CONTROLPANEL_USER"
+    print_color_message 255 255 255 "Пароль: < пароль $CONTROLPANEL_USER >"
+    print_color_message 255 255 255 "Порт: 21"
+    echo ""
+
+    echo "-------------------------------------------"
+    print_color_message 255 0 0 "Рекомендується змінити пароль після першого входу для безпеки."
 }
 
 2_install_CMS_DLE() {
