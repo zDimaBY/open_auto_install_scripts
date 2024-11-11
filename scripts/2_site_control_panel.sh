@@ -104,7 +104,7 @@ function 2_site_control_panel() {
     fi
 
     # Завантаження списку доступних версій
-    VERSIONS_CP=$("$local_temp_curl" -s "$HESITACP_GITHUB" | "$local_temp_jq" -r '.[].name' | sort -Vr)
+    VERSIONS_CP=$("$local_temp_curl_path" -s "$HESITACP_GITHUB" | "$local_temp_jq_path" -r '.[].name' | sort -Vr)
 
     print_versions_cp() {
         local index=1
@@ -299,14 +299,14 @@ display_hestia_info() {
     EOL_URL="https://endoflife.date/api/mariadb.json"
 
     # Завантаження сторінки та пошук доступних версій
-    VERSIONS_DB=$("$local_temp_curl" -s "$REPO_URL" | grep -oP 'href="\K[0-9]+\.[0-9]+' | sort -uVr)
-    EOL_DATA=$("$local_temp_curl" -s "$EOL_URL")
+    VERSIONS_DB=$("$local_temp_curl_path" -s "$REPO_URL" | grep -oP 'href="\K[0-9]+\.[0-9]+' | sort -uVr)
+    EOL_DATA=$("$local_temp_curl_path" -s "$EOL_URL")
 
     # Функція для виводу версій та дат закінчення підтримки
     print_versions() {
         local index=1
         for VERSION_DB in $VERSIONS_DB; do
-            EOL_DATE=$(echo "$EOL_DATA" | "$local_temp_jq" -r --arg VERSION_DB "$VERSION_DB" '.[] | select(.cycle == $VERSION_DB) | .eol')
+            EOL_DATE=$(echo "$EOL_DATA" | "$local_temp_jq_path" -r --arg VERSION_DB "$VERSION_DB" '.[] | select(.cycle == $VERSION_DB) | .eol')
             echo "$index) Версія: $(print_color_message 255 255 0 "${VERSION_DB}") - Закінчення підтримки: $(print_color_message 200 0 0 "${EOL_DATE:-не визначено}")"
             ((index++))
         done
@@ -326,7 +326,7 @@ display_hestia_info() {
 
     # Обираємо версію за номером
     SELECTED_VERSION_DB=$(echo "$VERSIONS_DB" | sed -n "${VERSION_NUMBER}p")
-    EOL_DATE=$(echo "$EOL_DATA" | "$local_temp_jq" -r --arg SELECTED_VERSION_DB "$SELECTED_VERSION_DB" '.[] | select(.cycle == $SELECTED_VERSION_DB) | .eol')
+    EOL_DATE=$(echo "$EOL_DATA" | "$local_temp_jq_path" -r --arg SELECTED_VERSION_DB "$SELECTED_VERSION_DB" '.[] | select(.cycle == $SELECTED_VERSION_DB) | .eol')
 
     echo "Версія: $(print_color_message 255 255 0 "${SELECTED_VERSION_DB}") - Закінчення підтримки: $(print_color_message 200 0 0 "${EOL_DATE:-не визначено}")"
     sed -i "s/mariadb_v=\".*\"/mariadb_v=\"$SELECTED_VERSION_DB\"/" hst-install-ubuntu.sh
@@ -755,26 +755,16 @@ EOL
     echo -e "${YELLOW}Створюємо базу даних та користувача...${RESET}"
 
     $CLI_dir/v-add-database $CONTROLPANEL_USER $DB_NAME $DB_USER $DB_PASSWORD
+    
+    local_temp_wp_cli_path=$(download_latest_tool "wp-cli/wp-cli" "wp-cli" "wp-cli.phar")
 
-    # Перевірка наявності команди wp
-    if ! command -v wp &>/dev/null; then
-        echo -e "${RED}Команда 'wp' не знайдена. ${YELLOW}Встановлюємо WP-CLI...${RESET}"
+    sudo -u "$CONTROLPANEL_USER" "$local_temp_wp_cli_path" core install --url=http://${WP_SITE_DOMEN} --title=${WP_SITE_DOMEN} --admin_user=${WP_USER} --admin_password=${SITE_PASSWORD} --admin_email=${SITE_ADMIN_MAIL}
 
-        # Встановлюємо WP-CLI
-        "$local_temp_curl" -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-        chmod +x wp-cli.phar
-        mv wp-cli.phar /usr/local/bin/wp
+    sudo -u "$CONTROLPANEL_USER" "$local_temp_wp_cli_path" language core install --activate ru_RU
 
-        sudo -u "$CONTROLPANEL_USER" --version
-    fi
-
-    sudo -u "$CONTROLPANEL_USER" wp core install --url=http://${WP_SITE_DOMEN} --title=${WP_SITE_DOMEN} --admin_user=${WP_USER} --admin_password=${SITE_PASSWORD} --admin_email=${SITE_ADMIN_MAIL}
-
-    sudo -u "$CONTROLPANEL_USER" wp language core install --activate ru_RU
-
-    #wp theme activate ваша_тема
-    #wp plugin install назва_плагіна
-    #wp plugin activate назва_плагіна
+    #"$local_temp_wp_cli_path" theme activate ваша_тема
+    #"$local_temp_wp_cli_path" plugin install назва_плагіна
+    #"$local_temp_wp_cli_path" plugin activate назва_плагіна
 
     echo -e "\n\n${GREEN}Wordpress встановлено: http://${WP_SITE_DOMEN}/wp-login.php${RESET}"
     echo -e "Логін: ${WP_USER}"

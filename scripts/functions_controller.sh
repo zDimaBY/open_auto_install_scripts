@@ -192,7 +192,7 @@ function check_docker_availability() {
         read -p "${MSG_PROMPT_INSTALL_DOCKER}" install_docker
         if [[ "$install_docker" =~ ^(yes|Yes|y|Y)$ ]]; then
             echo -e "${YELLOW}${MSG_INSTALLING_DOCKER}${RESET}"
-            "$local_temp_curl" -fsSL https://get.docker.com | sh
+            "$local_temp_curl_path" -fsSL https://get.docker.com | sh
             sudo usermod -aG docker "$(whoami)"
         else
             echo -e "\n${RED}${MSG_DOCKER_INSTALLATION_CANCELED}${RESET}"
@@ -740,7 +740,7 @@ function get_latest_files_url() {
 
     # Формуємо URL для отримання останнього релізу
     local api_url="${repo_url}/releases/latest"
-    local release_data=$("$local_temp_curl" -s "$api_url")
+    local release_data=$("$local_temp_curl_path" -s "$api_url")
     
     # Перевіряємо, чи JSON-дані не порожні
     if [ -z "$release_data" ]; then
@@ -753,7 +753,7 @@ function get_latest_files_url() {
     local jq_expression=".assets[] | select(.name | test(\"(${jq_filter})$\")) | .browser_download_url"
 
     # Отримуємо URL для всіх файлів з вказаними розширеннями
-    local file_urls=$(echo "$release_data" | "$local_temp_jq" -r "$jq_expression")
+    local file_urls=$(echo "$release_data" | "$local_temp_jq_path" -r "$jq_expression")
 
     # Перевіряємо, чи URL не порожній
     if [ -z "$file_urls" ]; then
@@ -807,10 +807,21 @@ function download_latest_tool() {
 
     # Отримуємо останню версію з GitHub API
     local latest_version=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep -oP '"tag_name": "\K[^"]+')
+
+    # Перевірка, чи файл потребує формування з версією
     local temp_tool_folder_name="/tmp/tool_folder/${TOOL_NAME}"
     create_folder "$temp_tool_folder_name" > /dev/null 2>&1
     local local_temp_tool="$temp_tool_folder_name/$latest_version"
 
+    # Використовуємо case для перевірки TOOL_BINARY і визначення шляху до файлу
+    case "$TOOL_BINARY" in
+        "wp-cli.phar")
+            local version_number=${latest_version#v}
+            TOOL_BINARY="wp-cli-${version_number}.phar"
+            ;;
+    esac
+
+    # Завантажуємо бінарний файл
     curl -sL "https://github.com/$REPO/releases/download/${latest_version}/${TOOL_BINARY}" -o "$local_temp_tool"
     chmod +x "$local_temp_tool"
     echo "$local_temp_tool"  # Повертаємо тільки шлях до бінарного файлу

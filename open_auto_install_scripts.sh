@@ -96,12 +96,12 @@ dependencies=(
 check_and_install_dependencies "${dependencies[@]}"
 
 # Отримуємо шляхи до бінарників
-local_temp_curl=$(download_latest_tool "moparisthebest/static-curl" "curl" "curl-amd64")
-local_temp_jq=$(download_latest_tool "jqlang/jq" "jq" "jq-linux64")
+local_temp_curl_path=$(download_latest_tool "moparisthebest/static-curl" "curl" "curl-amd64")
+local_temp_jq_path=$(download_latest_tool "jqlang/jq" "jq" "jq-linux64")
 
-COMMIT=$("$local_temp_curl" -s "https://api.github.com/repos/$REPO/commits/$BRANCH")
-LAST_COMMIT=$(echo "$COMMIT" | "$local_temp_jq" -r '.commit.message')
-LAST_COMMIT_DATE=$(echo "$COMMIT" | "$local_temp_jq" -r '.commit.author.date')
+COMMIT=$("$local_temp_curl_path" -s "https://api.github.com/repos/$REPO/commits/$BRANCH")
+LAST_COMMIT=$(echo "$COMMIT" | "$local_temp_jq_path" -r '.commit.message')
+LAST_COMMIT_DATE=$(echo "$COMMIT" | "$local_temp_jq_path" -r '.commit.author.date')
 
 #  ================= Start Script ==================
 function selectionFunctions() {

@@ -178,7 +178,7 @@ install_3x_ui() {
 }
 
 list_3x_ui_versions_install() {
-    local versions=$("$local_temp_curl" -s https://api.github.com/repos/MHSanaei/3x-ui/tags | "$local_temp_jq" -r '.[].name' | head -n 9)
+    local versions=$("$local_temp_curl_path" -s https://api.github.com/repos/MHSanaei/3x-ui/tags | "$local_temp_jq_path" -r '.[].name' | head -n 9)
     echo -e "${MSG_AVAILABLE_3X_UI_VERSIONS}"
     local i=1
     for ver in $versions; do
@@ -187,7 +187,7 @@ list_3x_ui_versions_install() {
     done
     read -p "${MSG_SELECT_VERSION}" choice
     if ((choice >= 1 && choice <= 9)); then
-        version=$("$local_temp_curl" -s https://api.github.com/repos/MHSanaei/3x-ui/tags | "$local_temp_jq" -r '.[].name' | head -n 9 | sed -n "${choice}p")
+        version=$("$local_temp_curl_path" -s https://api.github.com/repos/MHSanaei/3x-ui/tags | "$local_temp_jq_path" -r '.[].name' | head -n 9 | sed -n "${choice}p")
         install_3x_ui "$version"
     else
         echo "${MSG_INVALID_CHOICE}"
@@ -281,7 +281,7 @@ install_x_ui() {
 }
 
 list_x_ui_versions_install() {
-    local versions=$("$local_temp_curl" -s https://api.github.com/repos/alireza0/x-ui/tags | "$local_temp_jq" -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9)
+    local versions=$("$local_temp_curl_path" -s https://api.github.com/repos/alireza0/x-ui/tags | "$local_temp_jq_path" -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9)
     echo -e "${YELLOW}${MSG_XUI_AVAILABLE_VERSIONS}${RESET}"
     local i=1
     for ver in $versions; do
@@ -290,7 +290,7 @@ list_x_ui_versions_install() {
     done
     read -p "${MSG_XUI_SELECT_VERSION}" choice
     if ((choice >= 1 && choice <= 9)); then
-        install_x_ui "$("$local_temp_curl" -s https://api.github.com/repos/alireza0/x-ui/tags | "$local_temp_jq" -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9 | sed -n "${choice}p")"
+        install_x_ui "$("$local_temp_curl_path" -s https://api.github.com/repos/alireza0/x-ui/tags | "$local_temp_jq_path" -r '.[].name' | grep -Eo '[0-9.]+' | sort -Vr | head -n 9 | sed -n "${choice}p")"
     else
         echo -e "${RED}${MSG_XUI_INVALID_SELECTION}${RESET}"
         return 1
@@ -430,7 +430,7 @@ install_wireguard_scriptLocal() {
 
     sed -i 's/^#\$nrconf{restart} = '\''i'\'';/$nrconf{restart} = '\''a'\'';/g' /etc/needrestart/needrestart.conf
 
-    "$local_temp_curl" -sS -o /root/VPN/wireguard-install.sh https://raw.githubusercontent.com/angristan/wireguard-install/master/wireguard-install.sh
+    "$local_temp_curl_path" -sS -o /root/VPN/wireguard-install.sh https://raw.githubusercontent.com/angristan/wireguard-install/master/wireguard-install.sh
     chmod +x /root/VPN/wireguard-install.sh
     sed -i 's|"${HOME_DIR}|"/root/VPN/wireguard|g' /root/VPN/wireguard-install.sh
     sed -i 's|10.66.66.1|10.0.0.1|g' /root/VPN/wireguard-install.sh
@@ -466,7 +466,7 @@ install_wireguard_scriptLocal() {
 }
 
 menu_wireguard_installer() {
-    "$local_temp_curl" -sS -o /root/VPN/wireguard-install.sh https://raw.githubusercontent.com/angristan/wireguard-install/master/wireguard-install.sh
+    "$local_temp_curl_path" -sS -o /root/VPN/wireguard-install.sh https://raw.githubusercontent.com/angristan/wireguard-install/master/wireguard-install.sh
     chmod +x /root/VPN/wireguard-install.sh
     bash /root/VPN/wireguard-install.sh
 }
@@ -506,7 +506,7 @@ avtoInstall_openVPN() {
 
     create_folder "/root/VPN/openVPN"
 
-    if ! "$local_temp_curl" -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh; then
+    if ! "$local_temp_curl_path" -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh; then
         echo -e "${RED}${MSG_DOWNLOAD_INSTALL_SCRIPT_FAILED}${RESET}"
         return 1
     fi
@@ -543,7 +543,7 @@ avtoInstall_openVPN() {
 }
 
 menu_openVPN_installer() {
-    if ! "$local_temp_curl" -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh; then
+    if ! "$local_temp_curl_path" -sS -o /root/VPN/openvpn-install.sh https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh; then
         echo -e "${RED}${MSG_DOWNLOAD_INSTALL_SCRIPT_FAILED}${RESET}"
         return 1
     fi

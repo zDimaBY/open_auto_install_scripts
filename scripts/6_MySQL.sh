@@ -90,10 +90,10 @@ function select_tag_and_install() {
     esac
 
     while [ -n "$next_url" ]; do
-        response="$("$local_temp_curl" -s "$next_url")"
-        tags+=($(echo "$response" | "$local_temp_jq" -r '.results[].name'))
+        response="$("$local_temp_curl_path" -s "$next_url")"
+        tags+=($(echo "$response" | "$local_temp_jq_path" -r '.results[].name'))
 
-        next_url=$(echo "$response" | "$local_temp_jq" -r '.next')  # Отримуємо URL наступної сторінки
+        next_url=$(echo "$response" | "$local_temp_jq_path" -r '.next')  # Отримуємо URL наступної сторінки
         if [ "$next_url" == "null" ]; then
             next_url=""  # Завершуємо, якщо немає наступної сторінки
         fi
