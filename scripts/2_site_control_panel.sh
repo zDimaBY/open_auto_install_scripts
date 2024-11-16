@@ -41,7 +41,7 @@ function 2_site_control_panel() {
         print_color_message 255 255 255 "1. Встановлення/апгрейд $(print_color_message 255 215 0 'ioncube') для всіх php версій (Hestiacp + php-fpm) $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "2. Встановлення $(print_color_message 255 215 0 'CMS') $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "3. Заміна IP-адреси з old на new $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "4. Вимкнення/увімкнення префікса $(print_color_message 144 238 144 'admin_') у базі данних панелі керування"
+        print_color_message 255 255 255 "4. Вимкнення/увімкнення префікса $(print_color_message 144 238 144 'admin_') у базах даних панелі керування"
         print_color_message 255 255 255 "5. Очистка $(print_color_message 144 238 144 'логів') $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "6. Пренесення $(print_color_message 144 238 144 'сайтів') з відаленого сервера на $(print_color_message 255 0 255 "${server_IPv4[0]}") $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
@@ -53,7 +53,7 @@ function 2_site_control_panel() {
         1) 2_updateIoncube ;;
         2) 2_install_list_CMS ;;
         3) v_sys_change_ip ;;
-        4) 2_disable_prefix_on_VestaCP_HestiaCP ;;
+        4) 2_switch_prefix_for_VestaCP_HestiaCP ;;
         5) 2_logs_clear ;;
         6) 2_migrate_hestia_vesta ;;
         0) break ;;
@@ -463,7 +463,7 @@ deleting_old_admin_user() {
     done
 }
 
-2_disable_prefix_on_VestaCP_HestiaCP() {
+2_switch_prefix_for_VestaCP_HestiaCP() {
     # Створити копію v-add-database якщо не існує
     if [ ! -f "/usr/local/$control_panel_install/bin/v-add-database-prefix-on" ]; then
         echo -e "${RED}Вимкнення ${YELLOW}префікса баз даних для панелі керування $control_panel_install.${RESET}"
@@ -840,6 +840,139 @@ display_wordpress_info() {
     echo -e "В розробці: ..."
 }
 
+#--------------------------------------------------------------------------------------------------------
+# Функція для перевірки наявності інструментів
+check_tools() {
+    for tool in sshpass rsync openssl; do
+        if ! command -v $tool &>/dev/null; then
+            echo "Інструмент $tool не встановлений."
+            read -p "Бажаєте встановити $tool? [Y/N]: " confirm
+            if [[ "$confirm" =~ ^[YyYyes]+$ ]]; then
+                echo "Встановлюємо $tool..."
+                sudo apt update && sudo apt install -y $tool
+                if [ $? -ne 0 ]; then
+                    echo "Помилка: Не вдалося встановити $tool. Завершуємо скрипт."
+                    exit 1
+                else
+                    echo "$tool успішно встановлено."
+                fi
+            else
+                echo "Без $tool робота скрипта неможлива. Завершуємо скрипт."
+                exit 1
+            fi
+        else
+            echo "$tool вже встановлений."
+        fi
+    done
+}
+
+# Функція для підключення до віддаленого сервера
+remote_ssh_command() {
+    sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 $REMOTE_ROOT_USER@$REMOTE_SERVER "$1"
+}
+
+# Функція для створення папок
+create_folder() {
+    local path="$1"
+    [ -d "$path" ] || mkdir -p "$path" && echo "Папка $path створена."
+}
+
+# Функція додавання домену
+add_domain() {
+    local domain="$1"
+    if $CLI_dir/v-list-web-domains $REMOTE_CONTROL_PANEL_USER | grep -qw "$domain"; then
+        echo "Домен $domain вже існує, пропускаємо..."
+        return
+    fi
+    
+    $CLI_dir/v-add-web-domain $REMOTE_CONTROL_PANEL_USER $domain
+    if [ $? -ne 0 ]; then
+        echo "Помилка додавання домену $domain."
+        return 1
+    fi
+}
+
+# Функція встановлення SSL сертифікату
+install_ssl() {
+    local domain="$1"
+    local ssl_dir="/home/$REMOTE_CONTROL_PANEL_USER/web/$domain/ssl"
+    create_folder "$ssl_dir"
+
+    openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
+        -subj "/C=UA/ST=Kyiv/L=Kyiv/O=Example/CN=$domain" \
+        -keyout $ssl_dir/$domain.key -out $ssl_dir/$domain.crt
+
+    chown -R "$REMOTE_CONTROL_PANEL_USER:$REMOTE_CONTROL_PANEL_USER" "$ssl_dir"
+    $CLI_dir/v-add-web-domain-ssl $REMOTE_CONTROL_PANEL_USER $domain $ssl_dir
+}
+
+# Функція переносу файлів сайту
+sync_files() {
+    local domain="$1"
+    sshpass -p "$PASSWORD_ROOT_USER" rsync -azh --info=progress2 --stats -e "ssh -o StrictHostKeyChecking=no" \
+        "$REMOTE_ROOT_USER@$REMOTE_SERVER:/home/$REMOTE_CONTROL_PANEL_USER/web/$domain/public_html/" \
+        "/home/$REMOTE_CONTROL_PANEL_USER/web/$domain/public_html/"
+    chown -R $REMOTE_CONTROL_PANEL_USER:$REMOTE_CONTROL_PANEL_USER /home/$REMOTE_CONTROL_PANEL_USER/web/$domain/public_html
+}
+
+# Функція переносу баз даних
+sync_database() {
+    local db="$1"
+    if mysql -u root -e "use $db;" 2>/dev/null; then
+        echo "База даних $db вже існує, пропускаємо..."
+        return
+    fi
+    
+    $CLI_dir/v-add-database $REMOTE_CONTROL_PANEL_USER $db $db 'p@$$wOrd_q(AbnWP}6|H!3X))'
+    sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no $REMOTE_ROOT_USER@$REMOTE_SERVER "mysqldump -uroot $db" | mysql -uroot $db
+}
+
+# Основна функція переносу доменів
+transfer_domains() {
+    local domains=$(remote_ssh_command "ls -1 /home/$REMOTE_CONTROL_PANEL_USER/web/")
+    for domain in $domains; do
+        echo "Обробка домену: $domain"
+        add_domain "$domain" && install_ssl "$domain" && sync_files "$domain"
+        $CLI_dir/v-change-web-domain-backend-tpl $REMOTE_CONTROL_PANEL_USER $domain $VerPHP
+    done
+}
+
+# Основна функція переносу баз даних sshpass -p "pass" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@xxx.xx.xxx.xx "mysql -uroot -B -e 'show databases;'" | grep -Ev "Database|sys|information_schema|mysql|performance_schema|phpmyadmin|roundcube"
+transfer_databases() {
+    local databases=$(remote_ssh_command "mysql -uroot -B -e 'show databases;'" | grep -Ev "Database|sys|information_schema|mysql|performance_schema|phpmyadmin|roundcube")
+    2_switch_prefix_for_VestaCP_HestiaCP
+    for db in $databases; do
+        echo "Перенос бази даних: $db"
+        sync_database "$db"
+    done
+    2_switch_prefix_for_VestaCP_HestiaCP
+}
+
 2_migrate_hestia_vesta() {
-    echo -e "В розробці: ..."
+    # Запитуємо у користувача дані для віддаленого сервера
+    read -p "Введіть IP адресу або домен віддаленого сервера: " REMOTE_SERVER
+    read -p "Введіть користувача панелі керування на віддаленому сервері (наприклад, admin): " REMOTE_CONTROL_PANEL_USER
+    echo
+    REMOTE_ROOT_USER="root"
+    read -p "Введіть пароль користувача root: " PASSWORD_ROOT_USER
+    echo
+
+
+    # Перевіряємо введені дані на віддаленому сервері
+    echo "Перевірка підключення до віддаленого сервера..."
+    if remote_ssh_command "ls /home/$REMOTE_CONTROL_PANEL_USER/web"; then
+        echo "Підключення успішне."
+    else
+        echo "Помилка підключення. Перевірте введені дані та спробуйте ще раз."
+        exit 1
+    fi
+
+    VerPHP="PHP-8_2"
+
+    # Виконуємо основні функції скрипта
+    check_tools
+    local_detect_control_panel
+    transfer_domains
+    transfer_databases
+    echo "Перенесення завершено успішно."
 }
