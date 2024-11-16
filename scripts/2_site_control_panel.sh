@@ -21,6 +21,8 @@ function 2_site_control_panel() {
         echo -e "${RED}Не вдалося визначити панель керування сайтами.${RESET}"
         return 1
     fi
+    CLI_dir="/usr/local/$control_panel_install/bin"
+    
     # Перевірка типу веб-сервера Apache2 або HTTPD
     if [ -d "/etc/apache2" ]; then
         DIR_APACHE="/etc/apache2"
@@ -565,7 +567,6 @@ deleting_old_admin_user() {
 
     # Шлях до директорії з користувачами
     USERS_dir="/usr/local/$control_panel_install/data/users/"
-    CLI_dir="/usr/local/$control_panel_install/bin"
 
     # Виведення списку папок
     echo "Доступні користувачі панелі керування сайтами:"
@@ -971,7 +972,6 @@ transfer_databases() {
 
     # Виконуємо основні функції скрипта
     check_tools
-    local_detect_control_panel
     transfer_domains
     transfer_databases
     echo "Перенесення завершено успішно."
