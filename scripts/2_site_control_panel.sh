@@ -41,8 +41,9 @@ function 2_site_control_panel() {
         print_color_message 255 255 255 "1. Встановлення/апгрейд $(print_color_message 255 215 0 'ioncube') для всіх php версій (Hestiacp + php-fpm) $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "2. Встановлення $(print_color_message 255 215 0 'CMS') $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "3. Заміна IP-адреси з old на new $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "4. Відключення префікса $(print_color_message 144 238 144 '"admin_"')"
+        print_color_message 255 255 255 "4. Вимкнення/увімкнення префікса $(print_color_message 144 238 144 'admin_') у базі данних панелі керування"
         print_color_message 255 255 255 "5. Очистка $(print_color_message 144 238 144 'логів') $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "6. Пренесення $(print_color_message 144 238 144 'сайтів') з відаленого сервера на $(print_color_message 255 0 255 "${server_IPv4[0]}") $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -54,6 +55,7 @@ function 2_site_control_panel() {
         3) v_sys_change_ip ;;
         4) 2_disable_prefix_on_VestaCP_HestiaCP ;;
         5) 2_logs_clear ;;
+        6) 2_migrate_hestia_vesta ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -68,7 +70,7 @@ function 2_site_control_panel() {
         check_info_control_panel
         print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         echo -e "1. Встановлення ${RED}HestiaCP${RESET} ${RED}(test)${RESET}"
-        echo -e "2. Встановлення ${RED}VestaCP${RESET} ${RED}(test)${RESET}"
+        echo -e "2. Встановлення ${RED}ISPmanager${RESET} ${RED}(test)${RESET}"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -76,7 +78,7 @@ function 2_site_control_panel() {
 
         case $choice in
         1) 2_install_hestiaCP ;;
-        2) 2_install_vesta_control_panel ;;
+        2) 2_install_ISPmanager_control_panel ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -161,6 +163,26 @@ function 2_site_control_panel() {
         *) 0_invalid ;;
         esac
     done
+}
+
+2_install_ISPmanager_control_panel() {
+    print_color_message 255 255 0 "\nПочинаємо встановлення ISPmanager...\n"
+    
+    if ! command -v wget &> /dev/null; then
+        print_color_message 255 0 0 "Встановлюємо wget..."
+        apt-get update && apt-get install -y wget
+    fi
+
+    print_color_message 255 255 255 "Завантаження інсталяційного скрипта ISPmanager..."
+    wget https://download.ispsystem.com/install.sh -O /tmp/install_ispmanager.sh
+    chmod +x /tmp/install_ispmanager.sh
+    /tmp/install_ispmanager.sh
+
+    if [ $? -eq 0 ]; then
+        print_color_message 0 255 0 "\nВстановлення ISPmanager успішно завершено."
+    else
+        print_color_message 255 0 0 "\nВстановлення ISPmanager завершилось з помилкою."
+    fi
 }
 
 2_check_install_hestiaCP() {
@@ -495,7 +517,7 @@ deleting_old_admin_user() {
     print_color_message 0 255 0 "Поточно використане місце: $(print_color_message 255 165 0 "$before")"
 
     read -p "Ви впевнені, що бажаєте видалити та очистити ці файли журналів? [y/N]: " confirm
-    if [[ ! $confirm =~ ^[Yy]$ ]]; then
+    if [[ "$confirm" =~ ^[YyYyes]+$ ]]; then
         print_color_message 255 0 0 "Операція скасована."
         return 1
     fi
@@ -815,5 +837,9 @@ display_wordpress_info() {
 }
 
 2_install_CMS_DLE() {
+    echo -e "В розробці: ..."
+}
+
+2_migrate_hestia_vesta() {
     echo -e "В розробці: ..."
 }
