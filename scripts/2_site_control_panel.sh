@@ -22,7 +22,7 @@ function 2_site_control_panel() {
         return 1
     fi
     CLI_dir="/usr/local/$control_panel_install/bin"
-    
+
     # Перевірка типу веб-сервера Apache2 або HTTPD
     if [ -d "/etc/apache2" ]; then
         DIR_APACHE="/etc/apache2"
@@ -872,107 +872,212 @@ remote_ssh_command() {
     sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 $REMOTE_ROOT_USER@$REMOTE_SERVER "$1"
 }
 
-# Функція для створення папок
-create_folder() {
-    local path="$1"
-    [ -d "$path" ] || mkdir -p "$path" && echo "Папка $path створена."
-}
-
 # Функція додавання домену
-add_domain() {
+add_web_domain() {
     local domain="$1"
-    if $CLI_dir/v-list-web-domains $REMOTE_CONTROL_PANEL_USER | grep -qw "$domain"; then
-        echo "Домен $domain вже існує, пропускаємо..."
-        return
-    fi
     
-    $CLI_dir/v-add-web-domain $REMOTE_CONTROL_PANEL_USER $domain
-    if [ $? -ne 0 ]; then
-        echo "Помилка додавання домену $domain."
+    # Перевірка наявності домену та змінної REMOTE_CONTROL_PANEL_USER
+    if [[ -z "$domain" || -z "$REMOTE_CONTROL_PANEL_USER" ]]; then
+        print_color_message 255 0 0 "Помилка: Домен або користувач не вказані."
         return 1
     fi
+
+    # Перевірка наявності CLI інструменту
+    if ! command -v $CLI_dir/v-list-web-domains &>/dev/null; then
+        print_color_message 255 0 0 "Помилка: CLI інструмент HestiaCP не знайдено."
+        return 1
+    fi
+
+    # Перевірка наявності домену
+    if $CLI_dir/v-list-web-domains $REMOTE_CONTROL_PANEL_USER | grep -E "^\s*$domain\s" &>/dev/null; then
+        print_color_message 255 0 0 "Домен $(print_color_message 0 255 255 "$domain") вже існує, пропускаємо... $(print_color_message 255 99 71 '(test)')"
+        return 1
+    fi
+
+
+    # Додаємо веб-домен
+    print_color_message 255 255 0 "Обробка домену: $(print_color_message 0 255 255 "$domain")"
+    $CLI_dir/v-add-web-domain $REMOTE_CONTROL_PANEL_USER $domain
+    if [ $? -ne 0 ]; then
+        print_color_message 255 0 0 "Помилка додавання домену $(print_color_message 0 255 255 "$domain")."
+        return 1
+    fi
+    print_color_message 0 255 0 "Домен $(print_color_message 0 255 255 "$domain") успішно додано."
+    return 0
 }
 
 # Функція встановлення SSL сертифікату
 install_ssl() {
     local domain="$1"
     local ssl_dir="/home/$REMOTE_CONTROL_PANEL_USER/web/$domain/ssl"
+
+    # Перевірка наявності домену та змінної REMOTE_CONTROL_PANEL_USER
+    if [[ -z "$domain" || -z "$REMOTE_CONTROL_PANEL_USER" ]]; then
+        print_color_message 255 0 0 "Помилка: Домен або користувач не вказані."
+        return 1
+    fi
+
+    # Створення директорії SSL
     create_folder "$ssl_dir"
 
-    openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
-        -subj "/C=UA/ST=Kyiv/L=Kyiv/O=Example/CN=$domain" \
-        -keyout $ssl_dir/$domain.key -out $ssl_dir/$domain.crt
+    # Генерація SSL сертифікату
+    if ! openssl req -new -newkey rsa:4096 -sha256 -days 825 -nodes -x509 \
+            -subj "/C=NL/ST=North Holland/L=Amsterdam/O=SecureNet Inc./CN=$domain" \
+            -keyout "$ssl_dir/$domain.key" -out "$ssl_dir/$domain.crt" &>/dev/null; then
+        print_color_message 255 0 0 "Помилка генерації SSL сертифікату для $(print_color_message 0 255 255 "$domain")."
+        return 1
+    fi
 
+
+    # Зміна прав доступу
     chown -R "$REMOTE_CONTROL_PANEL_USER:$REMOTE_CONTROL_PANEL_USER" "$ssl_dir"
-    $CLI_dir/v-add-web-domain-ssl $REMOTE_CONTROL_PANEL_USER $domain $ssl_dir
+    
+    # Додавання SSL до домену
+    if ! $CLI_dir/v-add-web-domain-ssl $REMOTE_CONTROL_PANEL_USER $domain $ssl_dir; then
+        print_color_message 255 0 0 "Помилка додавання SSL до домену $(print_color_message 0 255 255 "$domain")."
+        return 1
+    fi
+    print_color_message 0 255 0 "SSL сертифікат успішно встановлено для $(print_color_message 0 255 255 "$domain")."
+    return 0
 }
 
 # Функція переносу файлів сайту
 sync_files() {
     local domain="$1"
-    sshpass -p "$PASSWORD_ROOT_USER" rsync -azh --info=progress2 --stats -e "ssh -o StrictHostKeyChecking=no" \
+
+    # Перевірка наявності домену та змінних
+    if [[ -z "$domain" || -z "$REMOTE_CONTROL_PANEL_USER" || -z "$REMOTE_ROOT_USER" || -z "$REMOTE_SERVER" || -z "$PASSWORD_ROOT_USER" ]]; then
+        print_color_message 255 0 0 "Помилка: Відсутні необхідні змінні для переносу файлів."
+        return 1
+    fi
+
+    print_color_message 255 0 0 "Перенесення файлів сайту $(print_color_message 0 255 255 "$domain") за допомогою rsync..."
+    # Перенос файлів сайту за допомогою rsync
+    if ! sshpass -p "$PASSWORD_ROOT_USER" rsync -azh --info=progress2 --stats -e "ssh -o StrictHostKeyChecking=no" \
         "$REMOTE_ROOT_USER@$REMOTE_SERVER:/home/$REMOTE_CONTROL_PANEL_USER/web/$domain/public_html/" \
-        "/home/$REMOTE_CONTROL_PANEL_USER/web/$domain/public_html/"
-    chown -R $REMOTE_CONTROL_PANEL_USER:$REMOTE_CONTROL_PANEL_USER /home/$REMOTE_CONTROL_PANEL_USER/web/$domain/public_html
+        "/home/$REMOTE_CONTROL_PANEL_USER/web/$domain/public_html/"; then
+        print_color_message 255 0 0 "Помилка переносу файлів для домену $(print_color_message 0 255 255 "$domain")."
+        return 1
+    fi
+
+    # Зміна прав доступу
+    chown -R "$REMOTE_CONTROL_PANEL_USER:$REMOTE_CONTROL_PANEL_USER" "/home/$REMOTE_CONTROL_PANEL_USER/web/$domain/public_html"
+    print_color_message 0 255 0 "Файли для домену $(print_color_message 0 255 255 "$domain") успішно перенесені."
+    return 0
 }
 
 # Функція переносу баз даних
 sync_database() {
     local db="$1"
     if mysql -u root -e "use $db;" 2>/dev/null; then
-        echo "База даних $db вже існує, пропускаємо..."
-        return
+        print_color_message 255 255 0 "База даних $(print_color_message 0 255 255 "$db") вже існує, пропускаємо..."
+        return 0
+    else
+        print_color_message 255 255 0 "Перенесення бази даних: $(print_color_message 0 255 255 "$db")"
+        $CLI_dir/v-add-database $REMOTE_CONTROL_PANEL_USER $db $db 'p@$$wOrd_q(AbnWP}6|H!3X))'
+        sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no $REMOTE_ROOT_USER@$REMOTE_SERVER "mysqldump -uroot $db" | mysql -uroot $db
     fi
-    
-    $CLI_dir/v-add-database $REMOTE_CONTROL_PANEL_USER $db $db 'p@$$wOrd_q(AbnWP}6|H!3X))'
-    sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no $REMOTE_ROOT_USER@$REMOTE_SERVER "mysqldump -uroot $db" | mysql -uroot $db
 }
 
 # Основна функція переносу доменів
 transfer_domains() {
     local domains=$(remote_ssh_command "ls -1 /home/$REMOTE_CONTROL_PANEL_USER/web/")
-    for domain in $domains; do
-        echo "Обробка домену: $domain"
-        add_domain "$domain" && install_ssl "$domain" && sync_files "$domain"
-        $CLI_dir/v-change-web-domain-backend-tpl $REMOTE_CONTROL_PANEL_USER $domain $VerPHP
+    # Цикл обробки доменів
+    for domain in $domains; do 
+
+        if ! add_web_domain "$domain"; then
+            continue
+        fi
+
+        if $CLI_dir/v-change-web-domain-backend-tpl $REMOTE_CONTROL_PANEL_USER $domain $VerPHP; then
+            print_color_message 0 255 0 "Зміни backend для $(print_color_message 0 255 255 "$domain") успішно застосовано."
+        else
+            print_color_message 255 0 0 "Помилка зміни backend шаблону для $(print_color_message 0 255 255 "$domain")."
+        fi
+
+        install_ssl "$domain"
+
+        sync_files "$domain"
+        
     done
 }
 
 # Основна функція переносу баз даних sshpass -p "pass" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@xxx.xx.xxx.xx "mysql -uroot -B -e 'show databases;'" | grep -Ev "Database|sys|information_schema|mysql|performance_schema|phpmyadmin|roundcube"
 transfer_databases() {
-    local databases=$(remote_ssh_command "mysql -uroot -B -e 'show databases;'" | grep -Ev "Database|sys|information_schema|mysql|performance_schema|phpmyadmin|roundcube")
+    local databases=$(remote_ssh_command "mysql -uroot -B -e 'show databases;'" | grep -Ev "Database|sys|information_schema|mysql|performance_schema|phpmyadmin|roundcube" | grep "$REMOTE_CONTROL_PANEL_USER")
     2_switch_prefix_for_VestaCP_HestiaCP
     for db in $databases; do
-        echo "Перенос бази даних: $db"
         sync_database "$db"
     done
     2_switch_prefix_for_VestaCP_HestiaCP
 }
 
+# Отримуємо список користувачів HestiaCP
+get_users() {
+    v-list-users | awk 'NR>2 {print $1}'  # Пропускаємо перші 2 рядки заголовків
+}
+
+# Виводимо меню вибору користувача
+select_user() {
+    print_color_message 255 255 255 "Виберіть користувача панелі керування на віддаленому сервері (наприклад, admin):"
+    users_list=($(remote_ssh_command "$CLI_dir/v-list-users | awk 'NR>2 {print \$1}'")) # Записуємо всіх користувачів в масив
+
+    print_color_message 255 255 255 "0) Вибрати всіх користувачів"
+    for i in "${!users_list[@]}"; do
+        echo "$((i + 1))) ${users_list[$i]}"
+    done
+
+    print_color_message 255 255 255 "Введіть номер користувача або 0 для всіх: "
+    read -r user_choice
+
+    # Перевірка вибору користувача
+    if [[ $user_choice -eq 0 ]]; then
+        REMOTE_CONTROL_PANEL_USER="${users_list[@]}"
+    elif [[ $user_choice -ge 1 && $user_choice -le ${#users_list[@]} ]]; then
+        REMOTE_CONTROL_PANEL_USER="${users_list[$((user_choice - 1))]}"
+    else
+        print_color_message 255 0 0 "Невірний вибір. Спробуйте ще раз."
+        return
+    fi
+}
+
 2_migrate_hestia_vesta() {
+    # Перевірка ПО
+    check_tools
+
     # Запитуємо у користувача дані для віддаленого сервера
-    read -p "Введіть IP адресу або домен віддаленого сервера: " REMOTE_SERVER
-    read -p "Введіть користувача панелі керування на віддаленому сервері (наприклад, admin): " REMOTE_CONTROL_PANEL_USER
     echo
+    read -p "Введіть IP адресу або домен віддаленого сервера: " REMOTE_SERVER
     REMOTE_ROOT_USER="root"
     read -p "Введіть пароль користувача root: " PASSWORD_ROOT_USER
     echo
 
-
     # Перевіряємо введені дані на віддаленому сервері
-    echo "Перевірка підключення до віддаленого сервера..."
-    if remote_ssh_command "ls /home/$REMOTE_CONTROL_PANEL_USER/web"; then
-        echo "Підключення успішне."
+    print_color_message 0 255 0 "Перевірка підключення до віддаленого сервера..."
+    if remote_ssh_command "whoami"; then
+        print_color_message 0 255 0 "Підключення успішне."
+        if remote_ssh_command "$CLI_dir/v-list-users"; then
+            print_color_message 0 255 0 "Користувачі виявлені."
+        else
+            print_color_message 255 0 0 "Помилка підключення."
+            return
+        fi
     else
-        echo "Помилка підключення. Перевірте введені дані та спробуйте ще раз."
-        exit 1
+        print_color_message 255 0 0 "Помилка підключення. Перевірте введені дані та спробуйте ще раз."
+        return
+    fi
+
+    # Викликаємо функцію вибору користувача
+    if select_user; then
+        print_color_message 255 255 0 "Вибраний користувач: $REMOTE_CONTROL_PANEL_USER"
+    else
+        return
     fi
 
     VerPHP="PHP-8_2"
 
     # Виконуємо основні функції скрипта
-    check_tools
     transfer_domains
     transfer_databases
-    echo "Перенесення завершено успішно."
+    print_color_message 0 255 0 "Перенесення завершено успішно."
 }
