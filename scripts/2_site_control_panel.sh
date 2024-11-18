@@ -45,7 +45,7 @@ function 2_site_control_panel() {
         print_color_message 255 255 255 "3. Заміна IP-адреси з old на new $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "4. Вимкнення/увімкнення префікса $(print_color_message 144 238 144 'admin_') у базах даних панелі керування"
         print_color_message 255 255 255 "5. Очистка $(print_color_message 144 238 144 'логів') $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "6. Пренесення $(print_color_message 144 238 144 'сайтів') з відаленого сервера на $(print_color_message 255 0 255 "${server_IPv4[0]}") $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "6. Пренесення $(print_color_message 144 238 144 'сайтів') з віддаленого сервера на $(print_color_message 255 0 255 "${server_IPv4[0]}") $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -518,8 +518,10 @@ deleting_old_admin_user() {
     before=$(du -ahx /var/log/$COMMAND_WEB_SERVER/domains/ | grep "\.log" | sort -rh | head -n 1 | awk '{print $1}')
     print_color_message 0 255 0 "Поточно використане місце: $(print_color_message 255 165 0 "$before")"
 
-    read -p "Ви впевнені, що бажаєте видалити та очистити ці файли журналів? [y/N]: " confirm
+    read -p "Ви впевнені, що бажаєте видалити або очистити ці файли журналів? [y/N]: " confirm
     if [[ "$confirm" =~ ^[YyYyes]+$ ]]; then
+        print_color_message 0 255 0 "Операція виконана."
+    else
         print_color_message 255 0 0 "Операція скасована."
         return 1
     fi
@@ -872,6 +874,27 @@ remote_ssh_command() {
     sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 $REMOTE_ROOT_USER@$REMOTE_SERVER "$1"
 }
 
+# Функція перевірки користувача
+check_or_create_user() {
+    local user="$1"
+
+    # Перевірка чи існує користувач у системі HestiaCP
+    if $CLI_dir/v-list-users | grep -qw "^$user"; then
+        print_color_message 0 255 0 "Користувач $user вже існує."
+    else
+        print_color_message 255 255 0 "Користувач $user не знайдений. Створюємо користувача..."
+        
+        # Додаємо користувача за допомогою HestiaCP CLI v-add-user
+        if ! $CLI_dir/v-add-user $user "$(generate_random_part_16)" "$user@example.com" "default" "en"; then
+            print_color_message 255 0 0 "Помилка створення користувача $user."
+            return 1
+        fi
+        
+        print_color_message 0 255 0 "Користувача $user успішно створено."
+    fi
+}
+
+
 # Функція додавання домену
 add_web_domain() {
     local domain="$1"
@@ -890,7 +913,7 @@ add_web_domain() {
 
     # Перевірка наявності домену
     if $CLI_dir/v-list-web-domains $REMOTE_CONTROL_PANEL_USER | grep -E "^\s*$domain\s" &>/dev/null; then
-        print_color_message 255 0 0 "Домен $(print_color_message 0 255 255 "$domain") вже існує, пропускаємо... $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 0 0 "Домен $(print_color_message 0 255 255 "$domain") вже існує, пропускаємо..."
         return 1
     fi
 
@@ -1027,8 +1050,7 @@ select_user() {
         echo "$((i + 1))) ${users_list[$i]}"
     done
 
-    print_color_message 255 255 255 "Введіть номер користувача або 0 для всіх: "
-    read -r user_choice
+    read -r -p "$(print_color_message 255 255 0 'Введіть номер користувача або 0 для всіх: ')" user_choice
 
     # Перевірка вибору користувача
     if [[ $user_choice -eq 0 ]]; then
@@ -1077,6 +1099,7 @@ select_user() {
     VerPHP="PHP-8_2"
 
     # Виконуємо основні функції скрипта
+    check_or_create_user "$REMOTE_CONTROL_PANEL_USER"
     transfer_domains
     transfer_databases
     print_color_message 0 255 0 "Перенесення завершено успішно."
