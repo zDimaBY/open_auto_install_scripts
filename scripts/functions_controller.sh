@@ -630,6 +630,37 @@ function check_domain() {
     return 1
 }
 
+# Функція для отримання NS-записів за допомогою dig та отримання NS-записів у ns_servers[@]
+get_ns_records() {
+    local domain=$1
+
+    # Перевірка наявності інструменту dig
+    if ! command -v dig &> /dev/null; then
+        echo "Помилка: Інструмент dig не встановлено. Встановіть його для роботи скрипта."
+        exit 1
+    fi
+
+    # Отримання NS-записів за допомогою dig
+    echo "Отримання NS-записів для $domain за допомогою dig:"
+    local result=$(dig NS $domain +noall +answer)
+
+    if [ -z "$result" ]; then
+        print_color_message 255 255 0 "ANSWER NS-записи не знайдено. ANSWER — це прямий результат запиту, який повертає точні записи NS для заданого домену."
+        print_color_message 255 255 0 "Перевіряю секцію AUTHORITY. AUTHORITY — це вказівка на "старшого" керуючого доменом (зазвичай для зон, які не мають явних записів)."
+        result=$(dig $domain NS +noall +authority | awk '/SOA/ {print $5, $6}')
+    else
+        result=$(echo "$result" | awk '{print $5}')
+    fi
+
+    # Запис NS-серверів у масив без крапки в кінці
+    IFS=$'\n' read -d '' -r -a ns_servers <<< "$(echo "$result" | sed 's/\.$//')"
+
+    print_color_message 255 255 255 "Знайдено NS-сервери:"
+    for ns in "${ns_servers[@]}"; do
+        print_color_message 255 255 0 "$ns"
+    done
+}
+
 check_mail_domain_hestiaCP() { #для hestiaCP чи існує повна конфігурація домена.
     local domain=$1
     $CLI_dir/v-list-mail-domain $CONTROLPANEL_USER $domain > /dev/null 2>&1

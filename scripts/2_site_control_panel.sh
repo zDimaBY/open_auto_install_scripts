@@ -621,6 +621,20 @@ deleting_old_admin_user() {
 
     $CLI_dir/v-add-web-domain $CONTROLPANEL_USER $WP_SITE_DOMEN "" "yes" "none"
 
+    # Формування команди для v-add-dns-domain
+    local cmd="$CLI_dir/v-add-dns-domain $CONTROLPANEL_USER"
+
+    # Додавання знайдених NS серверів у команду (до 8 серверів)
+    for i in {0..7}; do
+        if [ -n "${ns_servers[$i]}" ]; then
+            cmd="$cmd ${ns_servers[$i]}"
+        else
+            break
+        fi
+    done
+
+    cmd="$cmd yes" && $cmd
+
     if check_domain $WP_SITE_DOMEN; then # Функція для перевірки направлений домен на сервер check_domain "example.com"
         if check_mail_domain_hestiaCP $WP_SITE_DOMEN; then
             print_color_message 0 200 0 "Поштовий домен $WP_SITE_DOMEN існує. Виконую створення SSL сертифікату з підтримкою пошти."
@@ -647,7 +661,7 @@ deleting_old_admin_user() {
         # Перезапуск веб-сервера
         #$CLI_dir/v-restart-web
 
-        echo "Самопідписаний SSL сертифікат для $WP_SITE_DOMEN створено та додано до $control_panel_install."
+        print_color_message 255 255 255 "Самопідписаний SSL сертифікат для $WP_SITE_DOMEN створено та додано до $control_panel_install."
     fi
 
     SITE_PASSWORD=$(generate_random_part_16)
@@ -663,7 +677,7 @@ deleting_old_admin_user() {
     DB_PASSWORD=$(trim_to_16 "$DB_PASSWORD")
 
     if [ ! -d "$WEB_PUBLIC_DIR" ]; then
-        echo "Папка $WEB_PUBLIC_DIR не існує. Вихід..."
+        print_color_message 255 0 0 "Папка $WEB_PUBLIC_DIR не існує. Вихід..."
         return 1
     fi
 
@@ -672,17 +686,17 @@ deleting_old_admin_user() {
     # Перевірка, що директорія порожня або містить лише приховані файли
     if [ "$(ls -A $WEB_PUBLIC_DIR | grep -v '^\.\|^\.\.$' | wc -l)" -ne 0 ]; then
         # Якщо директорія не порожня, виводимо всі файли
-        echo -e "${YELLOW}У директорії $WEB_PUBLIC_DIR знайдено наступні файли:${RESET}"
-        ls -A $WEB_PUBLIC_DIR
+        print_color_message 255 255 255 "У директорії $WEB_PUBLIC_DIR знайдено наступні файли:"
+        print_color_message 255 0 0 "$(ls -A "$WEB_PUBLIC_DIR")"
 
         # Запит на видалення всіх файлів
         read -p "Ви хочете видалити всі файли в цій директорії? (y/n): " confirm
         if [[ "$confirm" =~ ^[YyYyes]+$ ]]; then
-            echo -e "${GREEN}Видаляю файли...${RESET}"
+            print_color_message 255 255 0 "Видаляю файли..."
             rm -rf $WEB_PUBLIC_DIR/*
-            echo -e "${RED}Файли видалено.${RESET}"
+            print_color_message 255 0 0 "Файли видалено."
         else
-            echo -e "${RED}Операція скасована. Скрипт не буде виконаний.${RESET}"
+            print_color_message 255 255 0 "Операція скасована. Скрипт не буде виконаний."
             return
         fi
     fi
