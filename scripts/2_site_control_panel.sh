@@ -623,16 +623,19 @@ deleting_old_admin_user() {
 
     if get_ns_records $WP_SITE_DOMEN; then
     # Формування команди для v-add-dns-domain
-    local cmd="$CLI_dir/v-add-dns-domain $CONTROLPANEL_USER"
+    local cmd="$CLI_dir/v-add-dns-domain $CONTROLPANEL_USER $WP_SITE_DOMEN ${server_IPv4[0]}"
         # Додавання знайдених NS серверів у команду (до 8 серверів)
         for i in {0..7}; do
             if [ -n "${ns_servers[$i]}" ]; then
                 cmd="$cmd ${ns_servers[$i]}"
             else
-                break
+                cmd="$cmd \"\""
             fi
         done
-        cmd="$cmd yes" && $cmd
+        cmd="$cmd yes"
+        if ! eval "$cmd"; then
+            print_color_message 200 0 0 "ERROR: $cmd"
+        fi
     fi
 
     if check_domain $WP_SITE_DOMEN; then # Функція для перевірки направлений домен на сервер check_domain "example.com"

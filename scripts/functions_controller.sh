@@ -645,20 +645,30 @@ get_ns_records() {
     local result=$(dig NS $domain +noall +answer)
 
     if [ -z "$result" ]; then
-        print_color_message 255 255 0 "ANSWER NS-записи не знайдено. ANSWER — це прямий результат запиту, який повертає точні записи NS для заданого домену."
-        print_color_message 255 255 0 "Перевіряю секцію AUTHORITY. AUTHORITY — це вказівка на "старшого" керуючого доменом (зазвичай для зон, які не мають явних записів)."
+        print_color_message 0 200 0 "ANSWER NS-записи не знайдено. ANSWER — це прямий результат запиту, який повертає точні записи NS для заданого домену."
+        print_color_message 0 200 0 "Перевіряю секцію AUTHORITY. AUTHORITY — це вказівка на 'старшого' керуючого доменом (зазвичай для зон, які не мають явних записів)."
         result=$(dig $domain NS +noall +authority | awk '/SOA/ {print $5, $6}')
-    else
-        result=$(echo "$result" | awk '{print $5}')
     fi
 
-    # Запис NS-серверів у масив без крапки в кінці
-    IFS=$'\n' read -d '' -r -a ns_servers <<< "$(echo "$result" | sed 's/\.$//')"
-
-    print_color_message 255 255 255 "Знайдено NS-сервери:"
-    for ns in "${ns_servers[@]}"; do
-        print_color_message 255 255 0 "$ns"
-    done
+    # Якщо NS-записи знайдені
+    if [ -n "$result" ]; then
+        # Розділення записів на окремі рядки
+        IFS=$' \n' read -r -a ns_servers <<< "$result"
+        
+        # Видалення крапки в кінці кожного NS-запису
+        for i in "${!ns_servers[@]}"; do
+            ns_servers[$i]=$(echo "${ns_servers[$i]}" | sed 's/\.$//')
+        done
+        
+        print_color_message 255 255 255 "Знайдено NS-сервери:"
+        
+        # Виведення кожного NS окремо
+        for ns in "${ns_servers[@]}"; do
+            print_color_message 255 255 0 "$ns"
+        done
+    else
+        print_color_message 255 0 0 "NS-записи не знайдено."
+    fi
 }
 
 check_mail_domain_hestiaCP() { #для hestiaCP чи існує повна конфігурація домена.
