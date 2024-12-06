@@ -630,6 +630,12 @@ function check_domain() {
     return 1
 }
 
+check_mail_domain_hestiaCP() { #для hestiaCP чи існує повна конфігурація домена.
+    local domain=$1
+    $CLI_dir/v-list-mail-domain $CONTROLPANEL_USER $domain > /dev/null 2>&1
+    return $? # Повертає 0, якщо поштовий домен існує, і 1, якщо ні
+}
+
 # Функція для вибору диска та розділу
 function select_disk_and_partition() {
     # Виведення списку дисків та їх розділів

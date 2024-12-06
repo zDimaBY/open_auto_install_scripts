@@ -621,12 +621,15 @@ deleting_old_admin_user() {
 
     $CLI_dir/v-add-web-domain $CONTROLPANEL_USER $WP_SITE_DOMEN "" "yes" "none"
 
-    # Функція для перевірки направлений домен на сервер check_domain "example.com"
-    check_domain $WP_SITE_DOMEN
-
-    if [ $? -eq 0 ]; then
-        $CLI_dir/v-add-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN '' yes
-        $CLI_dir/v-schedule-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
+    if check_domain $WP_SITE_DOMEN; then # Функція для перевірки направлений домен на сервер check_domain "example.com"
+        if check_mail_domain_hestiaCP $WP_SITE_DOMEN; then
+            print_color_message 0 200 0 "Поштовий домен $WP_SITE_DOMEN існує. Виконую створення SSL сертифікату з підтримкою пошти."
+            $CLI_dir/v-add-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN "" "yes" "none"
+            #$CLI_dir/v-schedule-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN
+        else
+            print_color_message 255 255 0 "Поштовий домен $WP_SITE_DOMEN не існує. Виконую створення SSL сертифікату без підтримки пошти."
+            $CLI_dir/v-add-letsencrypt-domain $CONTROLPANEL_USER $WP_SITE_DOMEN "" "no" "none"
+        fi
     else
         SSL_DIR="$WEB_DIR/ssl"
 
