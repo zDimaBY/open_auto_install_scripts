@@ -621,19 +621,19 @@ deleting_old_admin_user() {
 
     $CLI_dir/v-add-web-domain $CONTROLPANEL_USER $WP_SITE_DOMEN "" "yes" "none"
 
+    if get_ns_records $WP_SITE_DOMEN; then
     # Формування команди для v-add-dns-domain
     local cmd="$CLI_dir/v-add-dns-domain $CONTROLPANEL_USER"
-
-    # Додавання знайдених NS серверів у команду (до 8 серверів)
-    for i in {0..7}; do
-        if [ -n "${ns_servers[$i]}" ]; then
-            cmd="$cmd ${ns_servers[$i]}"
-        else
-            break
-        fi
-    done
-
-    cmd="$cmd yes" && $cmd
+        # Додавання знайдених NS серверів у команду (до 8 серверів)
+        for i in {0..7}; do
+            if [ -n "${ns_servers[$i]}" ]; then
+                cmd="$cmd ${ns_servers[$i]}"
+            else
+                break
+            fi
+        done
+        cmd="$cmd yes" && $cmd
+    fi
 
     if check_domain $WP_SITE_DOMEN; then # Функція для перевірки направлений домен на сервер check_domain "example.com"
         if check_mail_domain_hestiaCP $WP_SITE_DOMEN; then
