@@ -889,7 +889,7 @@ check_tools() {
     done
 }
 
-# Функція для підключення до віддаленого сервера
+# Функція для підключення до віддаленого сервера sshpass -p "XXXX" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@xx.xxx.xx.xxx "/usr/local/hestia/bin/v-list-web-domain admin domen.com json" | jq -r '."'$domain'"."BACKEND"'
 remote_ssh_command() {
     sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 $REMOTE_ROOT_USER@$REMOTE_SERVER "$1"
 }
@@ -1121,7 +1121,11 @@ transfer_domains() {
             continue
         fi
 
-        if $CLI_dir/v-change-web-domain-backend-tpl $REMOTE_CONTROL_PANEL_USER $domain $VerPHP; then
+        template_web=$(remote_ssh_command "$CLI_dir/v-list-web-domain $REMOTE_CONTROL_PANEL_USER $domain json")
+
+        template_php_version=$(echo $template_web | jq -r '."'$domain'"."BACKEND"')
+
+        if $CLI_dir/v-change-web-domain-backend-tpl $REMOTE_CONTROL_PANEL_USER $domain $template_php_version; then
             print_color_message 0 255 0 "Зміни backend для $(print_color_message 0 255 255 "$domain") успішно застосовано."
         else
             print_color_message 255 0 0 "Помилка зміни backend шаблону для $(print_color_message 0 255 255 "$domain")."
