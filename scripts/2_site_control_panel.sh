@@ -898,20 +898,44 @@ remote_ssh_command() {
 check_or_create_user() {
     local user="$1"
 
-    # Перевірка чи існує користувач у системі HestiaCP
+    # Перевірка наявності користувача в системі HestiaCP
     if $CLI_dir/v-list-users | grep -qw "^$user"; then
-        print_color_message 0 255 0 "Користувач $user вже існує."
-    else
-        print_color_message 255 255 0 "Користувач $user не знайдений. Створюємо користувача..."
-        
-        # Додаємо користувача за допомогою HestiaCP CLI v-add-user
-        if ! $CLI_dir/v-add-user $user "$(generate_random_part_16)" "$user@example.com" "default" "en"; then
-            print_color_message 255 0 0 "Помилка створення користувача $user."
-            return 1
-        fi
-        
-        print_color_message 0 255 0 "Користувача $user успішно створено."
+        print_color_message 0 255 0 "Користувач $user вже існує в HestiaCP."
+        return 0
     fi
+
+    # Перевірка наявності користувача в системі
+    if getent passwd "$user" > /dev/null; then
+        print_color_message 255 0 0 "Системний користувач $user вже існує. Неможливо створити користувача в HestiaCP."
+        return 1
+    fi
+
+    # Перевірка, чи існує група з таким ім'ям
+    if getent group "$user" > /dev/null; then
+        print_color_message 255 255 0 "Група $user вже існує. Видаліть її командою: groupdel $user або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
+        return 1
+    fi
+
+    # Додаткові перевірки для універсальної підтримки різних систем Linux
+    if id "$user" &> /dev/null; then
+        print_color_message 255 0 0 "Користувач $user існує в системі (перевірено через id). Неможливо створити користувача в HestiaCP."
+        return 1
+    fi
+
+    if grep -qw "^$user:" /etc/group; then
+        print_color_message 255 255 0 "Група $user знайдена у /etc/group. Видаліть її командою: groupdel $user або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
+        return 1
+    fi
+
+    # Створення нового користувача через HestiaCP CLI
+    print_color_message 255 255 0 "Користувач $user не знайдений. Створюємо користувача..."
+    if ! $CLI_dir/v-add-user "$user" "$(generate_random_part_16)" "$user@example.com" "default" "en"; then
+        print_color_message 255 0 0 "Помилка створення користувача $user в HestiaCP."
+        return 1
+    fi
+
+    print_color_message 0 255 0 "Користувача $user успішно створено в HestiaCP."
+    return 0
 }
 
 
@@ -984,6 +1008,71 @@ install_ssl() {
     return 0
 }
 
+config_cms() {
+    local domain="$1"
+    local web_root="/home/$REMOTE_CONTROL_PANEL_USER/web/$domain/public_html"
+
+    if [[ ! -d "$web_root" ]]; then
+        print_color_message 255 0 0 "Каталог $web_root не існує для $domain. Пропускаємо."
+        return 1
+    fi
+
+    # Перевірка CMS
+    case true in
+        # Перевірка WordPress
+        $(grep -q "wp-config.php" "$web_root/wp-config.php" 2>/dev/null))
+            print_color_message 0 255 255 "Виявлено WordPress для $domain."
+            config_wordpress "$domain"
+            ;;
+        # Перевірка Joomla
+        $(grep -q "JVERSION" "$web_root/includes/version.php" 2>/dev/null))
+            print_color_message 0 255 255 "Виявлено Joomla для $domain."
+            # Логіка для Joomla
+            ;;
+        # Перевірка Drupal
+        $(grep -q "\$settings" "$web_root/sites/default/settings.php" 2>/dev/null))
+            print_color_message 0 255 255 "Виявлено Drupal для $domain."
+            # Логіка для Drupal
+            ;;
+        # Перевірка OpenCart
+        $(grep -q "define\('VERSION'" "$web_root/index.php" 2>/dev/null && grep -q "system/startup.php" "$web_root/config.php" 2>/dev/null))
+            print_color_message 0 255 255 "Виявлено OpenCart для $domain."
+            # Логіка для OpenCart
+            ;;
+        # Інша CMS або відсутність CMS
+        *)
+            print_color_message 255 255 0 "Не вдалося визначити CMS для $domain."
+            ;;
+    esac
+}
+
+# Застосування бази даних для WordPress
+config_wordpress() {
+    local domain="$1"
+    local wp_config="/home/$REMOTE_CONTROL_PANEL_USER/web/$domain/public_html/wp-config.php"
+
+    # Перевірка наявності файлу wp-config.php
+    if [[ ! -f "$wp_config" ]]; then
+        print_color_message 255 255 0 "Файл wp-config.php не знайдено для $domain. Пропускаємо обробку бази даних."
+        return 1
+    fi
+
+    # Витяг параметрів бази даних
+    local db_name=$(grep -oP "define\( 'DB_NAME', '\K[^']+" "$wp_config")
+    local db_user=$(grep -oP "define\( 'DB_USER', '\K[^']+" "$wp_config")
+    local db_password=$(grep -oP "define\( 'DB_PASSWORD', '\K[^']+" "$wp_config")
+
+    # Перевірка знайдених параметрів
+    if [[ -n "$db_name" && -n "$db_user" && -n "$db_password" ]]; then
+        print_color_message 0 255 0 "База даних $db_name з користувачем $db_user успішно знайдена для $domain."
+        # Тут можна додати додаткову логіку, наприклад, перевірку підключення до бази даних
+        return 0
+    else
+        print_color_message 255 255 0 "Не вдалося знайти або прочитати параметри бази даних у $wp_config для $domain."
+        return 1
+    fi
+}
+
 # Функція переносу файлів сайту
 sync_files() {
     local domain="$1"
@@ -1041,7 +1130,9 @@ transfer_domains() {
         install_ssl "$domain"
 
         sync_files "$domain"
-        
+
+        config_cms "$domain"
+
     done
 }
 
