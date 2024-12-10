@@ -5,23 +5,6 @@ function check_and_install_dependencies() {
     local dependencies=("$@")  # Приймаємо пакети як аргументи
     local missing_packages=()    # Масив для зберігання відсутніх пакетів
 
-    # Перевірка операційної системи
-    if [[ -e /etc/os-release ]]; then
-        source /etc/os-release
-        case "$ID" in
-            debian | ubuntu | fedora | centos | oracle | arch | sysrescue | almalinux)
-                operating_system="$ID"
-                ;;
-            *)
-                echo -e "${RED}${MSG_ERROR_INFO_UNSUPPORTED_OS}$ID${RESET}"
-                exit 1
-                ;;
-        esac
-    else
-        echo -e "${RED}${MSG_ERROR_OS_DETECTION_FAILED}${RESET}"
-        exit 1
-    fi
-
     # Перевіряємо кожну залежність
     for dependency in "${dependencies[@]}"; do
         # Отримуємо команду і назву пакета
@@ -193,7 +176,7 @@ function check_docker_availability() {
         if [[ "$install_docker" =~ ^(yes|Yes|y|Y)$ ]]; then
             echo -e "${YELLOW}${MSG_INSTALLING_DOCKER}${RESET}"
             "$local_temp_curl_path" -fsSL https://get.docker.com | sh
-            sudo usermod -aG docker "$(whoami)"
+            usermod -aG docker "$(whoami)"
         else
             echo -e "\n${RED}${MSG_DOCKER_INSTALLATION_CANCELED}${RESET}"
             return 1
@@ -205,7 +188,7 @@ function check_docker_availability() {
     # Перевіряємо, чи Docker запущений
     if [ "$docker_status" != "active" ]; then
         echo -e "\n${RED}${MSG_DOCKER_NOT_STARTED}${RESET}"
-        if sudo systemctl start docker; then
+        if systemctl start docker; then
             echo "${MSG_DOCKER_START_SUCCESS}"
         else
             echo "${MSG_DOCKER_START_FAILED}"

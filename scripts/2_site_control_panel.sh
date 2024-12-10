@@ -889,7 +889,7 @@ check_tools() {
     done
 }
 
-# Функція для підключення до віддаленого сервера sshpass -p "XXXX" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@xx.xxx.xx.xxx "/usr/local/hestia/bin/v-list-web-domain admin domen.com json" | jq -r '."'$domain'"."BACKEND"'
+# Функція для підключення до віддаленого сервера sshpass -p "XXXX" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 user@xx.xxx.xx.xxx "/usr/local/hestia/bin/v-list-web-domain admin domain.com json" | jq -r '."'$domain'"."BACKEND"'
 remote_ssh_command() {
     sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 $REMOTE_ROOT_USER@$REMOTE_SERVER "$1"
 }
@@ -1210,9 +1210,7 @@ select_user() {
     else
         return
     fi
-
-    VerPHP="PHP-8_2"
-
+    
     # Виконуємо основні функції скрипта
     check_or_create_user "$REMOTE_CONTROL_PANEL_USER"
     transfer_domains

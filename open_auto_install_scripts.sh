@@ -11,6 +11,23 @@ WHITE="\e[37m"
 BROWN='\033[0;33m'
 RESET="\e[0m"
 
+# Перевірка операційної системи
+if [[ -e /etc/os-release ]]; then
+    source /etc/os-release
+    case "$ID" in
+        debian | ubuntu | fedora | centos | oracle | rocky | arch | sysrescue | almalinux)
+            operating_system="$ID"
+            ;;
+        *)
+            echo -e "${RED}${MSG_ERROR_INFO_UNSUPPORTED_OS}$ID${RESET}"
+            exit 1
+            ;;
+    esac
+else
+    echo -e "${RED}${MSG_ERROR_OS_DETECTION_FAILED}${RESET}"
+    exit 1
+fi
+
 # Функція для вибору мови
 function select_language() {
     clear
