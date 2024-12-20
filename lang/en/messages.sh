@@ -379,14 +379,17 @@ MSG_PACKAGE_INSTALL_MANUAL_PROMPT="Please try installing it manually."
 # function generate_random_password_show
 MSG_GENERATED_RANDOM_PASSWORD="Generated random password:"
 
-# function generate_random_password_show
+# function check_docker_availability
 MSG_DOCKER_NOT_INSTALLED_THIS="Docker is not installed on this system."
 MSG_PROMPT_INSTALL_DOCKER="Do you want to install Docker? (y/n): "
-MSG_INSTALLING_DOCKER="Installing Docker..."
+MSG_INSTALLING_DOCKER="Installing Docker... Please wait."
+MSG_DOCKER_INSTALLATION_FAILED="Error: Docker installation failed. Please try installing it manually and run the script again..."
+MSG_DOCKER_INSTALLATION_SUCCESS="Docker installed successfully."
+MSG_DOCKER_ADD_GROUP_FAILED="Error: Failed to add the current user to the Docker group."
 MSG_DOCKER_INSTALLATION_CANCELED="Docker installation canceled."
 MSG_DOCKER_NOT_STARTED="Docker is not running. Starting Docker..."
-MSG_DOCKER_START_SUCCESS="Command 'sudo systemctl start docker' executed successfully."
-MSG_DOCKER_START_FAILED="Error: Unable to execute 'sudo systemctl start docker'."
+MSG_DOCKER_START_SUCCESS="Docker started successfully."
+MSG_DOCKER_START_FAILED="Error: Unable to start Docker."
 MSG_DOCKER_ALREADY_AUTOSTART="Docker is already enabled in autostart."
 MSG_DOCKER_ADDED_AUTOSTART="Docker has been successfully added to autostart."
 MSG_DOCKER_FAILED_AUTOSTART="Error: Docker was not added to autostart."

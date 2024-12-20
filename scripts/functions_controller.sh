@@ -168,51 +168,59 @@ generate_random_password() {
     rand_password=$(openssl rand -base64 12)
 }
 
+function install_docker() {
+    echo -e "${YELLOW}${MSG_INSTALLING_DOCKER}${RESET}"
+    if curl -fsSL https://get.docker.com | sh &>/dev/null; then
+        echo -e "${GREEN}${MSG_DOCKER_INSTALLATION_SUCCESS}${RESET}"
+        if ! sudo usermod -aG docker "$(whoami)" &>/dev/null; then
+            echo -e "${RED}${MSG_DOCKER_ADD_GROUP_FAILED}${RESET}"
+            return 1
+        fi
+    else
+        echo -e "${RED}${MSG_DOCKER_INSTALLATION_FAILED}${RESET}"
+        return 1
+    fi
+}
+
 function check_docker_availability() {
-    # Перевіряємо, чи встановлений Docker
+    # Перевірка наявності Docker
     if ! command -v docker &>/dev/null; then
         echo -e "\n${RED}${MSG_DOCKER_NOT_INSTALLED_THIS}${RESET}"
-        read -p "${MSG_PROMPT_INSTALL_DOCKER}" install_docker
-        if [[ "$install_docker" =~ ^(yes|Yes|y|Y)$ ]]; then
-            echo -e "${YELLOW}${MSG_INSTALLING_DOCKER}${RESET}"
-            "$local_temp_curl_path" -fsSL https://get.docker.com | sh
-            usermod -aG docker "$(whoami)"
+        read -p "${MSG_PROMPT_INSTALL_DOCKER}" install_docker_prompt
+        if [[ "$install_docker_prompt" =~ ^(yes|Yes|y|Y)$ ]]; then
+            install_docker
         else
             echo -e "\n${RED}${MSG_DOCKER_INSTALLATION_CANCELED}${RESET}"
             return 1
         fi
     fi
 
-    local docker_status=$(systemctl is-active docker)
-    local active_status=""
-    # Перевіряємо, чи Docker запущений
-    if [ "$docker_status" != "active" ]; then
+    # Перевірка статусу Docker
+    if ! systemctl is-active --quiet docker; then
         echo -e "\n${RED}${MSG_DOCKER_NOT_STARTED}${RESET}"
-        if systemctl start docker; then
-            echo "${MSG_DOCKER_START_SUCCESS}"
+        if sudo systemctl start docker; then
+            echo -e "${GREEN}${MSG_DOCKER_START_SUCCESS}${RESET}"
         else
-            echo "${MSG_DOCKER_START_FAILED}"
+            echo -e "${RED}${MSG_DOCKER_START_FAILED}${RESET}"
             return 1
         fi
-        active_status=$(systemctl status docker | grep "Active:")
-    else
-        active_status=$(systemctl status docker | grep "Active:")
     fi
 
-    # Перевіряємо, чи Docker доданий до автозапуску
-    if systemctl is-enabled docker &>/dev/null; then
-        echo -e "\n${YELLOW}${MSG_DOCKER_ALREADY_AUTOSTART}${RESET}"
-    else
-        systemctl enable docker
-        if systemctl is-enabled docker &>/dev/null; then
+    # Автозапуск Docker
+    if ! systemctl is-enabled --quiet docker; then
+        sudo systemctl enable docker
+        if systemctl is-enabled --quiet docker; then
             echo -e "\n${GREEN}${MSG_DOCKER_ADDED_AUTOSTART}${RESET}"
         else
             echo -e "\n${RED}${MSG_DOCKER_FAILED_AUTOSTART}${RESET}"
         fi
+    else
+        echo -e "\n${YELLOW}${MSG_DOCKER_ALREADY_AUTOSTART}${RESET}"
     fi
 
-    echo -e "\n${YELLOW}${MSG_DOCKER_STATUS}${RESET}\n${GREEN}$active_status${RESET}"
-    return 0
+    # Виведення статусу Docker
+    echo -e "\n${YELLOW}${MSG_DOCKER_STATUS}${RESET}"
+    echo -e "${GREEN}$(systemctl status docker | grep "Active:")${RESET}"
 }
 
 function create_folder() {

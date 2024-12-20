@@ -379,17 +379,21 @@ MSG_PACKAGE_INSTALL_MANUAL_PROMPT="Будь ласка, спробуйте вс�
 MSG_GENERATED_RANDOM_PASSWORD="Сгенерований випадковий пароль:"
 
 # function check_docker_availability
-MSG_DOCKER_NOT_INSTALLED_THIS="Docker не встановлений в цій системі."
-MSG_PROMPT_INSTALL_DOCKER="Бажаєте встановити Docker? (y/n): "
-MSG_INSTALLING_DOCKER="Встановлюю Docker..."
+MSG_DOCKER_NOT_INSTALLED_THIS="Docker не встановлено на цій системі."
+MSG_PROMPT_INSTALL_DOCKER="Ви хочете встановити Docker? (y/n): "
+MSG_INSTALLING_DOCKER="Встановлення Docker... Будь ласка, зачекайте."
+MSG_DOCKER_INSTALLATION_FAILED="Помилка: Встановлення Docker не вдалося. Спробуйте встановити його вручнуму режимі та повторити виконня скрипта..."
+MSG_DOCKER_INSTALLATION_SUCCESS="Docker успішно встановлено."
+MSG_DOCKER_ADD_GROUP_FAILED="Помилка: Не вдалося додати поточного користувача до групи Docker."
 MSG_DOCKER_INSTALLATION_CANCELED="Встановлення Docker скасовано."
 MSG_DOCKER_NOT_STARTED="Docker не запущено. Запуск Docker..."
-MSG_DOCKER_START_SUCCESS="Команда 'sudo systemctl start docker' виконана успішно."
-MSG_DOCKER_START_FAILED="Помилка: Не вдалося виконати 'sudo systemctl start docker'."
-MSG_DOCKER_ALREADY_AUTOSTART="Docker вже включений в автозапуск."
-MSG_DOCKER_ADDED_AUTOSTART="Docker успішно додано в автозапуск."
-MSG_DOCKER_FAILED_AUTOSTART="Помилка: Docker не було додано в автозапуск."
+MSG_DOCKER_START_SUCCESS="Docker успішно запущено."
+MSG_DOCKER_START_FAILED="Помилка: Не вдалося запустити Docker."
+MSG_DOCKER_ALREADY_AUTOSTART="Docker вже додано до автозавантаження."
+MSG_DOCKER_ADDED_AUTOSTART="Docker успішно додано до автозавантаження."
+MSG_DOCKER_FAILED_AUTOSTART="Помилка: Docker не було додано до автозавантаження."
 MSG_DOCKER_STATUS="Статус Docker:"
+
 
 # function create_folder
 MSG_FOLDER_ALREADY_EXISTS="Папка вже існує"
