@@ -877,91 +877,95 @@ check_or_create_user() {
 
     # Перевірка наявності користувача в системі HestiaCP
     if $CLI_dir/v-list-users | grep -qw "^$user" 2>/dev/null; then
-        print_color_message 0 255 0 "Користувач $user вже існує в HestiaCP."
+        log_success "Користувач $(print_color_message 0 255 255 "$user") вже існує в HestiaCP."
+        echo -e "$SUCCESSFUL_OPERATIONS"
         return 1
     fi
 
     # Перевірка наявності користувача в системі
     if getent passwd "$user" > /dev/null; then
-        print_color_message 255 0 0 "Системний користувач $user вже існує. Неможливо створити користувача в HestiaCP."
+        log_failure "Системний користувач $user вже існує. Неможливо створити користувача в HestiaCP."
+        echo -e "$FAILED_OPERATIONS"
         return 1
     fi
 
     # Перевірка, чи існує група з таким ім'ям
     if getent group "$user" > /dev/null; then
-        print_color_message 255 255 0 "Група $user вже існує. Видаліть її командою: groupdel $user або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
+        log_failure "Група $user вже існує. Видаліть її командою: groupdel $user або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
+        echo -e "$FAILED_OPERATIONS"
         return 1
     fi
 
     # Додаткові перевірки для універсальної підтримки різних систем Linux
     if id "$user" &> /dev/null; then
-        print_color_message 255 0 0 "Користувач $user існує в системі (перевірено через id). Неможливо створити користувача в HestiaCP."
+        log_failure "Користувач $user існує в системі (перевірено через id). Неможливо створити користувача в HestiaCP."
+        echo -e "$FAILED_OPERATIONS"
         return 1
     fi
 
     if grep -qw "^$user:" /etc/group; then
-        print_color_message 255 255 0 "Група $user знайдена у /etc/group. Видаліть її командою: groupdel $user або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
+        log_failure "Група $user знайдена у /etc/group. Видаліть її командою: groupdel $user або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
+        echo -e "$FAILED_OPERATIONS"
         return 1
     fi
 
     # Створення нового користувача через HestiaCP CLI
-    print_color_message 255 255 0 "Користувач $user не знайдений. Створюємо користувача..."
-    if ! $CLI_dir/v-add-user "$user" "$(generate_random_part 16)" "example@$user.tld" "default" "en"; then
-        print_color_message 255 0 0 "Помилка створення користувача $user в HestiaCP."
+    if $CLI_dir/v-add-user "$user" "$(generate_random_part 16)" "example@$user.tld" "default" "en"; then
+        log_success "Користувача $user успішно створено в HestiaCP."
+        echo -e "$SUCCESSFUL_OPERATIONS"
+        return 0
+    else
+        log_failure "Помилка створення користувача $user в HestiaCP. \n"
         return 1
+        echo -e "$FAILED_OPERATIONS"
     fi
-
-    print_color_message 0 255 0 "Користувача $user успішно створено в HestiaCP."
-    return 0
 }
 
 # Функція додавання домену
 add_web_domain() {
     local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
     local LOCAL_DOMAIN="$2"
-    
+
     # Перевірка наявності домену та змінної LOCAL_REMOTE_CONTROL_PANEL_USER
     if [[ -z "$LOCAL_DOMAIN" || -z "$LOCAL_REMOTE_CONTROL_PANEL_USER" ]]; then
-        print_color_message 255 0 0 "Помилка: Домен або користувач не вказані."
+        log_all "$(print_color_message 255 0 0 "Помилка: Домен або користувач не вказані.")"
+        echo -e "$ALL_OPERATIONS"
         return 1
     fi
 
     # Перевірка наявності CLI інструменту
     if ! command -v $CLI_dir/v-list-web-domains &>/dev/null; then
-        print_color_message 255 0 0 "Помилка: CLI інструмент HestiaCP не знайдено."
+        log_all "$(print_color_message 255 0 0 "Помилка: CLI інструмент HestiaCP не знайдено.")"
+        echo -e "$ALL_OPERATIONS"
         return 1
     fi
 
     # Перевірка наявності домену
     if $CLI_dir/v-list-web-domains $LOCAL_REMOTE_CONTROL_PANEL_USER | grep -E "^\s*$LOCAL_DOMAIN\s" &>/dev/null; then
-        print_color_message 255 0 0 "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") вже існує, пропускаємо..."
+        log_all "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") вже існує, пропускаємо..."
+        echo -e "$ALL_OPERATIONS"
         return 1
     fi
 
 
     # Додаємо веб-домен
-    print_color_message 255 255 0 "Обробка домену: $(print_color_message 0 255 255 "$LOCAL_DOMAIN")"
+    log_all "Обробка домену: $(print_color_message 0 255 255 "$LOCAL_DOMAIN") ... "
     
     # Додавання домену та видалення стандартних файлів
     if $CLI_dir/v-add-web-domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"; then
-        print_color_message 0 255 0 "Домен $LOCAL_DOMAIN успішно додано для користувача $LOCAL_REMOTE_CONTROL_PANEL_USER."
-
+        log_all "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно додано для користувача $(print_color_message 0 255 255 "$LOCAL_REMOTE_CONTROL_PANEL_USER"). "
         # Видалення стандартних файлів
         local local_web_root="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html"
         if [[ -d "$local_web_root" ]]; then
             rm -f "$local_web_root/index.html" &>/dev/null
             rm -f "$local_web_root/robots.txt" &>/dev/null
         fi
+        return 0
     else
-        print_color_message 255 0 0 "Не вдалося додати домен $LOCAL_DOMAIN для користувача $LOCAL_REMOTE_CONTROL_PANEL_USER."
-    fi
-
-    if [ $? -ne 0 ]; then
-        print_color_message 255 0 0 "Помилка додавання домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
+        log_all "Не вдалося додати домен $LOCAL_DOMAIN для користувача $LOCAL_REMOTE_CONTROL_PANEL_USER."
+        echo -e "$ALL_OPERATIONS"
         return 1
     fi
-    print_color_message 0 255 0 "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно додано."
-    return 0
 }
 
 # Функція встановлення SSL сертифікату
@@ -969,21 +973,24 @@ install_ssl() {
     local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
     local LOCAL_DOMAIN="$2"
     local ssl_dir="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/ssl"
+    ALL_OPERATIONS=""
 
     # Перевірка наявності домену та змінної LOCAL_REMOTE_CONTROL_PANEL_USER
     if [[ -z "$LOCAL_DOMAIN" || -z "$LOCAL_REMOTE_CONTROL_PANEL_USER" ]]; then
-        print_color_message 255 0 0 "Помилка: Домен або користувач не вказані."
+        log_all "Помилка: Домен або користувач не вказані."
+        echo -e "$ALL_OPERATIONS"
         return 1
     fi
 
     # Створення директорії SSL
-    create_folder "$ssl_dir"
+    create_folder "$ssl_dir" &>/dev/null
 
     # Генерація SSL сертифікату
     if ! openssl req -new -newkey rsa:4096 -sha256 -days 825 -nodes -x509 \
             -subj "/C=NL/ST=North Holland/L=Amsterdam/O=SecureNet Inc./CN=$LOCAL_DOMAIN" \
             -keyout "$ssl_dir/$LOCAL_DOMAIN.key" -out "$ssl_dir/$LOCAL_DOMAIN.crt" &>/dev/null; then
-        print_color_message 255 0 0 "Помилка генерації SSL сертифікату для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
+        log_all "Помилка генерації SSL сертифікату для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
+        echo -e "$ALL_OPERATIONS"
         return 1
     fi
 
@@ -992,10 +999,12 @@ install_ssl() {
     
     # Додавання SSL до домену
     if ! $CLI_dir/v-add-web-domain-ssl $LOCAL_REMOTE_CONTROL_PANEL_USER $LOCAL_DOMAIN $ssl_dir; then
-        print_color_message 255 0 0 "Помилка додавання SSL до домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
+        log_all "Помилка додавання SSL до домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
+        echo -e "$ALL_OPERATIONS"
         return 1
     fi
-    print_color_message 0 255 0 "SSL сертифікат успішно встановлено для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
+    log_all "Самопідписаний SSL сертифікат успішно встановлено для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
+    echo -e "$ALL_OPERATIONS"
     return 0
 }
 
@@ -1008,9 +1017,11 @@ config_web_domain() {
     template_php_version=$(echo $template_web | jq -r '."'$LOCAL_DOMAIN'"."BACKEND"')
 
     if $CLI_dir/v-change-web-domain-backend-tpl $LOCAL_REMOTE_CONTROL_PANEL_USER $LOCAL_DOMAIN $template_php_version; then
-        print_color_message 0 255 0 "Зміни backend для $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно застосовано."
+        log_all "Зміни backend для $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно застосовано."
+        echo -e "$ALL_OPERATIONS"
     else
-        print_color_message 255 0 0 "Помилка зміни backend шаблону для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
+        log_all "Помилка зміни backend шаблону для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
+        echo -e "$ALL_OPERATIONS"
     fi
 }
 
@@ -1140,8 +1151,9 @@ transfer_domains() {
     local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
     local LOCAL_DOMAINS=$(remote_ssh_command "ls -1 /home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/")
     # Цикл обробки доменів
-    for LOCAL_DOMAIN in $LOCAL_DOMAINS; do 
-
+    for LOCAL_DOMAIN in $LOCAL_DOMAINS; do
+        ALL_OPERATIONS=""
+        
         if ! add_web_domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"; then
             continue
         fi
@@ -1159,13 +1171,15 @@ transfer_domains() {
 
 loop_migrate_hestia_vesta() {
     local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
-    print_color_message 255 255 0 "Розпочато перенесення для користувача: $LOCAL_REMOTE_CONTROL_PANEL_USER"
+    SUCCESSFUL_OPERATIONS=""
+    FAILED_OPERATIONS=""
+    log_success "\n\nРозпочато перенесення для користувача: $(print_color_message 0 255 255 "$LOCAL_REMOTE_CONTROL_PANEL_USER"). Обробка... "
     
     # Виконуємо основні функції перенесення
     check_or_create_user "$LOCAL_REMOTE_CONTROL_PANEL_USER"
     transfer_databases "$LOCAL_REMOTE_CONTROL_PANEL_USER"
     transfer_domains "$LOCAL_REMOTE_CONTROL_PANEL_USER"
-    print_color_message 0 255 0 "Перенесення для користувача $LOCAL_REMOTE_CONTROL_PANEL_USER завершено успішно."
+    echo -e "Обробка користувача: $(print_color_message 0 255 255 "$LOCAL_REMOTE_CONTROL_PANEL_USER") завершена$(print_color_message 255 0 0 "!!!")"
 }
 
 # Виводимо меню вибору користувача 

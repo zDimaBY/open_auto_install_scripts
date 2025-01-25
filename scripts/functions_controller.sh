@@ -1,6 +1,30 @@
 #!/bin/bash -n
 # shellcheck disable=SC2148,SC2154
 # Функція для перевірки та встановлення пакетів
+
+# Функція для додавання результатів в змінні
+log_success() {
+    SUCCESSFUL_OPERATIONS+="$1"
+}
+
+log_failure() {
+    FAILED_OPERATIONS+="$1"
+}
+
+log_all() {
+    ALL_OPERATIONS+="$1"
+}
+
+# Функція для виведення результатів після виконання всіх операцій
+output_results() {
+    echo -e "\nРезультати операцій:"
+    echo -e "\nУспішні операції:"
+    echo -e "$SUCCESSFUL_OPERATIONS"
+
+    echo -e "\nНевдалі операції:"
+    echo -e "$FAILED_OPERATIONS"
+}
+
 function check_and_install_dependencies() {
     local dependencies=("$@")  # Приймаємо пакети як аргументи
     local missing_packages=()    # Масив для зберігання відсутніх пакетів
