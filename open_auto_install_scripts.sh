@@ -11,11 +11,11 @@ WHITE="\e[37m"
 BROWN='\033[0;33m'
 RESET="\e[0m"
 
-# Перевірка операційної системи
+# Перевірка операційної системи debian | ubuntu | fedora | centos | oracle | rocky | arch | sysrescue | almalinux
 if [[ -e /etc/os-release ]]; then
     source /etc/os-release
     case "$ID" in
-        debian | ubuntu | fedora | centos | oracle | rocky | arch | sysrescue | almalinux)
+        debian | ubuntu | centos | rocky | arch | sysrescue | almalinux)
             operating_system="$ID"
             ;;
         *)

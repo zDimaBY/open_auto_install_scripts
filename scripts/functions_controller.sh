@@ -862,6 +862,24 @@ function download_latest_tool() {
     # Завантажуємо бінарний файл
     curl -sL "https://github.com/$REPO/releases/download/${latest_version}/${TOOL_BINARY}" -o "$local_temp_tool"
     chmod +x "$local_temp_tool"
+
+    # Якщо local_temp_tool є директорією, перевіряємо ліміти запитів до GitHub і виходимо зі скрипта
+    if [ -d "$local_temp_tool" ]; then
+        # Перевіряємо ліміти запитів до GitHub
+        local rate_limit_info=$(curl -sI "https://api.github.com/rate_limit")
+        local remaining_requests=$(echo "$rate_limit_info" | grep -i "X-RateLimit-Remaining" | awk '{print $2}' | tr -d '\r')
+
+        if [ "$remaining_requests" -le 0 ]; then
+            echo "Ліміт запитів до GitHub API перевищено. Завершення роботи скрипта."
+            echo "Запити до GitHub API: $remaining_requests залишилось."
+            exit 1
+        fi
+        
+        # Виходимо зі скрипта, якщо $local_temp_tool є директорією
+        echo "$local_temp_tool є директорією. Завершення скрипта."
+        exit 0
+    fi
+
     echo "$local_temp_tool"  # Повертаємо тільки шлях до бінарного файлу
 }
 
