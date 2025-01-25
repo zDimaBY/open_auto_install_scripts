@@ -151,7 +151,7 @@ install_3x_ui() {
     X_UI_USERNAME="admin"  # Встановіть нове ім'я користувача
     X_UI_PASSWORD=${X_UI_PASSWORD:-$rand_password}  # Встановіть новий пароль
     X_UI_PORT=$(find_random_free_port 1024 65535)  # Встановіть новий порт
-    X_UI_WEB_BASE_PATH="$(trim_to_10 "$(generate_random_part_16)")"  # Встановіть новий webBasePath
+    X_UI_WEB_BASE_PATH="$(generate_random_part 10)"  # Встановіть новий webBasePath
 
     create_folder "/root/VPN/$name_docker_container/db/" && create_folder "/root/VPN/$name_docker_container/cert/"
         
@@ -251,7 +251,7 @@ install_x_ui() {
     X_UI_USERNAME="admin"  # Встановіть нове ім'я користувача
     X_UI_PASSWORD=${X_UI_PASSWORD:-$rand_password}  # Встановіть новий пароль
     X_UI_PORT=$(find_random_free_port 1024 65535)  # Встановіть новий порт
-    X_UI_WEB_BASE_PATH="$(trim_to_10 "$(generate_random_part_16)")"  # Встановіть новий webBasePath
+    X_UI_WEB_BASE_PATH="$(generate_random_part 10)"  # Встановіть новий webBasePath
 
     create_folder "/root/VPN/$name_docker_container/db/" && create_folder "/root/VPN/$name_docker_container/cert/"
     

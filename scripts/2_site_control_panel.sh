@@ -644,16 +644,16 @@ deleting_old_admin_user() {
         print_color_message 255 255 255 "Самопідписаний SSL сертифікат для $WP_SITE_DOMEN створено та додано до $control_panel_install."
     fi
 
-    SITE_PASSWORD=$(generate_random_part_16)
+    SITE_PASSWORD=$(generate_random_part 16)
     SITE_ADMIN_MAIL="admin@$WP_SITE_DOMEN"
 
     WORDPRESS_URL="https://wordpress.org/latest.tar.gz"
     WP_USER="$CONTROLPANEL_USER"
-    DB_NAME="w$(generate_random_part_16)"
+    DB_NAME="w$(generate_random_part 16)"
     DB_NAME=$(trim_to_10 "$DB_NAME")
-    DB_USER="w$(generate_random_part_16)"
+    DB_USER="w$(generate_random_part 16)"
     DB_USER=$(trim_to_10 "$DB_USER")
-    DB_PASSWORD="wp_p_$(generate_random_part_16)"
+    DB_PASSWORD="wp_p_$(generate_random_part 16)"
     DB_PASSWORD=$(trim_to_16 "$DB_PASSWORD")
 
     if [ ! -d "$WEB_PUBLIC_DIR" ]; then
@@ -906,7 +906,7 @@ check_or_create_user() {
 
     # Створення нового користувача через HestiaCP CLI
     print_color_message 255 255 0 "Користувач $user не знайдений. Створюємо користувача..."
-    if ! $CLI_dir/v-add-user "$user" "$(generate_random_part_16)" "example@$user.tld" "default" "en"; then
+    if ! $CLI_dir/v-add-user "$user" "$(generate_random_part 16)" "example@$user.tld" "default" "en"; then
         print_color_message 255 0 0 "Помилка створення користувача $user в HestiaCP."
         return 1
     fi
@@ -917,11 +917,11 @@ check_or_create_user() {
 
 # Функція додавання домену
 add_web_domain() {
-    local domain="$1"
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$2"
+    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local LOCAL_DOMAIN="$2"
     
     # Перевірка наявності домену та змінної LOCAL_REMOTE_CONTROL_PANEL_USER
-    if [[ -z "$domain" || -z "$LOCAL_REMOTE_CONTROL_PANEL_USER" ]]; then
+    if [[ -z "$LOCAL_DOMAIN" || -z "$LOCAL_REMOTE_CONTROL_PANEL_USER" ]]; then
         print_color_message 255 0 0 "Помилка: Домен або користувач не вказані."
         return 1
     fi
@@ -933,31 +933,45 @@ add_web_domain() {
     fi
 
     # Перевірка наявності домену
-    if $CLI_dir/v-list-web-domains $LOCAL_REMOTE_CONTROL_PANEL_USER | grep -E "^\s*$domain\s" &>/dev/null; then
-        print_color_message 255 0 0 "Домен $(print_color_message 0 255 255 "$domain") вже існує, пропускаємо..."
+    if $CLI_dir/v-list-web-domains $LOCAL_REMOTE_CONTROL_PANEL_USER | grep -E "^\s*$LOCAL_DOMAIN\s" &>/dev/null; then
+        print_color_message 255 0 0 "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") вже існує, пропускаємо..."
         return 1
     fi
 
 
     # Додаємо веб-домен
-    print_color_message 255 255 0 "Обробка домену: $(print_color_message 0 255 255 "$domain")"
-    $CLI_dir/v-add-web-domain $LOCAL_REMOTE_CONTROL_PANEL_USER $domain
+    print_color_message 255 255 0 "Обробка домену: $(print_color_message 0 255 255 "$LOCAL_DOMAIN")"
+    
+    # Додавання домену та видалення стандартних файлів
+    if $CLI_dir/v-add-web-domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"; then
+        print_color_message 0 255 0 "Домен $LOCAL_DOMAIN успішно додано для користувача $LOCAL_REMOTE_CONTROL_PANEL_USER."
+
+        # Видалення стандартних файлів
+        local local_web_root="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html"
+        if [[ -d "$local_web_root" ]]; then
+            rm -f "$local_web_root/index.html" &>/dev/null
+            rm -f "$local_web_root/robots.txt" &>/dev/null
+        fi
+    else
+        print_color_message 255 0 0 "Не вдалося додати домен $LOCAL_DOMAIN для користувача $LOCAL_REMOTE_CONTROL_PANEL_USER."
+    fi
+
     if [ $? -ne 0 ]; then
-        print_color_message 255 0 0 "Помилка додавання домену $(print_color_message 0 255 255 "$domain")."
+        print_color_message 255 0 0 "Помилка додавання домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
         return 1
     fi
-    print_color_message 0 255 0 "Домен $(print_color_message 0 255 255 "$domain") успішно додано."
+    print_color_message 0 255 0 "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно додано."
     return 0
 }
 
 # Функція встановлення SSL сертифікату
 install_ssl() {
-    local domain="$1"
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$2"
-    local ssl_dir="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$domain/ssl"
+    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local LOCAL_DOMAIN="$2"
+    local ssl_dir="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/ssl"
 
     # Перевірка наявності домену та змінної LOCAL_REMOTE_CONTROL_PANEL_USER
-    if [[ -z "$domain" || -z "$LOCAL_REMOTE_CONTROL_PANEL_USER" ]]; then
+    if [[ -z "$LOCAL_DOMAIN" || -z "$LOCAL_REMOTE_CONTROL_PANEL_USER" ]]; then
         print_color_message 255 0 0 "Помилка: Домен або користувач не вказані."
         return 1
     fi
@@ -967,120 +981,156 @@ install_ssl() {
 
     # Генерація SSL сертифікату
     if ! openssl req -new -newkey rsa:4096 -sha256 -days 825 -nodes -x509 \
-            -subj "/C=NL/ST=North Holland/L=Amsterdam/O=SecureNet Inc./CN=$domain" \
-            -keyout "$ssl_dir/$domain.key" -out "$ssl_dir/$domain.crt" &>/dev/null; then
-        print_color_message 255 0 0 "Помилка генерації SSL сертифікату для $(print_color_message 0 255 255 "$domain")."
+            -subj "/C=NL/ST=North Holland/L=Amsterdam/O=SecureNet Inc./CN=$LOCAL_DOMAIN" \
+            -keyout "$ssl_dir/$LOCAL_DOMAIN.key" -out "$ssl_dir/$LOCAL_DOMAIN.crt" &>/dev/null; then
+        print_color_message 255 0 0 "Помилка генерації SSL сертифікату для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
         return 1
     fi
-
 
     # Зміна прав доступу
     chown -R "$LOCAL_REMOTE_CONTROL_PANEL_USER:$LOCAL_REMOTE_CONTROL_PANEL_USER" "$ssl_dir"
     
     # Додавання SSL до домену
-    if ! $CLI_dir/v-add-web-domain-ssl $LOCAL_REMOTE_CONTROL_PANEL_USER $domain $ssl_dir; then
-        print_color_message 255 0 0 "Помилка додавання SSL до домену $(print_color_message 0 255 255 "$domain")."
+    if ! $CLI_dir/v-add-web-domain-ssl $LOCAL_REMOTE_CONTROL_PANEL_USER $LOCAL_DOMAIN $ssl_dir; then
+        print_color_message 255 0 0 "Помилка додавання SSL до домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
         return 1
     fi
-    print_color_message 0 255 0 "SSL сертифікат успішно встановлено для $(print_color_message 0 255 255 "$domain")."
+    print_color_message 0 255 0 "SSL сертифікат успішно встановлено для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
     return 0
+}
+
+config_web_domain() {
+    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local LOCAL_DOMAIN="$2"
+
+    template_web=$(remote_ssh_command "$CLI_dir/v-list-web-domain $LOCAL_REMOTE_CONTROL_PANEL_USER $LOCAL_DOMAIN json")
+
+    template_php_version=$(echo $template_web | jq -r '."'$LOCAL_DOMAIN'"."BACKEND"')
+
+    if $CLI_dir/v-change-web-domain-backend-tpl $LOCAL_REMOTE_CONTROL_PANEL_USER $LOCAL_DOMAIN $template_php_version; then
+        print_color_message 0 255 0 "Зміни backend для $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно застосовано."
+    else
+        print_color_message 255 0 0 "Помилка зміни backend шаблону для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
+    fi
 }
 
 # Функція переносу файлів сайту
 sync_files() {
-    local domain="$1"
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$2"
+    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local LOCAL_DOMAIN="$2"
 
-    if [[ -z "$domain" || -z "$LOCAL_REMOTE_CONTROL_PANEL_USER" || -z "$REMOTE_ROOT_USER" || -z "$REMOTE_SERVER" || -z "$PASSWORD_ROOT_USER" ]]; then
+    if [[ -z "$LOCAL_DOMAIN" || -z "$LOCAL_REMOTE_CONTROL_PANEL_USER" || -z "$REMOTE_ROOT_USER" || -z "$REMOTE_SERVER" || -z "$PASSWORD_ROOT_USER" ]]; then
         print_color_message 255 0 0 "Помилка: Відсутні необхідні змінні для переносу файлів."
         return 1
     fi
 
-    print_color_message 255 0 0 "Перенесення файлів сайту $(print_color_message 0 255 255 "$domain") за допомогою rsync..."
+    print_color_message 255 0 0 "Перенесення файлів сайту $(print_color_message 0 255 255 "$LOCAL_DOMAIN") за допомогою rsync..."
     if ! sshpass -p "$PASSWORD_ROOT_USER" rsync -azh --info=progress2 --stats -e "ssh -o StrictHostKeyChecking=no" \
-        "$REMOTE_ROOT_USER@$REMOTE_SERVER:/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$domain/public_html/" \
-        "/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$domain/public_html/"; then
-        print_color_message 255 0 0 "Помилка переносу файлів для домену $(print_color_message 0 255 255 "$domain")."
+        "$REMOTE_ROOT_USER@$REMOTE_SERVER:/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html/" \
+        "/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html/"; then
+        print_color_message 255 0 0 "Помилка переносу файлів для домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
         return 1
     fi
 
-    chown -R "$LOCAL_REMOTE_CONTROL_PANEL_USER:$LOCAL_REMOTE_CONTROL_PANEL_USER" "/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$domain/public_html"
-    print_color_message 0 255 0 "Файли для домену $(print_color_message 0 255 255 "$domain") успішно перенесені."
+    chown -R "$LOCAL_REMOTE_CONTROL_PANEL_USER:$LOCAL_REMOTE_CONTROL_PANEL_USER" "/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html"
+    print_color_message 0 255 0 "Файли для домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно перенесені."
     return 0
 }
 
 # Основна функція переносу баз даних sshpass -p "pass" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@xxx.xx.xxx.xx "mysql -uroot -B -e 'show databases;'" | grep -Ev "Database|sys|information_schema|mysql|performance_schema|phpmyadmin|roundcube"
 transfer_databases() {
     2_switch_prefix_for_VestaCP_HestiaCP
+
     local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
-    local databases=$(remote_ssh_command "mysql -h 127.0.0.1 -P 3306 -uroot -B -e 'show databases;'" | grep -Ev "Database|sys|information_schema|mysql|performance_schema|phpmyadmin|roundcube" | grep "$LOCAL_REMOTE_CONTROL_PANEL_USER")
-    
+    local databases
+
+    # Отримання списку баз даних
+    databases=$(remote_ssh_command "mysql -h 127.0.0.1 -P 3306 -uroot -B -e 'show databases;'" | \
+        grep -Ev "Database|sys|information_schema|mysql|performance_schema|phpmyadmin|roundcube" | \
+        grep "$LOCAL_REMOTE_CONTROL_PANEL_USER")
+
+    # Перебір баз даних
     for db in $databases; do
-        if mysql -u root -e "use $db;" 2>/dev/null; then
+        if mysql -uroot -e "USE $db;" 2>/dev/null; then
             print_color_message 255 255 0 "База даних $(print_color_message 0 255 255 "$db") вже існує, пропускаємо..."
-            return 0
+            continue
         else
             print_color_message 255 255 0 "Перенесення бази даних: $(print_color_message 0 255 255 "$db")"
-            $CLI_dir/v-add-database $LOCAL_REMOTE_CONTROL_PANEL_USER $db $db 'p@$$wOrd_q(AbnWP}6|H!3X))'
-            sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no $REMOTE_ROOT_USER@$REMOTE_SERVER "mysqldump  -h 127.0.0.1 -P 3306 -uroot $db" | mysql -uroot $db
+
+            # Додавання бази даних у панель керування
+            $CLI_dir/v-add-database "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$db" "$db" "$(generate_random_password 25)"
+
+            # Резервне потоковий імпорт бази даних
+            sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no "$REMOTE_ROOT_USER@$REMOTE_SERVER" \
+                "mysqldump -h 127.0.0.1 -P 3306 -uroot $db" | mysql -uroot "$db"
         fi
     done
+
     2_switch_prefix_for_VestaCP_HestiaCP
 }
 
 config_cms() {
-    local domain="$1"
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$2"
-    local web_root="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$domain/public_html"
+    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local LOCAL_DOMAIN="$2"
+    local web_root="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html"
 
     if [[ ! -d "$web_root" ]]; then
-        print_color_message 255 0 0 "Каталог $web_root не існує для $domain. Пропускаємо."
+        print_color_message 255 0 0 "Каталог $web_root не існує для $LOCAL_DOMAIN. Пропускаємо."
         return 1
     fi
 
     # Перевірка CMS
     if grep -q "DB_PASSWORD" "$web_root/wp-config.php" 2>/dev/null; then
-        print_color_message 0 255 255 "Виявлено WordPress для $domain."
-        config_wordpress "$domain" "$LOCAL_REMOTE_CONTROL_PANEL_USER"
+        print_color_message 0 255 255 "Виявлено WordPress для $LOCAL_DOMAIN."
+        config_wordpress "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
     elif grep -q "JVERSION" "$web_root/includes/version.php" 2>/dev/null; then
-        print_color_message 0 255 255 "Виявлено Joomla для $domain."
+        print_color_message 0 255 255 "Виявлено Joomla для $LOCAL_DOMAIN."
         # Логіка для Joomla
     elif grep -q "\$settings" "$web_root/sites/default/settings.php" 2>/dev/null; then
-        print_color_message 0 255 255 "Виявлено Drupal для $domain."
+        print_color_message 0 255 255 "Виявлено Drupal для $LOCAL_DOMAIN."
         # Логіка для Drupal
     elif grep -q "define('VERSION'" "$web_root/index.php" 2>/dev/null && grep -q "system/startup.php" "$web_root/config.php" 2>/dev/null; then
-        print_color_message 0 255 255 "Виявлено OpenCart для $domain."
+        print_color_message 0 255 255 "Виявлено OpenCart для $LOCAL_DOMAIN."
         # Логіка для OpenCart
+    elif grep -q "define('DATALIFEENGINE'" "$web_root/index.php" 2>/dev/null; then
+        print_color_message 0 255 255 "Виявлено DataLife Engine (DLE) для $LOCAL_DOMAIN."
+        # Логіка для DLE
     else
-        print_color_message 255 255 0 "Не вдалося визначити CMS для $domain."
+        print_color_message 255 255 0 "Не вдалося визначити CMS для $LOCAL_DOMAIN."
     fi
 }
 
 
-# Застосування бази даних для WordPress
+# Конфігурація бази даних для WordPress
 config_wordpress() {
-    local domain="$1"
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$2"
-    local wp_config="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$domain/public_html/wp-config.php"
+    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local LOCAL_DOMAIN="$2"
+    local LOCAL_WP_CONFIG="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html/wp-config.php"
 
     # Перевірка наявності файлу wp-config.php
-    if [[ ! -f "$wp_config" ]]; then
-        print_color_message 255 255 0 "Файл wp-config.php не знайдено для $domain. Пропускаємо обробку бази даних."
+    if [[ ! -f "$LOCAL_WP_CONFIG" ]]; then
+        print_color_message 255 255 0 "Файл wp-config.php не знайдено для $LOCAL_DOMAIN. Пропускаємо обробку бази даних."
         return 1
     fi
 
     # Витяг параметрів бази даних
-    local db_name=$(grep -oP "define\( 'DB_NAME', '\K[^']+" "$wp_config")
-    local db_user=$(grep -oP "define\( 'DB_USER', '\K[^']+" "$wp_config")
-    local db_password=$(grep -oP "define\( 'DB_PASSWORD', '\K[^']+" "$wp_config")
+    local local_db_name=$(grep -oP "define\(\s*'DB_NAME',\s*'\K[^']+" "$LOCAL_WP_CONFIG")
+    local local_db_user=$(grep -oP "define\(\s*'DB_USER',\s*'\K[^']+" "$LOCAL_WP_CONFIG")
+    local local_db_password=$(grep -oP "define\(\s*'DB_PASSWORD',\s*'\K[^']+" "$LOCAL_WP_CONFIG")
 
     # Перевірка знайдених параметрів
-    if [[ -n "$db_name" && -n "$db_user" && -n "$db_password" ]]; then
-        print_color_message 0 255 0 "База даних $db_name з користувачем $db_user успішно знайдена для $domain."
-        # Тут можна додати додаткову логіку, наприклад, перевірку підключення до бази даних
+    if [[ -n "$local_db_name" && -n "$local_db_user" && -n "$local_db_password" ]]; then
+        print_color_message 0 255 0 "База даних $local_db_name з користувачем $local_db_user успішно знайдена для $LOCAL_DOMAIN."
+        
+        # Оновлення даних бази в панелі керування
+        #for_change_local_db_name=$(echo "$local_db_name" | sed 's/^[^_]*_//')
+        for_change_local_db_user=$(echo "$local_db_user" | sed 's/^[^_]*_//')
+        v-change-database-user "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$local_db_name" "$for_change_local_db_user"
+        v-change-database-password "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$local_db_name" "$local_db_password"
+
         return 0
     else
-        print_color_message 255 255 0 "Не вдалося знайти або прочитати параметри бази даних у $wp_config для $domain."
+        print_color_message 255 255 0 "Не вдалося знайти або прочитати параметри бази даних у $LOCAL_WP_CONFIG для $LOCAL_DOMAIN."
         return 1
     fi
 }
@@ -1088,29 +1138,21 @@ config_wordpress() {
 # Основна функція переносу доменів
 transfer_domains() {
     local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
-    local domains=$(remote_ssh_command "ls -1 /home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/")
+    local LOCAL_DOMAINS=$(remote_ssh_command "ls -1 /home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/")
     # Цикл обробки доменів
-    for domain in $domains; do 
+    for LOCAL_DOMAIN in $LOCAL_DOMAINS; do 
 
-        if ! add_web_domain "$domain" "$LOCAL_REMOTE_CONTROL_PANEL_USER"; then
+        if ! add_web_domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"; then
             continue
         fi
 
-        template_web=$(remote_ssh_command "$CLI_dir/v-list-web-domain $LOCAL_REMOTE_CONTROL_PANEL_USER $domain json")
+        config_web_domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
 
-        template_php_version=$(echo $template_web | jq -r '."'$domain'"."BACKEND"')
+        install_ssl "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
 
-        if $CLI_dir/v-change-web-domain-backend-tpl $LOCAL_REMOTE_CONTROL_PANEL_USER $domain $template_php_version; then
-            print_color_message 0 255 0 "Зміни backend для $(print_color_message 0 255 255 "$domain") успішно застосовано."
-        else
-            print_color_message 255 0 0 "Помилка зміни backend шаблону для $(print_color_message 0 255 255 "$domain")."
-        fi
+        sync_files "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
 
-        install_ssl "$domain" "$LOCAL_REMOTE_CONTROL_PANEL_USER"
-
-        sync_files "$domain" "$LOCAL_REMOTE_CONTROL_PANEL_USER"
-
-        config_cms "$domain" "$LOCAL_REMOTE_CONTROL_PANEL_USER"
+        config_cms "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
 
     done
 }

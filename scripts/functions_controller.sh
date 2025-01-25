@@ -159,13 +159,32 @@ check_info_control_panel_for_functions() {
     return 1  # Повертає 1, якщо жодна панель не знайдена
 }
 
+# Функція для генерації випадкового пароля та виведення його на екран
 function generate_random_password_show() {
-    rand_password=$(openssl rand -base64 12)
+    local length=${1:-12} # Довжина пароля (за замовчуванням 12 символів)
+    rand_password=$(openssl rand -base64 $((length * 3 / 4)) | cut -c1-"$length")
     echo -e "\n${MSG_GENERATED_RANDOM_PASSWORD} ${RED}$rand_password${RESET}"
 }
 
-generate_random_password() {
-    rand_password=$(openssl rand -base64 12)
+# Функція для генерації випадкового пароля без виведення
+function generate_random_password() {
+    local length=${1:-12} # Довжина пароля (за замовчуванням 12 символів)
+    rand_password=$(openssl rand -base64 $((length * 3 / 4)) | cut -c1-"$length")
+}
+
+# Функція для генерації випадкових символів a-z заданої довжини
+function generate_random_part() {
+    local length=${1:-16} # Довжина пароля (за замовчуванням 16 символів)
+    echo "$(head /dev/urandom | tr -dc 'a-z' | head -c "$length")"
+}
+
+# Функція для обрізання строки до 16 символів
+function trim_to_16() {
+    echo "${1:0:16}"
+}
+
+function trim_to_10() {
+    echo "${1:0:10}"
 }
 
 function install_docker() {
@@ -573,21 +592,6 @@ function remove_firewall_rule() {
             return 1
         fi
     fi
-}
-
-
-# Генерація випадкових 16 символів
-generate_random_part_16() {
-    echo "$(head /dev/urandom | tr -dc 'a-z' | head -c 16)"
-}
-
-# Функція для обрізання строки до 16 символів
-trim_to_16() {
-    echo "${1:0:16}"
-}
-
-trim_to_10() {
-    echo "${1:0:10}"
 }
 
 # Функція для перевірки направлений домен на сервер check_domain "example.com"
