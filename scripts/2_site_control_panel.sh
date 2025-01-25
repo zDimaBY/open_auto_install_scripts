@@ -1053,15 +1053,28 @@ transfer_databases() {
     2_switch_prefix_for_VestaCP_HestiaCP
 
     local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
-    local databases
+    local LOCAL_REQUESTED_DATABASES
+    local LOCAL_DATABASES
 
-    # Отримання списку баз даних
-    databases=$(remote_ssh_command "mysql -h 127.0.0.1 -P 3306 -uroot -B -e 'show databases;'" | \
-        grep -Ev "Database|sys|information_schema|mysql|performance_schema|phpmyadmin|roundcube" | \
-        grep "$LOCAL_REMOTE_CONTROL_PANEL_USER")
+    # Отримання списку баз даних через віддалену команду
+    LOCAL_REQUESTED_DATABASES=$(remote_ssh_command "$CLI_dir/v-list-databases $LOCAL_REMOTE_CONTROL_PANEL_USER json")
+
+    # Перевірка, чи вивід не порожній і чи є валідним JSON
+    if [[ -n "$LOCAL_REQUESTED_DATABASES" && $(echo "$LOCAL_REQUESTED_DATABASES" | jq empty > /dev/null 2>&1; echo $?) -eq 0 ]]; then
+        # Отримання списку баз даних
+        LOCAL_DATABASES=$(echo "$LOCAL_REQUESTED_DATABASES" | jq -r 'keys[]')
+    else
+        echo "Помилка: Невалідний або порожній JSON у відповіді."
+        return 1
+    fi
 
     # Перебір баз даних
-    for db in $databases; do
+    for db in $LOCAL_DATABASES; do
+        # Отримання відповідного DBUSER для бази даних
+        local db_user
+        db_user=$(echo "$LOCAL_REQUESTED_DATABASES" | jq -r --arg db "$db" '.[$db].DBUSER')
+
+        # Перевірка, чи база даних вже існує локально
         if mysql -uroot -e "USE $db;" 2>/dev/null; then
             print_color_message 255 255 0 "База даних $(print_color_message 0 255 255 "$db") вже існує, пропускаємо..."
             continue
@@ -1069,9 +1082,9 @@ transfer_databases() {
             print_color_message 255 255 0 "Перенесення бази даних: $(print_color_message 0 255 255 "$db")"
 
             # Додавання бази даних у панель керування
-            $CLI_dir/v-add-database "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$db" "$db" "$(generate_random_password 25)"
+            $CLI_dir/v-add-database "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$db" "$db_user" "$(generate_random_password 25)"
 
-            # Резервне потоковий імпорт бази даних
+            # Резервне потокове перенесення бази даних
             sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no "$REMOTE_ROOT_USER@$REMOTE_SERVER" \
                 "mysqldump -h 127.0.0.1 -P 3306 -uroot $db" | mysql -uroot "$db"
         fi
@@ -1135,8 +1148,9 @@ config_wordpress() {
         
         # Оновлення даних бази в панелі керування
         #for_change_local_db_name=$(echo "$local_db_name" | sed 's/^[^_]*_//')
-        for_change_local_db_user=$(echo "$local_db_user" | sed 's/^[^_]*_//')
-        v-change-database-user "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$local_db_name" "$for_change_local_db_user"
+        #for_change_local_db_user=$(echo "$local_db_user" | sed 's/^[^_]*_//')
+        #v-change-database-user "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$local_db_name" "$for_change_local_db_user"
+        
         v-change-database-password "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$local_db_name" "$local_db_password"
 
         return 0
