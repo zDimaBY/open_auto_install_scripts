@@ -46,8 +46,8 @@ function 7_installRouterOSMikrotik() {
     read -p "Ви згодні, що система перезапише дані та виконає перезапуск? (y/n): " answer
     if [[ "$answer" =~ ^(yes|Yes|y|Y)$ ]]; then
         echo -e "${GREEN}Встановлення системи RouterOS... https://mikrotik.com/download${RESET}"
-        read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.14): " version_routeros
-        version_routeros=${version_routeros:-7.14}
+        read -p "Вкажіть версію для RouterOS (наприклад 7.5, 7.12. default: 7.17): " version_routeros
+        version_routeros=${version_routeros:-7.17}
     else
         echo -e "\n${RED}Встановлення RouterOS від MikroTik скасовано.${RESET}"
         return 1

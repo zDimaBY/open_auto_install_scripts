@@ -72,7 +72,7 @@ function 2_site_control_panel() {
         check_info_control_panel
         print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         echo -e "1. Встановлення ${RED}HestiaCP${RESET} ${RED}(test)${RESET}"
-        echo -e "2. Встановлення ${RED}ISPmanager${RESET} ${RED}(test)${RESET}"
+        echo -e "2. Встановлення ${RED}ISPsystems${RESET} ${RED}(test)${RESET}"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -121,48 +121,65 @@ function 2_site_control_panel() {
         exit 1
     }
 
-    echo "Скрипт для версії $SELECTED_VERSION_HESTIA завантажено як hst-install-ubuntu.sh"
-
     while true; do
         check_info_server
         check_info_control_panel
+        echo "Оберіть тип бази даних для HestiaCP $SELECTED_VERSION_HESTIA"
         print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
-        echo -e "1. Автоматичне встановлення ${RED}HestiaCP $SELECTED_VERSION_HESTIA${RESET} ${RED}(test)${RESET}"
-        echo -e "2. Вибіркове встановлення ${RED}HestiaCP $SELECTED_VERSION_HESTIA${RESET} ${RED}(test)${RESET}"
+        echo -e "1. ${RED}Default${RESET} ${RED}(test)${RESET}"
+        echo -e "2. ${RED}MariaDB${RESET} ${RED}(test)${RESET}"
+        echo -e "3. ${RED}MySQL${RESET} ${RED}(test)${RESET}"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
+        read -p "${MSG_CHOOSE_OPTION}" choice
+        case $choice in
+            1) 2_custom_install_hestiaCP ;;
+            2) get_versions_and_eol "mariadb"; 2_custom_install_hestiaCP "yes" "no" ;;
+            3) 2_custom_install_hestiaCP "no" "yes" ;;
+            0) break ;;
+            00) 0_funExit ;;
+            *) 0_invalid ;;
+        esac
+    done
+}
+
+2_custom_install_hestiaCP() {
+    local mariadb_flag=$1
+    local mysqldb_flag=$2
+    # Перевірка, чи встановлено curl, wget
+    if ! command -v curl &>/dev/null || ! command -v wget &>/dev/null; then
+        echo "curl та/або wget не встановлено. Встановіть їх і повторіть спробу."
+        return 1
+    fi
+
+    2_check_install_hestiaCP
+    while true; do
+        print_color_message 255 255 0 "\nОберіть таблетку:\n"
+        print_color_message 30 30 255 "1. PHP-FPM and nginx + apache"
+        print_color_message 255 30 30 "2. PHP-FPM and nginx"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
         read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
-        1) 2_avto_install_hestiaCP ;;
-        2) 2_custom_install_hestiaCP ;;
+        1) deleting_old_admin_user; 2_run_install_script "yes" "$mariadb_flag" "$mysqldb_flag" ;;
+        2) deleting_old_admin_user; 2_run_install_script "no" "$mariadb_flag" "$mysqldb_flag" ;;
         0) break ;;
-        00) 0_funExit ;;
-        *) 0_invalid ;;
+        00) exit 0 ;;
+        *) echo "Невірний вибір. Спробуйте ще раз." ;;
         esac
     done
 }
 
-2_install_ISPmanager_control_panel() {
-    print_color_message 255 255 0 "\nПочинаємо встановлення ISPmanager...\n"
-    
-    if ! command -v wget &> /dev/null; then
-        print_color_message 255 0 0 "Встановлюємо wget..."
-        apt-get update && apt-get install -y wget
-    fi
-
-    print_color_message 255 255 255 "Завантаження інсталяційного скрипта ISPmanager..."
-    wget https://download.ispsystem.com/install.sh -O /tmp/install_ispmanager.sh
-    chmod +x /tmp/install_ispmanager.sh
-    /tmp/install_ispmanager.sh
-
-    if [ $? -eq 0 ]; then
-        print_color_message 0 255 0 "\nВстановлення ISPmanager успішно завершено."
-    else
-        print_color_message 255 0 0 "\nВстановлення ISPmanager завершилось з помилкою."
-    fi
+2_run_install_script() {
+    local apache_flag=$1
+    local mariadb_flag=$2
+    local mysqldb_flag=$3
+    bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "$apache_flag" --clamav "$clamav_available" --mysql "$mariadb_flag" --mysql8 "$mysqldb_flag"
+    2_end_avto_install_hestiaCP
 }
+
 
 2_check_install_hestiaCP() {
     # Перевірка та встановлення домену
@@ -172,7 +189,7 @@ function 2_site_control_panel() {
         cp_install_domen="hestia.$server_hostname"
     else
         print_color_message 200 0 0 "Домен hostname не валідний, буде використано: $(print_color_message 255 255 0 "hestia.example.com")"
-        cp_install_domen="hestia.example.com"
+        cp_install_domen="hestia.example.tld"
     fi
     echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
 
@@ -196,13 +213,103 @@ function 2_site_control_panel() {
     print_color_message 0 255 255 "До виконання hst-install-ubuntu.sh:"
     echo -e "${YELLOW}Видаляю останій рядок що містить "reboot" та "Press any key to continue" з файлу.${RESET}"
     sed -i '/read -n 1 -s -r -p "Press any key to continue"/d' hst-install-ubuntu.sh
-    last_line=$(grep -n 'reboot' hst-install-ubuntu.sh | tail -n 1 | cut -d: -f1)
-    sed -i "${last_line}d" hst-install-ubuntu.sh
+    
+    # Видаляємо останні рядки з 'reboot' та 'clear' лише один раз для кожного з них
+    for pattern in 'reboot' 'clear' 'clear'; do
+        last_line=$(grep -n "$pattern" hst-install-ubuntu.sh | tail -n 1 | cut -d: -f1)
+        sed -i "${last_line}d" hst-install-ubuntu.sh
+    done
+
 
     print_color_message 0 255 255 "Після виконання hst-install-ubuntu.sh:"
     echo -e "${YELLOW}Виконую команду для зміни пакету з system на default, для користувача admin${RESET}"
     echo -e "${YELLOW}Змінюю пароль admin на root, налаштовую права доступу для Roundcube та phpMyAdmin.${RESET}"
     echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
+}
+
+# Функція для отримання інформації про версії та дати закінчення підтримки для MySQL або MariaDB
+get_versions_and_eol() {
+    local DB_TYPE=$1  # Тип бази даних: "mysql" або "mariadb"
+    local REPO_URL
+    local EOL_URL
+
+    if [[ "$DB_TYPE" == "mysql" ]]; then
+        HESTIA_ARRG="--mysql no --mysql8 yes"
+        REPO_URL="https://repo.mysql.com/apt/${ID}/pool/"
+        EOL_URL="https://endoflife.date/api/mysql.json"
+    elif [[ "$DB_TYPE" == "mariadb" ]]; then
+        HESTIA_ARRG=""
+        REPO_URL="https://mirror.mariadb.org/repo/"
+        EOL_URL="https://endoflife.date/api/mariadb.json"
+    else
+        echo "Невідомий тип бази даних: $DB_TYPE"
+        return 1
+    fi
+
+    # Завантаження сторінки та пошук доступних версій
+    VERSIONS_DB=$("$local_temp_curl_path" -s "$REPO_URL" | grep -oP 'href="\K[0-9]+\.[0-9]+' | sort -uVr)
+    EOL_DATA=$("$local_temp_curl_path" -s "$EOL_URL")
+
+    # Функція для виводу версій та дат закінчення підтримки
+    print_versions() {
+        local index=1
+        for VERSION_DB in $VERSIONS_DB; do
+            EOL_DATE=$(echo "$EOL_DATA" | "$local_temp_jq_path" -r --arg VERSION_DB "$VERSION_DB" '.[] | select(.cycle == $VERSION_DB) | .eol')
+            echo "$index) Версія: $(print_color_message 255 255 0 "${VERSION_DB}") - Закінчення підтримки: $(print_color_message 200 0 0 "${EOL_DATE:-не визначено}")"
+            ((index++))
+        done
+    }
+
+    # Виведення доступних версій
+    echo "Доступні версії $DB_TYPE:"
+    print_versions
+
+    read -p "Введіть номер версії для перевірки закінчення підтримки: " VERSION_NUMBER
+
+    # Перевірка введеного номера версії
+    if ! [[ "$VERSION_NUMBER" =~ ^[0-9]+$ ]] || ((VERSION_NUMBER < 1 || VERSION_NUMBER > $(echo "$VERSIONS_DB" | wc -l))); then
+        echo "Невірний номер версії. Будь ласка, введіть номер із доступного діапазону."
+        return 1
+    fi
+
+    # Обираємо версію за номером
+    SELECTED_VERSION_DB=$(echo "$VERSIONS_DB" | sed -n "${VERSION_NUMBER}p")
+    EOL_DATE=$(echo "$EOL_DATA" | "$local_temp_jq_path" -r --arg SELECTED_VERSION_DB "$SELECTED_VERSION_DB" '.[] | select(.cycle == $SELECTED_VERSION_DB) | .eol')
+
+    echo "Версія: $(print_color_message 255 255 0 "${SELECTED_VERSION_DB}") - Закінчення підтримки: $(print_color_message 200 0 0 "${EOL_DATE:-не визначено}")"
+    sed -i "s/${DB_TYPE}_v=\".*\"/${DB_TYPE}_v=\"$SELECTED_VERSION_DB\"/" hst-install-ubuntu.sh
+    sed -i '/read -n 1 -s -r -p "Press any key to continue"/a\
+echo "Hello, its done!"' hst-install-ubuntu.sh
+}
+
+deleting_old_admin_user() {
+    if [ -n "$(grep ^admin: /etc/passwd)" ]; then
+        chattr -i /home/admin/conf >/dev/null 2>&1
+        userdel -f admin >/dev/null 2>&1
+        mv -f /home/admin $hst_backups/home/ >/dev/null 2>&1
+        rm -f /tmp/sess_* >/dev/null 2>&1
+    fi
+    if [ -n "$(grep ^admin: /etc/group)" ]; then
+        groupdel admin >/dev/null 2>&1
+    fi
+}
+
+2_end_avto_install_hestiaCP() {
+    echo "admin:$(sudo grep '^root:' /etc/shadow | cut -d: -f2)" | sudo chpasswd -e
+    /usr/local/hestia/bin/v-change-user-package admin default
+    if [[ $SELECTED_VERSION_HESTIA == "1.8.11" ]]; then
+        find /etc/roundcube/ -type f -iname "*php" -exec chmod 640 {} \;
+        chown -R hestiamail:www-data /etc/roundcube/
+        chown -R root:www-data /etc/phpmyadmin/
+        chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
+    elif [[ $SELECTED_VERSION_HESTIA == "1.8.12" ]]; then
+        chown -R root:www-data /etc/phpmyadmin/
+        chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
+        display_hestia_info "HestiaCP" "${server_IPv4[0]}" "<пароль від root>"
+    else
+        echo "Version not supported"
+    fi
+    reboot
 }
 
 display_hestia_info() {
@@ -237,145 +344,6 @@ display_hestia_info() {
 
     echo "-------------------------------------------"
     print_color_message 255 0 0 "Рекомендується змінити пароль після першого входу для безпеки."
-}
-
-2_end_avto_install_hestiaCP() {
-    echo "admin:$(sudo grep '^root:' /etc/shadow | cut -d: -f2)" | sudo chpasswd -e
-    /usr/local/hestia/bin/v-change-user-package admin default
-    if [[ $SELECTED_VERSION_HESTIA == "1.8.11" ]]; then
-        find /etc/roundcube/ -type f -iname "*php" -exec chmod 640 {} \;
-        chown -R hestiamail:www-data /etc/roundcube/
-        chown -R root:www-data /etc/phpmyadmin/
-        chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
-    elif [[ $SELECTED_VERSION_HESTIA == "1.8.12" ]]; then
-        chown -R root:www-data /etc/phpmyadmin/
-        chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
-        display_hestia_info "HestiaCP" "${server_IPv4[0]}" "<пароль від root>"
-    else
-        echo "Version not supported"
-    fi
-    reboot
-}
-
-2_avto_install_hestiaCP() {
-    2_check_install_hestiaCP
-
-    # Меню вибору обробників
-    while true; do
-        print_color_message 255 255 0 "\nОберіть таблетку:\n"
-        print_color_message 30 30 255 "1. PHP-FPM and nginx + apache"
-        print_color_message 255 30 30 "2. PHP-FPM and nginx"
-        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
-        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
-
-        read -p "${MSG_CHOOSE_OPTION}" choice
-
-        case $choice in
-        1)
-            deleting_old_admin_user
-            bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "yes" --clamav "$clamav_available"
-            2_end_avto_install_hestiaCP
-            ;;
-        2)
-            deleting_old_admin_user
-            bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "no" --clamav "$clamav_available"
-            2_end_avto_install_hestiaCP
-            ;;
-        0) break ;;
-        00) exit 0 ;;
-        *) echo "Невірний вибір. Спробуйте ще раз." ;;
-        esac
-    done
-}
-
-2_custom_install_hestiaCP() {
-    # Перевірка, чи встановлено curl, wget
-    if ! command -v curl &>/dev/null || ! command -v wget &>/dev/null; then
-        echo "curl та/або wget не встановлено. Встановіть їх і повторіть спробу."
-        return 1
-    fi
-
-    # URL до репозиторію MariaDB та API з датами закінчення підтримки
-    REPO_URL="https://mirror.mariadb.org/repo/"
-    EOL_URL="https://endoflife.date/api/mariadb.json"
-
-    # Завантаження сторінки та пошук доступних версій
-    VERSIONS_DB=$("$local_temp_curl_path" -s "$REPO_URL" | grep -oP 'href="\K[0-9]+\.[0-9]+' | sort -uVr)
-    EOL_DATA=$("$local_temp_curl_path" -s "$EOL_URL")
-
-    # Функція для виводу версій та дат закінчення підтримки
-    print_versions() {
-        local index=1
-        for VERSION_DB in $VERSIONS_DB; do
-            EOL_DATE=$(echo "$EOL_DATA" | "$local_temp_jq_path" -r --arg VERSION_DB "$VERSION_DB" '.[] | select(.cycle == $VERSION_DB) | .eol')
-            echo "$index) Версія: $(print_color_message 255 255 0 "${VERSION_DB}") - Закінчення підтримки: $(print_color_message 200 0 0 "${EOL_DATE:-не визначено}")"
-            ((index++))
-        done
-    }
-
-    # Виведення доступних версій MariaDB
-    echo "Доступні версії MariaDB:"
-    print_versions
-
-    read -p "Введіть номер версії для перевірки закінчення підтримки: " VERSION_NUMBER
-
-    # Перевірка введеного номера версії
-    if ! [[ "$VERSION_NUMBER" =~ ^[0-9]+$ ]] || ((VERSION_NUMBER < 1 || VERSION_NUMBER > $(echo "$VERSIONS_DB" | wc -l))); then
-        echo "Невірний номер версії. Будь ласка, введіть номер із доступного діапазону."
-        return 1
-    fi
-
-    # Обираємо версію за номером
-    SELECTED_VERSION_DB=$(echo "$VERSIONS_DB" | sed -n "${VERSION_NUMBER}p")
-    EOL_DATE=$(echo "$EOL_DATA" | "$local_temp_jq_path" -r --arg SELECTED_VERSION_DB "$SELECTED_VERSION_DB" '.[] | select(.cycle == $SELECTED_VERSION_DB) | .eol')
-
-    echo "Версія: $(print_color_message 255 255 0 "${SELECTED_VERSION_DB}") - Закінчення підтримки: $(print_color_message 200 0 0 "${EOL_DATE:-не визначено}")"
-    sed -i "s/mariadb_v=\".*\"/mariadb_v=\"$SELECTED_VERSION_DB\"/" hst-install-ubuntu.sh
-    sed -i '/read -n 1 -s -r -p "Press any key to continue"/a \
-/usr/local/hestia/bin/v-change-user-package admin default' hst-install-ubuntu.sh
-
-    if [[ $SELECTED_VERSION_HESTIA == "1.8.11" ]]; then
-        sed -i '/read -n 1 -s -r -p "Press any key to continue"/a \
-chown -R root:www-data /etc/phpmyadmin/ \
-chown -R hestiamail:www-data /usr/share/phpmyadmin/tmp/' hst-install-ubuntu.sh
-    fi
-
-    2_check_install_hestiaCP
-    while true; do
-        print_color_message 255 255 0 "\nОберіть таблетку:\n"
-        print_color_message 30 30 255 "1. PHP-FPM and nginx + apache"
-        print_color_message 255 30 30 "2. PHP-FPM and nginx"
-        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
-        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
-
-        read -p "${MSG_CHOOSE_OPTION}" choice
-
-        case $choice in
-        1)
-            deleting_old_admin_user
-            bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "yes" --clamav "$clamav_available"
-            ;;
-        2)
-            deleting_old_admin_user
-            bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "no" --clamav "$clamav_available"
-            ;;
-        0) break ;;
-        00) exit 0 ;;
-        *) echo "Невірний вибір. Спробуйте ще раз." ;;
-        esac
-    done
-}
-
-deleting_old_admin_user() {
-    if [ -n "$(grep ^admin: /etc/passwd)" ]; then
-        chattr -i /home/admin/conf >/dev/null 2>&1
-        userdel -f admin >/dev/null 2>&1
-        mv -f /home/admin $hst_backups/home/ >/dev/null 2>&1
-        rm -f /tmp/sess_* >/dev/null 2>&1
-    fi
-    if [ -n "$(grep ^admin: /etc/group)" ]; then
-        groupdel admin >/dev/null 2>&1
-    fi
 }
 
 2_updateIoncube() {
@@ -417,6 +385,26 @@ deleting_old_admin_user() {
     "$HESTIA"/bin/v-restart-service 'php-fpm' yes
     #clean up the trash
     rm -fr ioncube
+}
+
+2_install_ISPmanager_control_panel() {
+    print_color_message 255 255 0 "\nПочинаємо встановлення ISPmanager...\n"
+    
+    if ! command -v wget &> /dev/null; then
+        print_color_message 255 0 0 "Встановлюємо wget..."
+        apt-get update && apt-get install -y wget
+    fi
+
+    print_color_message 255 255 255 "Завантаження інсталяційного скрипта ISPmanager..."
+    wget https://download.ispsystem.com/install.sh -O /tmp/install_ispmanager.sh
+    chmod +x /tmp/install_ispmanager.sh
+    /tmp/install_ispmanager.sh
+
+    if [ $? -eq 0 ]; then
+        print_color_message 0 255 0 "\nВстановлення ISPmanager успішно завершено."
+    else
+        print_color_message 255 0 0 "\nВстановлення ISPmanager завершилось з помилкою."
+    fi
 }
 
 #--------------------------------------------------------------------------------------------------------------------------------
