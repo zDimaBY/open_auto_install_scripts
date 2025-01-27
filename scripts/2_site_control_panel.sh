@@ -126,9 +126,9 @@ function 2_site_control_panel() {
         check_info_control_panel
         echo "Оберіть тип бази даних для HestiaCP $SELECTED_VERSION_HESTIA"
         print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
-        echo -e "1. ${RED}Default${RESET} ${RED}(test)${RESET}"
-        echo -e "2. ${RED}MariaDB${RESET} ${RED}(test)${RESET}"
-        echo -e "3. ${RED}MySQL${RESET} ${RED}(test)${RESET}"
+        echo -e "1. $(print_color_message 255 255 0 "MariaDB (default)")"
+        echo -e "2. $(print_color_message 255 0 255 "MariaDB (manual settings)")"
+        echo -e "3. $(print_color_message 255 255 0 "MySQL (default)")"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
         read -p "${MSG_CHOOSE_OPTION}" choice
@@ -185,10 +185,10 @@ function 2_site_control_panel() {
     # Перевірка та встановлення домену
     echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
     if validate_domain "$server_hostname"; then
-        print_color_message 0 200 0 "Домен hostname валідний. Буде застосована приставка: $(print_color_message 255 255 0 "hestia.$server_hostname")"
+        print_color_message 0 200 0 "Домен $server_hostname валідний. Буде застосована приставка: $(print_color_message 255 255 0 "hestia.$server_hostname")"
         cp_install_domen="hestia.$server_hostname"
     else
-        print_color_message 200 0 0 "Домен hostname не валідний, буде використано: $(print_color_message 255 255 0 "hestia.example.com")"
+        print_color_message 200 0 0 "Домен $server_hostname не валідний, буде використано: $(print_color_message 255 255 0 "hestia.example.com")"
         cp_install_domen="hestia.example.tld"
     fi
     echo -e "${GREEN}----------------------------------------------------------------------------------------------------------------------------------------${RESET}"
@@ -861,49 +861,52 @@ remote_ssh_command() {
 
 # Функція перевірки користувача
 check_or_create_user() {
-    local user="$1"
+    local LOCAL_USER="$1"
+    local LOCAL_CONTACT_MAIL="$2"
+    local LOCAL_USER_PACKAGE="$3"
+    local LOCAL_USER_NAME="$4"
 
     # Перевірка наявності користувача в системі HestiaCP
-    if $CLI_dir/v-list-users | grep -qw "^$user" 2>/dev/null; then
-        log_success "Користувач $(print_color_message 0 255 255 "$user") вже існує в HestiaCP."
+    if $CLI_dir/v-list-users | grep -qw "^$LOCAL_USER" 2>/dev/null; then
+        log_success "Користувач $(print_color_message 0 255 255 "$LOCAL_USER") вже існує в HestiaCP."
         echo -e "$SUCCESSFUL_OPERATIONS"
         return 1
     fi
 
     # Перевірка наявності користувача в системі
-    if getent passwd "$user" > /dev/null; then
-        log_failure "Системний користувач $user вже існує. Неможливо створити користувача в HestiaCP."
+    if getent passwd "$LOCAL_USER" > /dev/null; then
+        log_failure "Системний користувач $LOCAL_USER вже існує. Неможливо створити користувача в HestiaCP."
         echo -e "$FAILED_OPERATIONS"
         return 1
     fi
 
     # Перевірка, чи існує група з таким ім'ям
-    if getent group "$user" > /dev/null; then
-        log_failure "Група $user вже існує. Видаліть її командою: groupdel $user або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
+    if getent group "$LOCAL_USER" > /dev/null; then
+        log_failure "Група $LOCAL_USER вже існує. Видаліть її командою: groupdel $LOCAL_USER або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
         echo -e "$FAILED_OPERATIONS"
         return 1
     fi
 
     # Додаткові перевірки для універсальної підтримки різних систем Linux
-    if id "$user" &> /dev/null; then
-        log_failure "Користувач $user існує в системі (перевірено через id). Неможливо створити користувача в HestiaCP."
+    if id "$LOCAL_USER" &> /dev/null; then
+        log_failure "Користувач $LOCAL_USER існує в системі (перевірено через id). Неможливо створити користувача в HestiaCP."
         echo -e "$FAILED_OPERATIONS"
         return 1
     fi
 
-    if grep -qw "^$user:" /etc/group; then
-        log_failure "Група $user знайдена у /etc/group. Видаліть її командою: groupdel $user або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
+    if grep -qw "^$LOCAL_USER:" /etc/group; then
+        log_failure "Група $LOCAL_USER знайдена у /etc/group. Видаліть її командою: groupdel $LOCAL_USER або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
         echo -e "$FAILED_OPERATIONS"
         return 1
     fi
 
     # Створення нового користувача через HestiaCP CLI
-    if $CLI_dir/v-add-user "$user" "$(generate_random_part 16)" "example@$user.tld" "default" "en"; then
-        log_success "Користувача $user успішно створено в HestiaCP."
+    if $CLI_dir/v-add-user "$LOCAL_USER" "$(generate_random_part 16)" "$LOCAL_CONTACT_MAIL" "$LOCAL_USER_PACKAGE" "$LOCAL_USER_NAME"; then
+        log_success "Користувача $LOCAL_USER успішно створено в HestiaCP."
         echo -e "$SUCCESSFUL_OPERATIONS"
         return 0
     else
-        log_failure "Помилка створення користувача $user в HestiaCP. \n"
+        log_failure "Помилка створення користувача $LOCAL_USER в HestiaCP. \n"
         return 1
         echo -e "$FAILED_OPERATIONS"
     fi
@@ -1171,23 +1174,53 @@ transfer_domains() {
     done
 }
 
+add_dns_domains() {
+    local user="$1"
+    local ip_dns="$2"
+    local ns1="$3"
+    local ns2="$4"
+
+    local local_dns_domains=$(remote_ssh_command "$CLI_dir/v-list-dns-domains $user json")
+    local dns_domains=$(echo "$local_dns_domains" | jq -r 'keys[]')
+
+    # Перевірка, чи список не порожній
+    if [[ -z "$dns_domains" ]]; then
+        echo "Список DNS-доменів порожній або не вдалося отримати дані."
+        return 1
+    fi
+
+    # Цикл для додавання доменів
+    while IFS= read -r domain; do
+        if $CLI_dir/v-add-dns-domain "$user" "$domain" "${server_IPv4[0]}" "$ns1" "$ns2" '' '' '' '' '' '' yes; then
+            echo "DNS-домен $domain успішно додано."
+        else
+            echo "Помилка додавання DNS-домену: $domain"
+        fi
+    done <<< "$dns_domains"
+}
+
 loop_migrate_hestia_vesta() {
     local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
     SUCCESSFUL_OPERATIONS=""
     FAILED_OPERATIONS=""
+
+    local LOCAL_CONTACT_MAIL=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$LOCAL_REMOTE_CONTROL_PANEL_USER" '.[$user].CONTACT')
+    local LOCAL_USER_PACKAGE=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$LOCAL_REMOTE_CONTROL_PANEL_USER" '.[$user].PACKAGE')
+    local LOCAL_USER_NAME=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$LOCAL_REMOTE_CONTROL_PANEL_USER" '.[$user].NAME')
+
     log_success "\n\nРозпочато перенесення для користувача: $(print_color_message 0 255 255 "$LOCAL_REMOTE_CONTROL_PANEL_USER"). Обробка... "
     
     # Виконуємо основні функції перенесення
-    check_or_create_user "$LOCAL_REMOTE_CONTROL_PANEL_USER"
+    check_or_create_user "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_CONTACT_MAIL" "$LOCAL_USER_PACKAGE" "$LOCAL_USER_NAME"
     transfer_databases "$LOCAL_REMOTE_CONTROL_PANEL_USER"
     transfer_domains "$LOCAL_REMOTE_CONTROL_PANEL_USER"
+    add_dns_domains "$LOCAL_REMOTE_CONTROL_PANEL_USER" "${server_IPv4[0]}" "ns1.example.tld" "ns2.example.tld"
     echo -e "Обробка користувача: $(print_color_message 0 255 255 "$LOCAL_REMOTE_CONTROL_PANEL_USER") завершена$(print_color_message 255 0 0 "!!!")"
 }
 
 # Виводимо меню вибору користувача 
 2_filling_information_for_transfer() {
     check_tools
-    # Основний блок
     echo
     read -p "Введіть IP адресу або домен віддаленого сервера: " REMOTE_SERVER
     REMOTE_ROOT_USER="root"
@@ -1195,23 +1228,30 @@ loop_migrate_hestia_vesta() {
     echo
 
     print_color_message 255 255 255 "Виберіть користувача панелі керування на віддаленому сервері (наприклад, admin):"
-    # Виконуємо перевірки
+    # Перевірка підключення до віддаленого сервера
     print_color_message 0 255 0 "Перевірка підключення до віддаленого сервера..."
     if remote_ssh_command "whoami" >/dev/null 2>&1; then
         print_color_message 0 255 0 "Підключення успішне."
-        # Отримуємо список користувачів
-        users_list=$(remote_ssh_command "$CLI_dir/v-list-users | awk 'NR>2 {print \$1}'")
-        if [[ -z "$users_list" ]]; then
+        
+        # Отримуємо список користувачів у форматі JSON та перевіряємо результат
+        if ! LIST_USERS_JSON=$(remote_ssh_command "$CLI_dir/v-list-users json" 2>/dev/null); then
             print_color_message 255 0 0 "Не вдалося отримати список користувачів. Перевірте з'єднання з сервером."
             return 1
         fi
+
+        # Перевіряємо, чи JSON містить дані, та витягуємо ключі (імена користувачів)
+        if ! USERS_LIST=$(echo "$LIST_USERS_JSON" | jq -r 'keys[]' 2>/dev/null) || [[ -z "$USERS_LIST" ]]; then
+            print_color_message 255 0 0 "Список користувачів порожній або JSON недійсний."
+            return 1
+        fi
+
     else
         print_color_message 255 0 0 "Помилка підключення. Перевірте введені дані та спробуйте ще раз."
         return 0
     fi
 
     # Створюємо масив зі списку користувачів
-    IFS=$'\n' read -r -d '' -a users_array <<< "$users_list"
+    IFS=$'\n' read -r -d '' -a users_array <<< "$USERS_LIST"
 
     # Виводимо опції для вибору
     print_color_message 255 255 255 "0) Вибрати всіх користувачів"
