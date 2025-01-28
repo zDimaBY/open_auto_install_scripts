@@ -856,7 +856,7 @@ check_tools() {
 
 # Функція для підключення до віддаленого сервера sshpass -p "XXXX" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 user@xx.xxx.xx.xxx "/usr/local/hestia/bin/v-list-web-domain admin domain.com json" | jq -r '."'$domain'"."BACKEND"'
 remote_ssh_command() {
-    sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 $REMOTE_ROOT_USER@$REMOTE_SERVER "$1"
+    sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 "$REMOTE_ROOT_USER@$REMOTE_SERVER" "$1"
 }
 
 # Функція перевірки користувача
@@ -1151,29 +1151,6 @@ config_wordpress() {
     fi
 }
 
-# Основна функція переносу доменів
-transfer_domains() {
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
-    local LOCAL_DOMAINS=$(remote_ssh_command "ls -1 /home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/")
-    # Цикл обробки доменів
-    for LOCAL_DOMAIN in $LOCAL_DOMAINS; do
-        ALL_OPERATIONS=""
-        
-        if ! add_web_domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"; then
-            continue
-        fi
-
-        config_web_domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
-
-        install_ssl "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
-
-        sync_files "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
-
-        config_cms "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
-
-    done
-}
-
 add_dns_domains() {
     local user="$1"
     local ip_dns="$2"
@@ -1197,6 +1174,29 @@ add_dns_domains() {
             echo "Помилка додавання DNS-домену: $domain"
         fi
     done <<< "$dns_domains"
+}
+
+# Основна функція переносу доменів
+transfer_domains() {
+    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local LOCAL_DOMAINS=$(remote_ssh_command "ls -1 /home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/")
+    # Цикл обробки доменів
+    for LOCAL_DOMAIN in $LOCAL_DOMAINS; do
+        ALL_OPERATIONS=""
+        
+        if ! add_web_domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"; then
+            continue
+        fi
+
+        config_web_domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
+
+        install_ssl "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
+
+        sync_files "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
+
+        config_cms "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
+
+    done
 }
 
 loop_migrate_hestia_vesta() {
@@ -1268,11 +1268,11 @@ loop_migrate_hestia_vesta() {
             for user in "${users_array[@]}"; do
                 loop_migrate_hestia_vesta "$user"
             done
-            return
+            return 0
         elif [[ "$user_choice" =~ ^[0-9]+$ ]] && ((user_choice >= 1 && user_choice <= ${#users_array[@]})); then
             REMOTE_CONTROL_PANEL_USER="${users_array[$((user_choice - 1))]}"
             loop_migrate_hestia_vesta "$REMOTE_CONTROL_PANEL_USER"
-            return
+            return 0
         else
             print_color_message 255 0 0 "Невірний вибір. Спробуйте ще раз."
         fi
