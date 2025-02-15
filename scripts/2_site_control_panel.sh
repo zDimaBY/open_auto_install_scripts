@@ -163,8 +163,8 @@ function 2_site_control_panel() {
         read -p "${MSG_CHOOSE_OPTION}" choice
 
         case $choice in
-        1) deleting_old_admin_user; 2_run_install_script "yes" "$mariadb_flag" "$mysqldb_flag" ;;
-        2) deleting_old_admin_user; 2_run_install_script "no" "$mariadb_flag" "$mysqldb_flag" ;;
+        1) 2_run_install_script "yes" "$mariadb_flag" "$mysqldb_flag" ;;
+        2) 2_run_install_script "no" "$mariadb_flag" "$mysqldb_flag" ;;
         0) break ;;
         00) exit 0 ;;
         *) echo "Невірний вибір. Спробуйте ще раз." ;;
@@ -176,8 +176,10 @@ function 2_site_control_panel() {
     local apache_flag=$1
     local mariadb_flag=$2
     local mysqldb_flag=$3
-    bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "$apache_flag" --clamav "$clamav_available" --mysql "$mariadb_flag" --mysql8 "$mysqldb_flag"
-    2_end_avto_install_hestiaCP
+    local SET_USER_HESTIA_CP="admin_$(generate_random_part 6)"
+    local SET_PASS_USER_HESTIA_CP="$(generate_random_part 12)"
+    bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "$apache_flag" --clamav "$clamav_available" --mysql "$mariadb_flag" --mysql8 "$mysqldb_flag" --username "$SET_USER_HESTIA_CP" --password "$SET_PASS_USER_HESTIA_CP"
+    2_end_avto_install_hestiaCP "$SET_USER_HESTIA_CP" "$SET_PASS_USER_HESTIA_CP"
 }
 
 
@@ -282,21 +284,12 @@ get_versions_and_eol() {
 echo "Hello, its done!"' hst-install-ubuntu.sh
 }
 
-deleting_old_admin_user() {
-    if [ -n "$(grep ^admin: /etc/passwd)" ]; then
-        chattr -i /home/admin/conf >/dev/null 2>&1
-        userdel -f admin >/dev/null 2>&1
-        mv -f /home/admin $hst_backups/home/ >/dev/null 2>&1
-        rm -f /tmp/sess_* >/dev/null 2>&1
-    fi
-    if [ -n "$(grep ^admin: /etc/group)" ]; then
-        groupdel admin >/dev/null 2>&1
-    fi
-}
-
 2_end_avto_install_hestiaCP() {
-    echo "admin:$(sudo grep '^root:' /etc/shadow | cut -d: -f2)" | sudo chpasswd -e
-    /usr/local/hestia/bin/v-change-user-package admin default
+    local SET_USER_HESTIA_CP=$1
+    local SET_PASS_USER_HESTIA_CP=$2
+
+    echo "$SET_USER_HESTIA_CP:$(sudo grep '^root:' /etc/shadow | cut -d: -f2)" | sudo chpasswd -e
+    /usr/local/hestia/bin/v-change-user-package "$SET_USER_HESTIA_CP" default
     if [[ $SELECTED_VERSION_HESTIA == "1.8.11" ]]; then
         find /etc/roundcube/ -type f -iname "*php" -exec chmod 640 {} \;
         chown -R hestiamail:www-data /etc/roundcube/
@@ -305,7 +298,9 @@ deleting_old_admin_user() {
     elif [[ $SELECTED_VERSION_HESTIA == "1.8.12" ]]; then
         chown -R root:www-data /etc/phpmyadmin/
         chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
-        display_hestia_info "HestiaCP" "${server_IPv4[0]}" "<пароль від root>"
+        display_hestia_info "HestiaCP" "${server_IPv4[0]}" "$SET_USER_HESTIA_CP" "<пароль від root>"
+    elif [[ $SELECTED_VERSION_HESTIA == "1.9.2" ]]; then
+        display_hestia_info "HestiaCP" "${server_IPv4[0]}" "$SET_USER_HESTIA_CP" "<пароль від root>"
     else
         echo "Version not supported"
     fi
@@ -315,15 +310,16 @@ deleting_old_admin_user() {
 display_hestia_info() {
     local panel_name=$1
     local server_ip=$2
-    local root_password=$3
+    local SET_USER_HESTIA_CP=$3
+    local SET_PASS_USER_HESTIA_CP=$4
 
     echo "-------------------------------------------"
     check_info_control_panel
     echo ""
     print_color_message 255 255 0 "Дані для входу у $panel_name:"
     print_color_message 255 255 255 "Адреса панелі: $(print_color_message 255 0 255 "https://${server_ip}:$WEB_ADMIN_PORT")"
-    print_color_message 255 255 255 "Логін: admin"
-    print_color_message 255 255 255 "Пароль: $root_password"
+    print_color_message 255 255 255 "Логін: $SET_USER_HESTIA_CP"
+    print_color_message 255 255 255 "Пароль: $SET_PASS_USER_HESTIA_CP"
     echo ""
 
     # Інформація про FTP доступ
@@ -331,14 +327,14 @@ display_hestia_info() {
     print_color_message 0 255 255 "FTP доступ користувача root:"
     print_color_message 255 255 255 "Хост: ${server_ip}"
     print_color_message 255 255 255 "Користувач: root"
-    print_color_message 255 255 255 "Пароль: $root_password"
+    print_color_message 255 255 255 "Пароль: $SET_PASS_USER_HESTIA_CP"
     print_color_message 255 255 255 "Порт: 22"
     echo ""
 
-    print_color_message 0 255 255 "FTP доступ користувача admin:"
+    print_color_message 0 255 255 "FTP доступ користувача $SET_USER_HESTIA_CP:"
     print_color_message 255 255 255 "Хост: ${server_ip}"
-    print_color_message 255 255 255 "Користувач: admin"
-    print_color_message 255 255 255 "Пароль: $root_password"
+    print_color_message 255 255 255 "Користувач: $SET_USER_HESTIA_CP"
+    print_color_message 255 255 255 "Пароль: $SET_PASS_USER_HESTIA_CP"
     print_color_message 255 255 255 "Порт: 21"
     echo ""
 
