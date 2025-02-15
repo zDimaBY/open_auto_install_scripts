@@ -1,6 +1,22 @@
 #!/bin/bash -n
 # shellcheck disable=SC2148,SC2154
 
+check_installed_control_panel() {
+    for panel_dir in "${all_control_panels[@]}"; do
+        if [ -e "$panel_dir" ]; then
+            local local_control_panel_install=$(basename "$panel_dir")
+            # Перевірка на hestia або vesta
+            if [[ "$local_control_panel_install" == "hestia" || "$local_control_panel_install" == "vesta" ]]; then
+                control_panel_install=$(basename "$panel_dir")
+                return 0  # Успіх
+            fi
+        fi
+    done
+
+    # Жодна з потрібних панелей не знайдена
+    return 1
+}
+
 # Основна функція для управління панеллю
 function 2_site_control_panel() {
     panel_name=$(check_info_control_panel_for_functions)
@@ -12,15 +28,8 @@ function 2_site_control_panel() {
         2_install_control_panel
     fi
 
-    #Перевіряємо яка панель керування встановлена
-    if [ -e "/usr/local/vesta" ]; then
-        control_panel_install="vesta"
-    elif [ -e "/usr/local/hestia" ]; then
-        control_panel_install="hestia"
-    else
-        echo -e "${RED}Не вдалося визначити панель керування сайтами.${RESET}"
-        return 1
-    fi
+    check_installed_control_panel
+
     CLI_dir="/usr/local/$control_panel_install/bin"
 
     # Перевірка типу веб-сервера Apache2 або HTTPD
@@ -300,6 +309,8 @@ echo "Hello, its done!"' hst-install-ubuntu.sh
         chown -R www-data:www-data /usr/share/phpmyadmin/tmp/
         display_hestia_info "HestiaCP" "${server_IPv4[0]}" "$SET_USER_HESTIA_CP" "<пароль від root>"
     elif [[ $SELECTED_VERSION_HESTIA == "1.9.2" ]]; then
+        display_hestia_info "HestiaCP" "${server_IPv4[0]}" "$SET_USER_HESTIA_CP" "<пароль від root>"
+    elif [[ $SELECTED_VERSION_HESTIA == "1.9.3" ]]; then
         display_hestia_info "HestiaCP" "${server_IPv4[0]}" "$SET_USER_HESTIA_CP" "<пароль від root>"
     else
         echo "Version not supported"
@@ -866,7 +877,7 @@ check_or_create_user() {
     if $CLI_dir/v-list-users | grep -qw "^$LOCAL_USER" 2>/dev/null; then
         log_success "Користувач $(print_color_message 0 255 255 "$LOCAL_USER") вже існує в HestiaCP."
         echo -e "$SUCCESSFUL_OPERATIONS"
-        return 1
+        return 0
     fi
 
     # Перевірка наявності користувача в системі
@@ -876,16 +887,16 @@ check_or_create_user() {
         return 1
     fi
 
-    # Перевірка, чи існує група з таким ім'ям
-    if getent group "$LOCAL_USER" > /dev/null; then
-        log_failure "Група $LOCAL_USER вже існує. Видаліть її командою: groupdel $LOCAL_USER або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
+    # Додаткові перевірки для універсальної підтримки різних систем Linux
+    if id "$LOCAL_USER" &> /dev/null; then
+        log_failure "Користувач $LOCAL_USER існує в системі (перевірено через id). Неможливо створити користувача в HestiaCP."
         echo -e "$FAILED_OPERATIONS"
         return 1
     fi
 
-    # Додаткові перевірки для універсальної підтримки різних систем Linux
-    if id "$LOCAL_USER" &> /dev/null; then
-        log_failure "Користувач $LOCAL_USER існує в системі (перевірено через id). Неможливо створити користувача в HestiaCP."
+    # Перевірка, чи існує група з таким ім'ям
+    if getent group "$LOCAL_USER" > /dev/null; then
+        log_failure "Група $LOCAL_USER вже існує. Видаліть її командою: groupdel $LOCAL_USER або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
         echo -e "$FAILED_OPERATIONS"
         return 1
     fi
@@ -999,7 +1010,7 @@ config_web_domain() {
     local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
     local LOCAL_DOMAIN="$2"
 
-    template_web=$(remote_ssh_command "$CLI_dir/v-list-web-domain $LOCAL_REMOTE_CONTROL_PANEL_USER $LOCAL_DOMAIN json")
+    template_web=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-web-domain $LOCAL_REMOTE_CONTROL_PANEL_USER $LOCAL_DOMAIN json")
 
     template_php_version=$(echo $template_web | jq -r '."'$LOCAL_DOMAIN'"."BACKEND"')
 
@@ -1044,7 +1055,7 @@ transfer_databases() {
     local LOCAL_DATABASES
 
     # Отримання списку баз даних через віддалену команду
-    LOCAL_REQUESTED_DATABASES=$(remote_ssh_command "$CLI_dir/v-list-databases $LOCAL_REMOTE_CONTROL_PANEL_USER json")
+    LOCAL_REQUESTED_DATABASES=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-databases $LOCAL_REMOTE_CONTROL_PANEL_USER json")
 
     # Перевірка, чи вивід не порожній і чи є валідним JSON
     if [[ -n "$LOCAL_REQUESTED_DATABASES" && $(echo "$LOCAL_REQUESTED_DATABASES" | jq empty > /dev/null 2>&1; echo $?) -eq 0 ]]; then
@@ -1153,7 +1164,7 @@ add_dns_domains() {
     local ns1="$3"
     local ns2="$4"
 
-    local local_dns_domains=$(remote_ssh_command "$CLI_dir/v-list-dns-domains $user json")
+    local local_dns_domains=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-dns-domains $user json")
     local dns_domains=$(echo "$local_dns_domains" | jq -r 'keys[]')
 
     # Перевірка, чи список не порожній
@@ -1176,6 +1187,7 @@ add_dns_domains() {
 transfer_domains() {
     local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
     local LOCAL_DOMAINS=$(remote_ssh_command "ls -1 /home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/")
+
     # Цикл обробки доменів
     for LOCAL_DOMAIN in $LOCAL_DOMAINS; do
         ALL_OPERATIONS=""
@@ -1207,11 +1219,24 @@ loop_migrate_hestia_vesta() {
     log_success "\n\nРозпочато перенесення для користувача: $(print_color_message 0 255 255 "$LOCAL_REMOTE_CONTROL_PANEL_USER"). Обробка... "
     
     # Виконуємо основні функції перенесення
-    check_or_create_user "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_CONTACT_MAIL" "$LOCAL_USER_PACKAGE" "$LOCAL_USER_NAME"
+    if ! check_or_create_user "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_CONTACT_MAIL" "$LOCAL_USER_PACKAGE" "$LOCAL_USER_NAME"; then
+        return 1
+    fi
     transfer_databases "$LOCAL_REMOTE_CONTROL_PANEL_USER"
     transfer_domains "$LOCAL_REMOTE_CONTROL_PANEL_USER"
     add_dns_domains "$LOCAL_REMOTE_CONTROL_PANEL_USER" "${server_IPv4[0]}" "ns1.example.tld" "ns2.example.tld"
     echo -e "Обробка користувача: $(print_color_message 0 255 255 "$LOCAL_REMOTE_CONTROL_PANEL_USER") завершена$(print_color_message 255 0 0 "!!!")"
+}
+
+remote_check_control_panels() {
+    for panel_dir in "${all_control_panels[@]}"; do
+        if remote_ssh_command "[ -d '$panel_dir' ]"; then
+            REMOTE_CONTROL_PANEL=$(basename "$panel_dir")
+            CLI_DIR_REMOTE="/usr/local/$REMOTE_CONTROL_PANEL/bin"
+            return 1  # Завершуємо функцію при знаходженні
+        fi
+    done
+    return 0  # Жодна панель не знайдена
 }
 
 # Виводимо меню вибору користувача 
@@ -1227,10 +1252,11 @@ loop_migrate_hestia_vesta() {
     # Перевірка підключення до віддаленого сервера
     print_color_message 0 255 0 "Перевірка підключення до віддаленого сервера..."
     if remote_ssh_command "whoami" >/dev/null 2>&1; then
-        print_color_message 0 255 0 "Підключення успішне."
+        remote_check_control_panels
+        echo -e "$(print_color_message 0 255 0 "Підключення успішне.") На сервері $REMOTE_SERVER панель керування: $(print_color_message 0 255 0 "$REMOTE_CONTROL_PANEL")"
         
         # Отримуємо список користувачів у форматі JSON та перевіряємо результат
-        if ! LIST_USERS_JSON=$(remote_ssh_command "$CLI_dir/v-list-users json" 2>/dev/null); then
+        if ! LIST_USERS_JSON=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-users json" 2>/dev/null); then
             print_color_message 255 0 0 "Не вдалося отримати список користувачів. Перевірте з'єднання з сервером."
             return 1
         fi
