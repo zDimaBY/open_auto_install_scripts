@@ -185,12 +185,23 @@ function 2_site_control_panel() {
     local apache_flag=$1
     local mariadb_flag=$2
     local mysqldb_flag=$3
-    local SET_USER_HESTIA_CP="admin_$(generate_random_part 6)"
+
+    local SET_USER_HESTIA_CP="admin"
+
+    if ! remove_user_or_group "$SET_USER_HESTIA_CP" "user"; then
+        SET_USER_HESTIA_CP="admin_$(generate_random_part 6)"
+        echo -e "Згенерований: $SET_USER_HESTIA_CP"
+    fi
+
+    if ! remove_user_or_group "$SET_USER_HESTIA_CP" "group"; then
+        SET_USER_HESTIA_CP="admin_$(generate_random_part 6)"
+        echo -e "Згенерований: $SET_USER_HESTIA_CP"
+    fi
+
     local SET_PASS_USER_HESTIA_CP="$(generate_random_part 12)"
     bash hst-install-ubuntu.sh --hostname "$cp_install_domen" --email "admin@$cp_install_domen" --apache "$apache_flag" --clamav "$clamav_available" --mysql "$mariadb_flag" --mysql8 "$mysqldb_flag" --username "$SET_USER_HESTIA_CP" --password "$SET_PASS_USER_HESTIA_CP"
     2_end_avto_install_hestiaCP "$SET_USER_HESTIA_CP" "$SET_PASS_USER_HESTIA_CP"
 }
-
 
 2_check_install_hestiaCP() {
     # Перевірка та встановлення домену
@@ -921,11 +932,11 @@ check_or_create_user() {
 
 # Функція додавання домену
 add_web_domain() {
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local USER_REMOTE_CONTROL_PANEL="$1"
     local LOCAL_DOMAIN="$2"
 
-    # Перевірка наявності домену та змінної LOCAL_REMOTE_CONTROL_PANEL_USER
-    if [[ -z "$LOCAL_DOMAIN" || -z "$LOCAL_REMOTE_CONTROL_PANEL_USER" ]]; then
+    # Перевірка наявності домену та змінної USER_REMOTE_CONTROL_PANEL
+    if [[ -z "$LOCAL_DOMAIN" || -z "$USER_REMOTE_CONTROL_PANEL" ]]; then
         log_all "$(print_color_message 255 0 0 "Помилка: Домен або користувач не вказані.")"
         echo -e "$ALL_OPERATIONS"
         return 1
@@ -939,7 +950,7 @@ add_web_domain() {
     fi
 
     # Перевірка наявності домену
-    if $CLI_dir/v-list-web-domains $LOCAL_REMOTE_CONTROL_PANEL_USER | grep -E "^\s*$LOCAL_DOMAIN\s" &>/dev/null; then
+    if $CLI_dir/v-list-web-domains $USER_REMOTE_CONTROL_PANEL | grep -E "^\s*$LOCAL_DOMAIN\s" &>/dev/null; then
         log_all "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") вже існує, пропускаємо..."
         echo -e "$ALL_OPERATIONS"
         return 1
@@ -950,17 +961,17 @@ add_web_domain() {
     log_all "Обробка домену: $(print_color_message 0 255 255 "$LOCAL_DOMAIN") ... "
     
     # Додавання домену та видалення стандартних файлів
-    if $CLI_dir/v-add-web-domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"; then
-        log_all "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно додано для користувача $(print_color_message 0 255 255 "$LOCAL_REMOTE_CONTROL_PANEL_USER"). "
+    if $CLI_dir/v-add-web-domain "$USER_REMOTE_CONTROL_PANEL" "$LOCAL_DOMAIN"; then
+        log_all "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно додано для користувача $(print_color_message 0 255 255 "$USER_REMOTE_CONTROL_PANEL"). "
         # Видалення стандартних файлів
-        local local_web_root="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html"
+        local local_web_root="/home/$USER_REMOTE_CONTROL_PANEL/web/$LOCAL_DOMAIN/public_html"
         if [[ -d "$local_web_root" ]]; then
             rm -f "$local_web_root/index.html" &>/dev/null
             rm -f "$local_web_root/robots.txt" &>/dev/null
         fi
         return 0
     else
-        log_all "Не вдалося додати домен $LOCAL_DOMAIN для користувача $LOCAL_REMOTE_CONTROL_PANEL_USER."
+        log_all "Не вдалося додати домен $LOCAL_DOMAIN для користувача $USER_REMOTE_CONTROL_PANEL."
         echo -e "$ALL_OPERATIONS"
         return 1
     fi
@@ -968,13 +979,13 @@ add_web_domain() {
 
 # Функція встановлення SSL сертифікату
 install_ssl() {
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local USER_REMOTE_CONTROL_PANEL="$1"
     local LOCAL_DOMAIN="$2"
-    local ssl_dir="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/ssl"
+    local ssl_dir="/home/$USER_REMOTE_CONTROL_PANEL/web/$LOCAL_DOMAIN/ssl"
     ALL_OPERATIONS=""
 
-    # Перевірка наявності домену та змінної LOCAL_REMOTE_CONTROL_PANEL_USER
-    if [[ -z "$LOCAL_DOMAIN" || -z "$LOCAL_REMOTE_CONTROL_PANEL_USER" ]]; then
+    # Перевірка наявності домену та змінної USER_REMOTE_CONTROL_PANEL
+    if [[ -z "$LOCAL_DOMAIN" || -z "$USER_REMOTE_CONTROL_PANEL" ]]; then
         log_all "Помилка: Домен або користувач не вказані."
         echo -e "$ALL_OPERATIONS"
         return 1
@@ -993,10 +1004,10 @@ install_ssl() {
     fi
 
     # Зміна прав доступу
-    chown -R "$LOCAL_REMOTE_CONTROL_PANEL_USER:$LOCAL_REMOTE_CONTROL_PANEL_USER" "$ssl_dir"
+    chown -R "$USER_REMOTE_CONTROL_PANEL:$USER_REMOTE_CONTROL_PANEL" "$ssl_dir"
     
     # Додавання SSL до домену
-    if ! $CLI_dir/v-add-web-domain-ssl $LOCAL_REMOTE_CONTROL_PANEL_USER $LOCAL_DOMAIN $ssl_dir; then
+    if ! $CLI_dir/v-add-web-domain-ssl $USER_REMOTE_CONTROL_PANEL $LOCAL_DOMAIN $ssl_dir; then
         log_all "Помилка додавання SSL до домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
         echo -e "$ALL_OPERATIONS"
         return 1
@@ -1007,14 +1018,14 @@ install_ssl() {
 }
 
 config_web_domain() {
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local USER_REMOTE_CONTROL_PANEL="$1"
     local LOCAL_DOMAIN="$2"
 
-    template_web=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-web-domain $LOCAL_REMOTE_CONTROL_PANEL_USER $LOCAL_DOMAIN json")
+    template_web=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-web-domain $USER_REMOTE_CONTROL_PANEL $LOCAL_DOMAIN json")
 
     template_php_version=$(echo $template_web | jq -r '."'$LOCAL_DOMAIN'"."BACKEND"')
 
-    if $CLI_dir/v-change-web-domain-backend-tpl $LOCAL_REMOTE_CONTROL_PANEL_USER $LOCAL_DOMAIN $template_php_version; then
+    if $CLI_dir/v-change-web-domain-backend-tpl $USER_REMOTE_CONTROL_PANEL $LOCAL_DOMAIN $template_php_version; then
         log_all "Зміни backend для $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно застосовано."
         echo -e "$ALL_OPERATIONS"
     else
@@ -1025,23 +1036,23 @@ config_web_domain() {
 
 # Функція переносу файлів сайту
 sync_files() {
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local USER_REMOTE_CONTROL_PANEL="$1"
     local LOCAL_DOMAIN="$2"
 
-    if [[ -z "$LOCAL_DOMAIN" || -z "$LOCAL_REMOTE_CONTROL_PANEL_USER" || -z "$REMOTE_ROOT_USER" || -z "$REMOTE_SERVER" || -z "$PASSWORD_ROOT_USER" ]]; then
+    if [[ -z "$LOCAL_DOMAIN" || -z "$USER_REMOTE_CONTROL_PANEL" || -z "$REMOTE_ROOT_USER" || -z "$REMOTE_SERVER" || -z "$PASSWORD_ROOT_USER" ]]; then
         print_color_message 255 0 0 "Помилка: Відсутні необхідні змінні для переносу файлів."
         return 1
     fi
 
     print_color_message 255 0 0 "Перенесення файлів сайту $(print_color_message 0 255 255 "$LOCAL_DOMAIN") за допомогою rsync..."
     if ! sshpass -p "$PASSWORD_ROOT_USER" rsync -azh --info=progress2 --stats -e "ssh -o StrictHostKeyChecking=no" \
-        "$REMOTE_ROOT_USER@$REMOTE_SERVER:/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html/" \
-        "/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html/"; then
+        "$REMOTE_ROOT_USER@$REMOTE_SERVER:/home/$USER_REMOTE_CONTROL_PANEL/web/$LOCAL_DOMAIN/public_html/" \
+        "/home/$USER_REMOTE_CONTROL_PANEL/web/$LOCAL_DOMAIN/public_html/"; then
         print_color_message 255 0 0 "Помилка переносу файлів для домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
         return 1
     fi
 
-    chown -R "$LOCAL_REMOTE_CONTROL_PANEL_USER:$LOCAL_REMOTE_CONTROL_PANEL_USER" "/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html"
+    chown -R "$USER_REMOTE_CONTROL_PANEL:$USER_REMOTE_CONTROL_PANEL" "/home/$USER_REMOTE_CONTROL_PANEL/web/$LOCAL_DOMAIN/public_html"
     print_color_message 0 255 0 "Файли для домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно перенесені."
     return 0
 }
@@ -1050,41 +1061,41 @@ sync_files() {
 transfer_databases() {
     2_switch_prefix_for_VestaCP_HestiaCP
 
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
-    local LOCAL_REQUESTED_DATABASES
+    local USER_REMOTE_CONTROL_PANEL="$1"
+    local REMOTE_CONTROL_PANEL_REQUESTED_DATABASES=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-databases $USER_REMOTE_CONTROL_PANEL json")
+    local REMOTE_CONTROL_PANEL_REQUESTED_DATABASES_HOST=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-database-hosts $USER_REMOTE_CONTROL_PANEL")
+    local REMOTE_REQUESTED_DATABASES_TYPE=$(sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no "$REMOTE_ROOT_USER@$REMOTE_SERVER" "mysql -u root -e 'SELECT VERSION();' 2>/dev/null" | grep -q "MariaDB" && echo "mariadb" || echo "mysql") > /dev/null 2>&1
+    local LOCAL_REQUESTED_DATABASES_TYPE=$(mysql -u root -e 'SELECT VERSION();' 2>/dev/null | grep -q "MariaDB" && echo "mariadb" || echo "mysql") > /dev/null 2>&1
     local LOCAL_DATABASES
 
-    # Отримання списку баз даних через віддалену команду
-    LOCAL_REQUESTED_DATABASES=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-databases $LOCAL_REMOTE_CONTROL_PANEL_USER json")
+    local db_server_host_port=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES_HOST" | jq -r --arg db "$db" '.[$db].PORT')
 
     # Перевірка, чи вивід не порожній і чи є валідним JSON
-    if [[ -n "$LOCAL_REQUESTED_DATABASES" && $(echo "$LOCAL_REQUESTED_DATABASES" | jq empty > /dev/null 2>&1; echo $?) -eq 0 ]]; then
+    if [[ -n "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" && $(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq empty > /dev/null 2>&1; echo $?) -eq 0 ]]; then
         # Отримання списку баз даних
-        LOCAL_DATABASES=$(echo "$LOCAL_REQUESTED_DATABASES" | jq -r 'keys[]')
+        LOCAL_DATABASES=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq -r 'keys[]')
     else
         echo "Помилка: Невалідний або порожній JSON у відповіді."
         return 1
     fi
 
-    # Перебір баз даних
     for db in $LOCAL_DATABASES; do
-        # Отримання відповідного DBUSER для бази даних
-        local db_user
-        db_user=$(echo "$LOCAL_REQUESTED_DATABASES" | jq -r --arg db "$db" '.[$db].DBUSER')
+        local db_user=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq -r --arg db "$db" '.[$db].DBUSER')
+        local db_server_host=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq -r --arg db "$db" '.[$db].HOST')
 
-        # Перевірка, чи база даних вже існує локально
+        echo "$USER_REMOTE_CONTROL_PANEL" "$db" "$db_user" "$db_server_host"
+
         if mysql -uroot -e "USE $db;" 2>/dev/null; then
             print_color_message 255 255 0 "База даних $(print_color_message 0 255 255 "$db") вже існує, пропускаємо..."
             continue
         else
             print_color_message 255 255 0 "Перенесення бази даних: $(print_color_message 0 255 255 "$db")"
 
-            # Додавання бази даних у панель керування
-            $CLI_dir/v-add-database "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$db" "$db_user" "$(generate_random_password 25)"
+            $CLI_dir/v-add-database "$USER_REMOTE_CONTROL_PANEL" "$db" "$db_user" "$(generate_random_password 25)"
 
-            # Резервне потокове перенесення бази даних
+            # sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no "xxx.xx.xxx.xx@root" "mysqldump -h $db_server_host -P 3306 -uroot $db" | mysql -h $db_server_host -P 3306 -uroot "$db"
             sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no "$REMOTE_ROOT_USER@$REMOTE_SERVER" \
-                "mysqldump -h 127.0.0.1 -P 3306 -uroot $db" | mysql -uroot "$db"
+                "${REMOTE_REQUESTED_DATABASES_TYPE}-dump -h $db_server_host -uroot $db" | $LOCAL_REQUESTED_DATABASES_TYPE -h "$db_server_host" -uroot "$db"
         fi
     done
 
@@ -1092,9 +1103,9 @@ transfer_databases() {
 }
 
 config_cms() {
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local USER_REMOTE_CONTROL_PANEL="$1"
     local LOCAL_DOMAIN="$2"
-    local web_root="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html"
+    local web_root="/home/$USER_REMOTE_CONTROL_PANEL/web/$LOCAL_DOMAIN/public_html"
 
     if [[ ! -d "$web_root" ]]; then
         print_color_message 255 0 0 "Каталог $web_root не існує для $LOCAL_DOMAIN. Пропускаємо."
@@ -1104,7 +1115,7 @@ config_cms() {
     # Перевірка CMS
     if grep -q "DB_PASSWORD" "$web_root/wp-config.php" 2>/dev/null; then
         print_color_message 0 255 255 "Виявлено WordPress для $LOCAL_DOMAIN."
-        config_wordpress "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
+        config_wordpress "$USER_REMOTE_CONTROL_PANEL" "$LOCAL_DOMAIN"
     elif grep -q "JVERSION" "$web_root/includes/version.php" 2>/dev/null; then
         print_color_message 0 255 255 "Виявлено Joomla для $LOCAL_DOMAIN."
         # Логіка для Joomla
@@ -1125,9 +1136,9 @@ config_cms() {
 
 # Конфігурація бази даних для WordPress
 config_wordpress() {
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local USER_REMOTE_CONTROL_PANEL="$1"
     local LOCAL_DOMAIN="$2"
-    local LOCAL_WP_CONFIG="/home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/$LOCAL_DOMAIN/public_html/wp-config.php"
+    local LOCAL_WP_CONFIG="/home/$USER_REMOTE_CONTROL_PANEL/web/$LOCAL_DOMAIN/public_html/wp-config.php"
 
     # Перевірка наявності файлу wp-config.php
     if [[ ! -f "$LOCAL_WP_CONFIG" ]]; then
@@ -1136,9 +1147,9 @@ config_wordpress() {
     fi
 
     # Витяг параметрів бази даних
-    local local_db_name=$(grep -oP "define\(\s*'DB_NAME',\s*'\K[^']+" "$LOCAL_WP_CONFIG")
-    local local_db_user=$(grep -oP "define\(\s*'DB_USER',\s*'\K[^']+" "$LOCAL_WP_CONFIG")
-    local local_db_password=$(grep -oP "define\(\s*'DB_PASSWORD',\s*'\K[^']+" "$LOCAL_WP_CONFIG")
+    local local_db_name=$(grep -oP "define\s*\(\s*['\"]DB_NAME['\"],\s*['\"]\K[^'\"]+" "$LOCAL_WP_CONFIG")
+    local local_db_user=$(grep -oP "define\s*\(\s*['\"]DB_USER['\"],\s*['\"]\K[^'\"]+" "$LOCAL_WP_CONFIG")
+    local local_db_password=$(grep -oP "define\s*\(\s*['\"]DB_PASSWORD['\"],\s*['\"]\K[^'\"]+" "$LOCAL_WP_CONFIG")
 
     # Перевірка знайдених параметрів
     if [[ -n "$local_db_name" && -n "$local_db_user" && -n "$local_db_password" ]]; then
@@ -1147,9 +1158,9 @@ config_wordpress() {
         # Оновлення даних бази в панелі керування
         #for_change_local_db_name=$(echo "$local_db_name" | sed 's/^[^_]*_//')
         #for_change_local_db_user=$(echo "$local_db_user" | sed 's/^[^_]*_//')
-        #v-change-database-user "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$local_db_name" "$for_change_local_db_user"
+        #v-change-database-user "$USER_REMOTE_CONTROL_PANEL" "$local_db_name" "$for_change_local_db_user"
         
-        v-change-database-password "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$local_db_name" "$local_db_password"
+        v-change-database-password "$USER_REMOTE_CONTROL_PANEL" "$local_db_name" "$local_db_password"
 
         return 0
     else
@@ -1185,47 +1196,47 @@ add_dns_domains() {
 
 # Основна функція переносу доменів
 transfer_domains() {
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
-    local LOCAL_DOMAINS=$(remote_ssh_command "ls -1 /home/$LOCAL_REMOTE_CONTROL_PANEL_USER/web/")
+    local USER_REMOTE_CONTROL_PANEL="$1"
+    local LOCAL_DOMAINS=$(remote_ssh_command "ls -1 /home/$USER_REMOTE_CONTROL_PANEL/web/")
 
     # Цикл обробки доменів
     for LOCAL_DOMAIN in $LOCAL_DOMAINS; do
         ALL_OPERATIONS=""
         
-        if ! add_web_domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"; then
+        if ! add_web_domain "$USER_REMOTE_CONTROL_PANEL" "$LOCAL_DOMAIN"; then
             continue
         fi
 
-        config_web_domain "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
+        config_web_domain "$USER_REMOTE_CONTROL_PANEL" "$LOCAL_DOMAIN"
 
-        install_ssl "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
+        install_ssl "$USER_REMOTE_CONTROL_PANEL" "$LOCAL_DOMAIN"
 
-        sync_files "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
+        sync_files "$USER_REMOTE_CONTROL_PANEL" "$LOCAL_DOMAIN"
 
-        config_cms "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_DOMAIN"
+        config_cms "$USER_REMOTE_CONTROL_PANEL" "$LOCAL_DOMAIN"
 
     done
 }
 
 loop_migrate_hestia_vesta() {
-    local LOCAL_REMOTE_CONTROL_PANEL_USER="$1"
+    local USER_REMOTE_CONTROL_PANEL="$1"
     SUCCESSFUL_OPERATIONS=""
     FAILED_OPERATIONS=""
 
-    local LOCAL_CONTACT_MAIL=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$LOCAL_REMOTE_CONTROL_PANEL_USER" '.[$user].CONTACT')
-    local LOCAL_USER_PACKAGE=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$LOCAL_REMOTE_CONTROL_PANEL_USER" '.[$user].PACKAGE')
-    local LOCAL_USER_NAME=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$LOCAL_REMOTE_CONTROL_PANEL_USER" '.[$user].NAME')
+    local LOCAL_CONTACT_MAIL=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$USER_REMOTE_CONTROL_PANEL" '.[$user].CONTACT')
+    local LOCAL_USER_PACKAGE=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$USER_REMOTE_CONTROL_PANEL" '.[$user].PACKAGE')
+    local LOCAL_USER_NAME=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$USER_REMOTE_CONTROL_PANEL" '.[$user].NAME')
 
-    log_success "\n\nРозпочато перенесення для користувача: $(print_color_message 0 255 255 "$LOCAL_REMOTE_CONTROL_PANEL_USER"). Обробка... "
+    log_success "\n\nРозпочато перенесення для користувача: $(print_color_message 0 255 255 "$USER_REMOTE_CONTROL_PANEL"). Обробка... "
     
     # Виконуємо основні функції перенесення
-    if ! check_or_create_user "$LOCAL_REMOTE_CONTROL_PANEL_USER" "$LOCAL_CONTACT_MAIL" "$LOCAL_USER_PACKAGE" "$LOCAL_USER_NAME"; then
+    if ! check_or_create_user "$USER_REMOTE_CONTROL_PANEL" "$LOCAL_CONTACT_MAIL" "$LOCAL_USER_PACKAGE" "$LOCAL_USER_NAME"; then
         return 1
     fi
-    transfer_databases "$LOCAL_REMOTE_CONTROL_PANEL_USER"
-    transfer_domains "$LOCAL_REMOTE_CONTROL_PANEL_USER"
-    add_dns_domains "$LOCAL_REMOTE_CONTROL_PANEL_USER" "${server_IPv4[0]}" "ns1.example.tld" "ns2.example.tld"
-    echo -e "Обробка користувача: $(print_color_message 0 255 255 "$LOCAL_REMOTE_CONTROL_PANEL_USER") завершена$(print_color_message 255 0 0 "!!!")"
+    transfer_databases "$USER_REMOTE_CONTROL_PANEL"
+    transfer_domains "$USER_REMOTE_CONTROL_PANEL"
+    add_dns_domains "$USER_REMOTE_CONTROL_PANEL" "${server_IPv4[0]}" "ns1.example.tld" "ns2.example.tld"
+    echo -e "Обробка користувача: $(print_color_message 0 255 255 "$USER_REMOTE_CONTROL_PANEL") завершена$(print_color_message 255 0 0 "!!!")"
 }
 
 remote_check_control_panels() {

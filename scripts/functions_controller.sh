@@ -979,3 +979,40 @@ function check_x_ui_panel_settings() {
         return 1
     fi
 }
+
+# Перевірка на наявність користувача або групи та видалення їх
+remove_user_or_group() {
+    local name=$1
+    local type=$2
+
+    if [[ "$type" == "user" ]]; then
+        if ! id "$name" &> /dev/null; then
+            return 0
+        fi
+    elif [[ "$type" == "group" ]]; then
+        if ! getent group "$name" &> /dev/null; then
+            return 0
+        fi
+    fi
+
+    read -p "Видалити $type '$name'? (y/n): " choice
+    if [[ "$choice" =~ ^[YyYyes]+$ ]]; then
+        if [[ "$type" == "user" ]]; then
+            if deluser --remove-home "$name" > /dev/null 2>&1; then
+                return 0
+            else
+                return 1
+            fi
+        elif [[ "$type" == "group" ]]; then
+            if groupdel "$name" > /dev/null 2>&1; then
+                return 0
+            else
+                return 1
+            fi
+        fi
+    else
+        return 1
+    fi
+
+    return 0
+}
