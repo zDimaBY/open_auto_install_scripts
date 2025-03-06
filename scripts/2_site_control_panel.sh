@@ -1062,17 +1062,27 @@ transfer_databases() {
     2_switch_prefix_for_VestaCP_HestiaCP
 
     local USER_REMOTE_CONTROL_PANEL="$1"
-    local REMOTE_CONTROL_PANEL_REQUESTED_DATABASES=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-databases $USER_REMOTE_CONTROL_PANEL json")
-    local REMOTE_CONTROL_PANEL_REQUESTED_DATABASES_HOST=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-database-hosts $USER_REMOTE_CONTROL_PANEL")
-    local REMOTE_REQUESTED_DATABASES_TYPE=$(sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no "$REMOTE_ROOT_USER@$REMOTE_SERVER" "mysql -u root -e 'SELECT VERSION();' 2>/dev/null" | grep -q "MariaDB" && echo "mariadb" || echo "mysql") > /dev/null 2>&1
-    local LOCAL_REQUESTED_DATABASES_TYPE=$(mysql -u root -e 'SELECT VERSION();' 2>/dev/null | grep -q "MariaDB" && echo "mariadb" || echo "mysql") > /dev/null 2>&1
+    local REMOTE_CONTROL_PANEL_REQUESTED_DATABASES
+    local REMOTE_CONTROL_PANEL_REQUESTED_DATABASES_HOST
+    local REMOTE_REQUESTED_DATABASES_TYPE
+    local LOCAL_REQUESTED_DATABASES_TYPE
     local LOCAL_DATABASES
+    
+    REMOTE_CONTROL_PANEL_REQUESTED_DATABASES=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-databases $USER_REMOTE_CONTROL_PANEL json")
+    REMOTE_CONTROL_PANEL_REQUESTED_DATABASES_HOST=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-database-hosts $USER_REMOTE_CONTROL_PANEL")
+    
+    REMOTE_REQUESTED_DATABASES_TYPE=$(remote_ssh_command "command -v mariadb >/dev/null 2>&1 && echo 'mariadb' || (command -v mysql >/dev/null 2>&1 && echo 'mysql' || echo 'none')")
+    LOCAL_REQUESTED_DATABASES_TYPE=$(command -v mariadb >/dev/null 2>&1 && echo 'mariadb' || (command -v mysql >/dev/null 2>&1 && echo 'mysql' || echo 'none'))
 
-    local db_server_host_port=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES_HOST" | jq -r --arg db "$db" '.[$db].PORT')
+    if [[ "$REMOTE_REQUESTED_DATABASES_TYPE" == "none" || "$LOCAL_REQUESTED_DATABASES_TYPE" == "none" ]]; then
+        print_color_message 255 0 0 "Не вдалось визначити клієнт бази даних, пропускаємо..."
+        2_switch_prefix_for_VestaCP_HestiaCP
+        continue
+    fi
 
-    # Перевірка, чи вивід не порожній і чи є валідним JSON
+    
+    # Перевірка валідності JSON
     if [[ -n "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" && $(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq empty > /dev/null 2>&1; echo $?) -eq 0 ]]; then
-        # Отримання списку баз даних
         LOCAL_DATABASES=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq -r 'keys[]')
     else
         echo "Помилка: Невалідний або порожній JSON у відповіді."
@@ -1080,22 +1090,35 @@ transfer_databases() {
     fi
 
     for db in $LOCAL_DATABASES; do
-        local db_user=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq -r --arg db "$db" '.[$db].DBUSER')
-        local db_server_host=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq -r --arg db "$db" '.[$db].HOST')
+        local db_user
+        local db_server_host
+        local db_server_host_port
+        local db_password
 
-        echo "$USER_REMOTE_CONTROL_PANEL" "$db" "$db_user" "$db_server_host"
+        db_user=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq -r --arg db "$db" '.[$db].DBUSER')
+        db_server_host=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq -r --arg db "$db" '.[$db].HOST')
+        db_server_host_port=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES_HOST" | jq -r --arg db "$db" '.[$db].PORT')
+        db_password=$(generate_random_password 25)
+
 
         if mysql -uroot -e "USE $db;" 2>/dev/null; then
             print_color_message 255 255 0 "База даних $(print_color_message 0 255 255 "$db") вже існує, пропускаємо..."
             continue
         else
             print_color_message 255 255 0 "Перенесення бази даних: $(print_color_message 0 255 255 "$db")"
+            
+            $CLI_dir/v-add-database "$USER_REMOTE_CONTROL_PANEL" "$db" "$db_user" "$db_password"
+            
+            DUMP_COMMAND="mysqldump"
+            [[ "$REMOTE_REQUESTED_DATABASES_TYPE" == "mariadb" ]] && DUMP_COMMAND="mariadb-dump"
+            
+            IMPORT_COMMAND="mysql"
+            [[ "$LOCAL_REQUESTED_DATABASES_TYPE" == "mariadb" ]] && IMPORT_COMMAND="mariadb"
+            
+            echo "Обробка бази даних: $db (користувач: $db_user, хост: $db_server_host, порт: $db_server_host_port дамп: $DUMP_COMMAND імпорт: $IMPORT_COMMAND)"
 
-            $CLI_dir/v-add-database "$USER_REMOTE_CONTROL_PANEL" "$db" "$db_user" "$(generate_random_password 25)"
-
-            # sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no "xxx.xx.xxx.xx@root" "mysqldump -h $db_server_host -P 3306 -uroot $db" | mysql -h $db_server_host -P 3306 -uroot "$db"
             sshpass -p "$PASSWORD_ROOT_USER" ssh -o StrictHostKeyChecking=no "$REMOTE_ROOT_USER@$REMOTE_SERVER" \
-                "${REMOTE_REQUESTED_DATABASES_TYPE}-dump -h $db_server_host -uroot $db" | $LOCAL_REQUESTED_DATABASES_TYPE -h "$db_server_host" -uroot "$db"
+                "$DUMP_COMMAND -h $db_server_host -uroot $db" | $IMPORT_COMMAND -h "$db_server_host" -uroot "$db"
         fi
     done
 
