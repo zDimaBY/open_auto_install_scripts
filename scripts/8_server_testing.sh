@@ -187,54 +187,86 @@ check_dmarc() {
 
 # Перевірка доступності SMTP-порту
 check_smtp_port() {
-    nc -zv $DOMAIN 25
-    if [[ $? -ne 0 ]]; then
-        echo -e "${RED}SMTP порт 25 не доступний на $DOMAIN${RESET}"
-    else
-        echo -e "SMTP порт 25 доступний на ${GREEN}$DOMAIN${RESET}"
-    fi
+    echo -e "SMTP Port 25, 465, 587 Connectivity Check (via telnet)"
+    
+    local PORTS=(25 465 587)
+    for PORT in "${PORTS[@]}"; do
+        echo -ne "Перевіряю порт $PORT… "
+        # Якщо telnet/timeout провалиться — || true заглушить помилку
+        local resp
+        resp=$( timeout 3 bash -c "printf 'QUIT\r\n' | telnet \"$DOMAIN\" $PORT 2>&1" || true )
+        if grep -q "Connected to" <<<"$resp" && grep -q "^220" <<<"$resp"; then
+            echo -e "${GREEN}доступний${RESET}"
+        else
+            echo -e "${RED}недоступний${RESET}"
+        fi
+    done
+    echo
 }
 
 # Перевірка HELO/EHLO
 check_helo() {
-    echo -e "${RED}HELO/EHLO${BLUE} - The HELO/EHLO command is used by the client (the sending computer) to identify itself to the server.------------------------${RESET}"
-    HELO=$(nslookup -type=PTR $SERVER_IP | awk '/name =/ {print $4}')
-    if [[ "$HELO" != "$DOMAIN." ]]; then
-        echo -e "${RED}HELO/EHLO запис не відповідає: $HELO != $DOMAIN.${RESET}"
+    echo -e "${RED}HELO/EHLO${BLUE} - checking the PTR record and EHLO via telnet --------------------------------------------------------------------------------${RESET}"
+    
+    # Шляхом nslookup може повернутися non-zero → заглушаємо його, щоб не вийшло з set -e
+    local PTR
+    PTR=$( (nslookup -type=PTR "$SERVER_IP" 2>/dev/null || true) \
+           | awk '/name =/ {print $4}' \
+           | sed 's/\.$//' )
+    if [[ -z "$PTR" ]]; then
+        echo -e "${YELLOW} PTR запис не знайдено для IP $SERVER_IP${RESET}"
+    elif [[ "$PTR" == "$DOMAIN" ]]; then
+        echo -e "${GREEN} PTR ($PTR) відповідає домену${RESET}"
     else
-        echo -e "HELO/EHLO запис відповідає: ${GREEN}$HELO${RESET}"
+        echo -e "${RED} PTR ($PTR) НЕ відповідає домену ($DOMAIN)${RESET}"
     fi
+    echo
 
+    # Підключення до портів теж заглушене всередині
     check_smtp_port
 
-    TELNET_RESPONSE=$( (
-        echo open $DOMAIN 25
-        sleep 2
-        echo EHLO $DOMAIN
-        sleep 2
-        echo quit
-    ) | telnet 2>/dev/null)
-    if [[ "$TELNET_RESPONSE" == *"220"* && "$TELNET_RESPONSE" == *"250"* ]]; then
-        echo -e "${GREEN}Telnet з'єднання встановлено успішно. Відповідь сервера:${RESET}\n$TELNET_RESPONSE"
+    # EHLO‑банер через telnet
+    echo -e "Перевірка EHLO на $DOMAIN:25…"
+    local banner
+    banner=$( { 
+        echo open "$DOMAIN" 25
+        sleep 1
+        echo EHLO "$DOMAIN"
+        sleep 1
+        echo QUIT
+    } | timeout 4 telnet 2>&1 || true )
+
+    if grep -q "^220" <<<"$banner" && grep -q "^250" <<<"$banner"; then
+        echo -e "${GREEN}Отримано 220 & 250 відповіді:${RESET}\n$banner"
     else
-        echo -e "${RED}Не вдалося встановити telnet з'єднання на порт 25 або отримати правильну відповідь.${RESET}"
-        echo -e "Отримана відповідь: \n${RED}$TELNET_RESPONSE${RESET}"
+        echo -e "${RED}Не вдалося отримати 220 і/або 250:${RESET}\n${RED}$banner${RESET}"
     fi
 
-    echo "\n"
+    echo
 }
 
 # Перевірка TLS/SSL сертифіката
 check_ssl() {
     echo -e "${RED}SSL${BLUE}-------------------------------------------------------------------------------------------------------------------------------------${RESET}"
-    SSL=$(echo | openssl s_client -connect $DOMAIN:25 -starttls smtp 2>/dev/null | openssl x509 -noout -dates)
-    if [[ -z "$SSL" ]]; then
-        echo -e "${RED}SSL сертифікат не знайдено або не налаштовано для $DOMAIN на 25-му порті${RESET}"
+
+    # Використаємо тайм-аут, щоб уникнути зависання
+    SSL=$(timeout 5 bash -c "echo | openssl s_client -connect $DOMAIN:25 -starttls smtp 2>/dev/null" | openssl x509 -noout -dates 2>/dev/null)
+
+    if [[ $? -ne 0 || -z "$SSL" ]]; then
+        echo -e "${RED}SSL сертифікат не знайдено або помилка з'єднання з $DOMAIN на 25-му порті${RESET}"
+        echo -e "${YELLOW}Можливі причини:${RESET}"
+        echo -e "${YELLOW}- Порт 25 заблокований або закритий${RESET}"
+        echo -e "${YELLOW}- Сервер не підтримує STARTTLS на цьому порту${RESET}"
+        echo -e "${YELLOW}- Сертифікат відсутній або неправильний${RESET}"
     else
-        echo -e "SSL сертифікат для $DOMAIN: \n${GREEN}$SSL на 25-му порті${RESET}"
+        echo -e "${GREEN}SSL сертифікат для $DOMAIN на 25-му порті:${RESET} \n$SSL"
     fi
-    echo -e "${YELLOW}Для перевірки ви можете скористатися командою:${RESET} echo | openssl s_client -connect $DOMAIN:25 -starttls smtp 2>/dev/null | openssl x509 -noout -dates\n"
+
+    echo -e "${CYAN}Для ручної перевірки ви можете використати:${RESET}"
+    echo -e "echo | openssl s_client -connect $DOMAIN:25 -starttls smtp 2>/dev/null | openssl x509 -noout -dates"
+    echo
 }
+
 
 # Перевірка можливості надсилання пошти
 check_send_mail() {
