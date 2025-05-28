@@ -40,20 +40,34 @@ v_sys_change_ip() {
     current_date=$(date +'%Y-%m-%d %H:%M:%S')
     echo "tail -n 50 /var/log/$control_panel_install/system.log для перегляду що було замінено. У папці /root/backup_conf_$current_date_dir/ старі файли конфігурації"
     echo "$current_date Виконана заміна файлів. ---------------------------" >>"$LOG"
-    if [ -f "/usr/local/$control_panel_install/data/ips/$1" ]; then
-        echo "$current_date mv -f \"/usr/local/$control_panel_install/data/ips/$1\" -> \"/usr/local/$control_panel_install/data/ips/$2\"" >>"$LOG"
-        mv -f "/usr/local/$control_panel_install/data/ips/$1" "/usr/local/$control_panel_install/data/ips/$2"
+    if [ -f "/usr/local/$control_panel_install/data/ips/$OLD_IP" ]; then
+        echo "$current_date mv -f \"/usr/local/$control_panel_install/data/ips/$OLD_IP\" -> \"/usr/local/$control_panel_install/data/ips/$NEW_IP\"" >>"$LOG"
+        mv -f "/usr/local/$control_panel_install/data/ips/$OLD_IP" "/usr/local/$control_panel_install/data/ips/$NEW_IP"
     fi
 
-    if [ -f "$DIR_APACHE/conf.d/$1.conf" ]; then
-        echo "$current_date mv -f \"$DIR_APACHE/conf.d/$1.conf\" -> \"$DIR_APACHE/conf.d/$2.conf\"" >>"$LOG"
-        mv -f "$DIR_APACHE/conf.d/$1.conf" "$DIR_APACHE/conf.d/$2.conf"
+    if [ -f "$DIR_APACHE/conf.d/$OLD_IP.conf" ]; then
+        echo "$current_date mv -f \"$DIR_APACHE/conf.d/$OLD_IP.conf\" -> \"$DIR_APACHE/conf.d/$NEW_IP.conf\"" >>"$LOG"
+        mv -f "$DIR_APACHE/conf.d/$OLD_IP.conf" "$DIR_APACHE/conf.d/$NEW_IP.conf"
     fi
 
-    if [ -f "/etc/nginx/conf.d/$1.conf" ]; then
-        echo "$current_date mv -f \"/etc/nginx/conf.d/$1.conf\" -> \"/etc/nginx/conf.d/$2.conf\"" >>"$LOG"
-        mv -f "/etc/nginx/conf.d/$1.conf" "/etc/nginx/conf.d/$2.conf"
+    if [ -f "/etc/nginx/conf.d/$OLD_IP.conf" ]; then
+        echo "$current_date mv -f \"/etc/nginx/conf.d/$OLD_IP.conf\" -> \"/etc/nginx/conf.d/$NEW_IP.conf\"" >>"$LOG"
+        mv -f "/etc/nginx/conf.d/$OLD_IP.conf" "/etc/nginx/conf.d/$NEW_IP.conf"
     fi
+
+    echo -e "\n$current_date Перевірка та оновлення iptables конфігурацій..." >>"$LOG"
+    for ipt_file in /etc/iptables/* /etc/sysconfig/iptables /etc/*iptables*.conf; do
+        if [ -f "$ipt_file" ]; then
+            if grep -q "$OLD_IP" "$ipt_file"; then
+                ipt_backup="/root/backup_conf_$current_date_dir/${ipt_file#"/"}"
+                mkdir -p "$(dirname "$ipt_backup")"
+                cp "$ipt_file" "$ipt_backup"
+                sed -i "s/$OLD_IP/$NEW_IP/g" "$ipt_file"
+                echo "$current_date Оновлено IP у $ipt_file" >>"$LOG"
+            fi
+        fi
+    done
+
 
     echo "$current_date Заміна IP-адреси з $OLD_IP на $NEW_IP відбулась у наступних файлах: ---------------------------" >>"$LOG"
     for user_conf_dir in /etc/hosts /home/*/conf /usr/local/$control_panel_install/data/users $DIR_APACHE /etc/nginx; do
@@ -77,6 +91,10 @@ v_sys_change_ip() {
         systemctl restart nginx
     fi
 
+    if [ -f /etc/iptables/rules.v4 ]; then
+        iptables-restore < /etc/iptables/rules.v4
+    fi
+
     # Вивід завершального повідомлення
     echo -e "\n\n*** Заміна $OLD_IP на $NEW_IP завершена ***"
     echo "Для перегляду поточної адреси в усіх файлах: grep -rE -o '([0-9]{1,3}\.){3}[0-9]{1,3}' /home/*/conf/"
@@ -90,4 +108,112 @@ v_sys_change_ip() {
 
     echo -e "\n\nПошук старої адреси: grep -r "$OLD_IP" /usr/local/$control_panel_install/data/users ------------------------------------"
     grep -r "$OLD_IP" /usr/local/$control_panel_install/data/users
+}
+
+
+#!/bin/bash
+# shellcheck disable=SC2148,SC2154
+
+# === Константи ===
+HAVE_NGINX=1
+BACKUP_BASE="/root/backup_conf_$(date +'%Y_%m_%d_%H_%M_%S')"
+LOG_DIR="/var/log/$control_panel_install"
+LOG="$LOG_DIR/system.log"
+
+# === Функції ===
+
+log_msg() {
+    local msg="$1"
+    local timestamp="$(date +'%Y-%m-%d %H:%M:%S')"
+    echo "$timestamp $msg" | tee -a "$LOG"
+}
+
+validate_ip() {
+    local ip="$1"
+    [[ $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
+}
+
+backup_file_os() {
+    local file="$1"
+    local backup_path="$BACKUP_BASE/${file#/}"
+    mkdir -p "$(dirname "$backup_path")"
+    cp "$file" "$backup_path"
+    log_msg "Зроблено бекап $file -> $backup_path"
+}
+
+replace_ip_in_file() {
+    local file="$1"
+    if grep -q "$OLD_IP" "$file"; then
+        backup_file_os "$file"
+        sed -i "s|$OLD_IP|$NEW_IP|g" "$file"
+        log_msg "Оновлено IP у $file"
+    fi
+}
+
+rename_file_if_exists() {
+    local old_path="$1"
+    local new_path="$2"
+    if [ -f "$old_path" ]; then
+        backup_file_os "$old_path"
+        mv -f "$old_path" "$new_path"
+        log_msg "Перейменовано $old_path -> $new_path"
+    fi
+}
+
+restart_services() {
+    log_msg "Перезапуск служб"
+    if [ -n "$DIR_APACHE" ] && systemctl list-unit-files | grep -q "$install_web_server.service"; then
+        systemctl restart "$install_web_server"
+    fi
+    if [ "$HAVE_NGINX" -eq 1 ] && systemctl list-unit-files | grep -q nginx.service; then
+        systemctl restart nginx
+    fi
+}
+
+update_iptables_configs() {
+    log_msg "Перевірка iptables конфігурацій"
+    for ipt_file in /etc/iptables/* /etc/sysconfig/iptables /etc/*iptables*.conf; do
+        [ -f "$ipt_file" ] && replace_ip_in_file "$ipt_file"
+    done
+}
+
+update_all_configs() {
+    local search_dirs=(/etc/hosts /home/*/conf /usr/local/$control_panel_install/data/users "$DIR_APACHE" /etc/nginx)
+    for dir in "${search_dirs[@]}"; do
+        find "$dir" -type f 2>/dev/null | while read -r file; do
+            replace_ip_in_file "$file"
+        done
+    done
+}
+
+v_sys_change_ip_v2() {
+    read -p "Вкажіть стару адресу сервера: " OLD_IP
+    read -p "Вкажіть нову адресу сервера: " NEW_IP
+
+    if [ "$(id -u)" != "0" ]; then
+        echo "Скрипт потрібно запускати з правами root."
+        return 1
+    fi
+
+    if ! validate_ip "$OLD_IP" || ! validate_ip "$NEW_IP"; then
+        echo "Неправильний формат IP адреси."
+        return 1
+    fi
+
+    mkdir -p "$LOG_DIR"
+    touch "$LOG"
+    mkdir -p "$BACKUP_BASE"
+
+    log_msg "Починаємо заміну $OLD_IP -> $NEW_IP"
+
+    rename_file_if_exists "/usr/local/$control_panel_install/data/ips/$OLD_IP" "/usr/local/$control_panel_install/data/ips/$NEW_IP"
+    rename_file_if_exists "$DIR_APACHE/conf.d/$OLD_IP.conf" "$DIR_APACHE/conf.d/$NEW_IP.conf"
+    rename_file_if_exists "/etc/nginx/conf.d/$OLD_IP.conf" "/etc/nginx/conf.d/$NEW_IP.conf"
+
+    update_iptables_configs
+    update_all_configs
+    restart_services
+
+    log_msg "*** Заміна IP завершена. ***"
+    echo "grep -r \"$OLD_IP\" /etc /home/*/conf /usr/local/$control_panel_install/data/users - для перевірки залишків"
 }
