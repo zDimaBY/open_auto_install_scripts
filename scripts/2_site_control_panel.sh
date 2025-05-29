@@ -51,11 +51,10 @@ function 2_site_control_panel() {
         print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
         print_color_message 255 255 255 "1. Встановлення/апгрейд $(print_color_message 255 215 0 'ioncube') для всіх php версій (Hestiacp + php-fpm) $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "2. Встановлення $(print_color_message 255 215 0 'CMS') $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "3. Заміна IP-адреси з old на new $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "3. Заміна IP-адреси з old на new $(print_color_message 255 99 71)"
         print_color_message 255 255 255 "4. Вимкнення/увімкнення префікса $(print_color_message 144 238 144 'admin_') у базах даних панелі керування"
         print_color_message 255 255 255 "5. Очистка $(print_color_message 144 238 144 'логів') $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "6. Пренесення $(print_color_message 144 238 144 'сайтів') з віддаленого сервера на $(print_color_message 255 0 255 "${server_IPv4[0]}") $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "7. Заміна IP-адреси з old на new V2 $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -68,7 +67,6 @@ function 2_site_control_panel() {
         4) 2_switch_prefix_for_VestaCP_HestiaCP ;;
         5) 2_logs_clear ;;
         6) 2_filling_information_for_transfer ;;
-        7) v_sys_change_ip_v2 ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
