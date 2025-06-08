@@ -1016,3 +1016,44 @@ remove_user_or_group() {
 
     return 0
 }
+
+detect_mysql_server_type() {
+    local output version bin
+
+    # 1. Спроба знайти процес
+    bin=$(ps aux | grep -E '[m]ysqld|[m]ariadbd' | awk '{print $11}' | head -n1)
+    if [[ -x "$bin" ]]; then
+        output=$($bin --version 2>/dev/null)
+    fi
+
+    # 2. Якщо не вдалось — спробуємо через `mysql -V`
+    if [[ -z "$output" ]]; then
+        if command -v mysql >/dev/null 2>&1; then
+            output=$(mysql -V 2>/dev/null)
+        fi
+    fi
+
+    # 3. Якщо все ще нічого — читаємо з error log
+    if [[ -z "$output" ]]; then
+        errfile=$(find /var/lib/mysql -maxdepth 1 -type f -name "*.err" | head -n1)
+        if [[ -f "$errfile" ]]; then
+            output=$(grep -Ei 'starting|version' "$errfile" | head -n5)
+        fi
+    fi
+
+    # 4. Пошук по output
+    if echo "$output" | grep -qi 'mariadb'; then
+        db_server_type="mariadb"
+        db_server_version=$(echo "$output" | grep -oEi '[0-9]+\.[0-9]+\.[0-9]+(-MariaDB)?' | head -n1)
+    elif echo "$output" | grep -qi 'percona'; then
+        db_server_type="percona"
+        db_server_version=$(echo "$output" | grep -oEi '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+    elif echo "$output" | grep -qi 'mysql'; then
+        db_server_type="mysql"
+        db_server_version=$(echo "$output" | grep -oEi '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+    else
+        db_server_type="none"
+        db_server_version="none"
+        return 1
+    fi
+}

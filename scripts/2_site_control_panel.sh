@@ -54,7 +54,7 @@ function 2_site_control_panel() {
         print_color_message 255 255 255 "3. Заміна IP-адреси з old на new $(print_color_message 255 99 71)"
         print_color_message 255 255 255 "4. Вимкнення/увімкнення префікса $(print_color_message 144 238 144 'admin_') у базах даних панелі керування"
         print_color_message 255 255 255 "5. Очистка $(print_color_message 144 238 144 'логів') $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "6. Пренесення $(print_color_message 144 238 144 'сайтів') з віддаленого сервера на $(print_color_message 255 0 255 "${server_IPv4[0]}") $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "6. Пренесення $(print_color_message 144 238 144 'сайтів') з сервера на сервер$(print_color_message 255 0 255 "${server_IPv4[0]}") $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -66,7 +66,7 @@ function 2_site_control_panel() {
         3) v_sys_change_ip ;;
         4) 2_switch_prefix_for_VestaCP_HestiaCP ;;
         5) 2_logs_clear ;;
-        6) 2_filling_information_for_transfer ;;
+        6) 2_migrations_control_panel ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -90,6 +90,28 @@ function 2_site_control_panel() {
         case $choice in
         1) 2_install_hestiaCP ;;
         2) 2_install_ISPmanager_control_panel ;;
+        0) break ;;
+        00) 0_funExit ;;
+        *) 0_invalid ;;
+        esac
+    done
+}
+
+2_migrations_control_panel() {
+    while true; do
+        check_info_server
+        check_info_control_panel
+        print_color_message 255 255 0 "\n${MSG_CHOOSE_OPTION}\n"
+        echo -e "1. Перенесення з ${RED}HestiaCP/VestaCP${RESET} на HestiaCP ${RED}(test)${RESET}"
+        echo -e "2. Перенесення з ${RED}cPanel${RESET} на HestiaCP ${RED}(test)${RESET}"
+        print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
+        print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
+
+        read -p "${MSG_CHOOSE_OPTION}" choice
+
+        case $choice in
+        1) 2_filling_information_for_transfer_in_HestiaCP ;;
+        2) 2_filling_information_cPanel_for_transfer_in_HestiaCP ;;
         0) break ;;
         00) 0_funExit ;;
         *) 0_invalid ;;
@@ -846,7 +868,7 @@ display_wordpress_info() {
     echo -e "В розробці: ..."
 }
 
-#--------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------
 # Функція для перевірки наявності інструментів
 check_tools() {
     for tool in sshpass rsync openssl; do
@@ -1059,7 +1081,7 @@ sync_files() {
 
 # Основна функція переносу баз даних sshpass -p "pass" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@xxx.xx.xxx.xx "mysql -uroot -B -e 'show databases;'" | grep -Ev "Database|sys|information_schema|mysql|performance_schema|phpmyadmin|roundcube"
 transfer_databases() {
-    2_switch_prefix_for_VestaCP_HestiaCP
+    detect_mysql_server_type
 
     local USER_REMOTE_CONTROL_PANEL="$1"
     local REMOTE_CONTROL_PANEL_REQUESTED_DATABASES
@@ -1072,15 +1094,13 @@ transfer_databases() {
     REMOTE_CONTROL_PANEL_REQUESTED_DATABASES_HOST=$(remote_ssh_command "$CLI_DIR_REMOTE/v-list-database-hosts $USER_REMOTE_CONTROL_PANEL")
     
     REMOTE_REQUESTED_DATABASES_TYPE=$(remote_ssh_command "command -v mariadb >/dev/null 2>&1 && echo 'mariadb' || (command -v mysql >/dev/null 2>&1 && echo 'mysql' || echo 'none')")
-    LOCAL_REQUESTED_DATABASES_TYPE=$(command -v mariadb >/dev/null 2>&1 && echo 'mariadb' || (command -v mysql >/dev/null 2>&1 && echo 'mysql' || echo 'none'))
+    LOCAL_REQUESTED_DATABASES_TYPE=${db_server_type}
 
     if [[ "$REMOTE_REQUESTED_DATABASES_TYPE" == "none" || "$LOCAL_REQUESTED_DATABASES_TYPE" == "none" ]]; then
         print_color_message 255 0 0 "Не вдалось визначити клієнт бази даних, пропускаємо..."
-        2_switch_prefix_for_VestaCP_HestiaCP
         continue
     fi
 
-    
     # Перевірка валідності JSON
     if [[ -n "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" && $(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq empty > /dev/null 2>&1; echo $?) -eq 0 ]]; then
         LOCAL_DATABASES=$(echo "$REMOTE_CONTROL_PANEL_REQUESTED_DATABASES" | jq -r 'keys[]')
@@ -1088,6 +1108,8 @@ transfer_databases() {
         echo "Помилка: Невалідний або порожній JSON у відповіді."
         return 1
     fi
+    
+    2_switch_prefix_for_VestaCP_HestiaCP
 
     for db in $LOCAL_DATABASES; do
         local db_user
@@ -1274,7 +1296,7 @@ remote_check_control_panels() {
 }
 
 # Виводимо меню вибору користувача 
-2_filling_information_for_transfer() {
+2_filling_information_for_transfer_in_HestiaCP() {
     check_tools
     echo
     read -p "Введіть IP адресу або домен віддаленого сервера: " REMOTE_SERVER
@@ -1334,3 +1356,212 @@ remote_check_control_panels() {
         fi
     done
 }
+
+#---------------------------------------------------------------------------------------------------------
+
+2_filling_information_cPanel_for_transfer_in_HestiaCP() {
+    echo -e "${YELLOW}В розробці: ...${RESET}"
+    echo 
+    read -p "Введіть URL та порт для входу (напр. https://panel.server-xxxx.net:2083): " CPANEL_HOST
+    read -p "Введіть користувача (напр. user00000): " CPANEL_USER
+    read -p "Введіть пароль користувача (напр. user00000): " CPANEL_PASSWORD
+    echo
+
+    LOGIN_RESPONSE=$(curl -sk -c - -d "user=$CPANEL_USER&pass=$CPANEL_PASSWORD" "$CPANEL_HOST/login/")
+
+    CPANEL_SESSION=$(echo "$LOGIN_RESPONSE" | grep -oP '/cpsess[0-9]+' | head -n 1)
+
+    CPSESSION_VALUE=$(echo "$LOGIN_RESPONSE" | grep 'cpsession' | awk '{print $NF}')
+
+    if [[ -z "$CPANEL_SESSION" || -z "$CPSESSION_VALUE" ]]; then
+        echo "Не вдалося отримати сеанс або cookie. Перевір логін/пароль."
+        exit 1
+    fi
+
+    echo "Сесія: $CPANEL_SESSION"
+
+    AUTH_HEADER="Cookie: cpsession=$CPSESSION_VALUE"
+
+    CPANEL_JSON=$(curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/execute/ResourceUsage/get_usages")
+    echo "$CPANEL_JSON" | jq -r .
+
+    HESTIA_JSON=$(v-list-user-stats $HESTIA_USER json)
+
+    DF_TOTAL=$(df / | awk 'NR==2 {print $2}')
+    DF_USED=$(df / | awk 'NR==2 {print $3}')
+    DF_PERC=$(df / | awk 'NR==2 {print $5}')
+
+    MEM_TOTAL=$(free -m | awk '/Mem:/ {print $2}')
+    MEM_USED=$(free -m | awk '/Mem:/ {print $3}')
+
+    get_cpu_usage_15min_percent() {
+        LOAD_15=$(uptime | awk -F'load average:' '{ print $2 }' | cut -d',' -f3 | xargs)
+        CPU_CORES=$(nproc)
+        PERCENT=$(awk -v ld="$LOAD_15" -v cores="$CPU_CORES" 'BEGIN {
+            usage = (ld / cores) * 100
+            if (usage > 100) usage = 100
+            printf "%.0f", usage
+        }')
+        echo "$PERCENT"
+    }
+
+
+    CPU_USED=$(get_cpu_usage_15min_percent)
+    CPU_MAX=100
+
+    PROC_COUNT=$(ps aux --no-heading | wc -l)
+
+    MYSQL_USED_KB=$(du -s /var/lib/mysql 2>/dev/null | awk '{print $1}')
+
+    MYSQL_MOUNT=$(df /var/lib/mysql --output=source | tail -1)
+
+    MYSQL_TOTAL_KB=$(df --output=size "$MYSQL_MOUNT" | tail -1)
+
+    # Конвертація у GB: KB -> MB -> GB
+    MYSQL_USED_GB=$(awk -v used="$MYSQL_USED_KB" 'BEGIN { printf "%.2f", used / (1024*1024) }')
+    MYSQL_TOTAL_GB=$(awk -v total="$MYSQL_TOTAL_KB" 'BEGIN { printf "%.2f", total / (1024*1024) }')
+
+    MYSQL_PERCENT=$(awk -v used="$MYSQL_USED_GB" -v total="$MYSQL_TOTAL_GB" 'BEGIN {
+        p = (used / total) * 100
+        if (p > 100) p = 100
+        printf "%.0f", p
+    }')
+
+    echo "Порівняння ресурсів cPanel | HestiaCP:"
+    echo
+
+    COUNT=$(echo "$CPANEL_JSON" | jq '.data | length')
+
+    for ((i = 0; i < COUNT; i++)); do
+        ITEM=$(echo "$CPANEL_JSON" | jq ".data[$i]")
+
+        ID=$(echo "$ITEM" | jq -r '.id')
+        DESC=$(echo "$ITEM" | jq -r '.description')
+        USAGE=$(echo "$ITEM" | jq -r '.usage')
+        MAX=$(echo "$ITEM" | jq -r '.maximum')
+
+        [[ "$USAGE" == "null" ]] && USAGE=0
+        [[ "$MAX" == "null" ]] && MAX="∞"
+
+        if [[ "$MAX" == "∞" || "$MAX" == 0 ]]; then
+            PERCENT=0
+        else
+            PERCENT=$(awk -v u="$USAGE" -v m="$MAX" 'BEGIN { if (m==0) print 0; else printf "%.0f", (u/m)*100 }')
+        fi
+
+        if [[ "$ID" =~ ^(disk_usage|cachedmysqldiskusage|cachedpostgresdiskusage|bandwidth|lvememphy)$ ]]; then
+            HU=$(awk -v u="$USAGE" 'BEGIN { printf "%.2f GB", u / 1073741824 }')
+            if [[ "$MAX" == "∞" ]]; then
+                HM="∞"
+            else
+                HM=$(awk -v m="$MAX" 'BEGIN { printf "%.2f GB", m / 1073741824 }')
+            fi
+        else
+            HU="$USAGE"
+            HM="$MAX"
+        fi
+
+        CPANEL_OUTPUT="$HU / $HM (${PERCENT}%)"
+
+        # Визначення Hestia-значення вручну або з JSON
+        case "$ID" in
+            disk_usage)
+                HESTIA_OUTPUT=$(awk -v u=$DF_USED -v t=$DF_TOTAL 'BEGIN { printf "%.2f GB / %.2f GB (%s)", u/1048576, t/1048576, "'"$DF_PERC"'" }')
+                ;;
+            cachedmysqldiskusage)
+                HESTIA_OUTPUT="${MYSQL_USED_GB} GB / ${MYSQL_TOTAL_GB} GB (${MYSQL_PERCENT}%)"
+                ;;
+            cachedpostgresdiskusage)
+                HESTIA_OUTPUT="немає даних"
+                ;;
+            bandwidth)
+                HESTIA_OUTPUT="немає даних"
+                ;;
+            lvememphy)
+                HESTIA_OUTPUT=$(awk -v u="$MEM_USED" -v t="$MEM_TOTAL" 'BEGIN { printf "%.2f GB / %.2f GB (%d%%)", u/1024, t/1024, (u/t)*100 }')
+                ;;
+            lvenproc)
+                HESTIA_OUTPUT="$PROC_COUNT / ∞"
+                ;;
+            lvecpu)
+                HESTIA_OUTPUT="$CPU_USED / $CPU_MAX ($CPU_USED%)"
+                ;;
+            *)
+                HESTIA_OUTPUT="немає даних"
+                ;;
+        esac
+
+        printf " - %-25s: %-25s <- cPanel | HestiaCP -> %s\n" "$DESC" "$CPANEL_OUTPUT" "$HESTIA_OUTPUT"
+    done
+
+    echo -e "\nОбробка доменів:"
+    RESPONSE=$(curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=SubDomain&cpanel_jsonapi_func=listsubdomains")
+
+    # Отримуєм відповідь у форматі json
+    #echo "$RESPONSE" | jq -r .
+
+    SUBDOMAINS=$(echo "$RESPONSE" | jq -r '.cpanelresult.data[].subdomain')
+
+    BACKUP_DIR="/home/$CPANEL_USER/backup"
+
+    curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=mkdir&path=%2Fhome%2F$CPANEL_USER&name=backup_${rand_head}" >/dev/null 2>&1
+
+    # 1. Проходимо циклом по кожному піддомену
+    for DOMAIN in $SUBDOMAINS; do
+        STATUS="домен: $DOMAIN"
+        echo -ne "$STATUS\r"
+
+        DIR=$(echo "$RESPONSE" | jq -r --arg dom "$DOMAIN" '.cpanelresult.data[] | select(.subdomain == $dom) | .dir')
+        STATUS+=" | папку: $DIR"
+        echo -ne "$STATUS\r"
+
+        ARCHIVE_NAME="${DIR##*/}.zip"
+        ARCHIVE_PATH="$BACKUP_DIR/$ARCHIVE_NAME"
+        
+        # Кодуємо шляхи для URL (заміна '/' на %2F)
+        # Простий варіант: замінюємо '/' на '%2F' (для cPanel API)
+        URL_ENCODED_DIR=$(echo "$DIR" | sed 's/\//%2F/g')
+        URL_ENCODED_ARCHIVE_PATH=$(echo "$ARCHIVE_PATH" | sed 's/\//%2F/g')
+        
+        STATUS+=" | архів $ARCHIVE_NAME"
+        echo -ne "$STATUS\r"
+        curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=compress&metadata=zip&sourcefiles=$URL_ENCODED_DIR&destfiles=$URL_ENCODED_ARCHIVE_PATH" >/dev/null 2>&1
+        
+        STATUS+=" - скачуємо"
+        echo -ne "$STATUS\r"
+        curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/download?skipencode=1&file=$URL_ENCODED_ARCHIVE_PATH" -o "$ARCHIVE_NAME" >/dev/null 2>&1
+        
+        STATUS+=" - видаляємо"
+        echo -ne "$STATUS\r"
+        curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=unlink&sourcefiles=$URL_ENCODED_ARCHIVE_PATH" >/dev/null 2>&1
+        
+        STATUS+=" | Готово |"
+        echo -ne "$STATUS\n"
+    done
+
+    echo -e "\nОбробка баз даних:"
+
+    DB_LIST_JSON=$(curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/execute/Mysql/list_databases")
+    DB_NAMES=$(echo "$DB_LIST_JSON" | jq -r '.data[].database')
+
+    for DB_NAME in $DB_NAMES; do
+        STATUS="Скачуємо $DB_NAME"
+        echo -ne "$STATUS\r"
+
+        BACKUP_URL="$CPANEL_HOST$CPANEL_SESSION/getsqlbackup/${DB_NAME}.sql.gz"
+        OUTPUT_FILE="${DB_NAME}_$(date +%F).sql.gz"
+
+        curl -sk -H "$AUTH_HEADER" "$BACKUP_URL" -o "$OUTPUT_FILE"
+
+        if [[ $? -eq 0 && -s "$OUTPUT_FILE" ]]; then
+            STATUS+=" | збережено як $OUTPUT_FILE |"
+            echo -ne "$STATUS\n"
+        else
+            STATUS+=" | помилка при скачуванні $DB_NAME |"
+            echo -ne "$STATUS\n"
+            rm -f "$OUTPUT_FILE"
+        fi
+    done
+}
+
+#---------------------------------------------------------------------------------------------------------
