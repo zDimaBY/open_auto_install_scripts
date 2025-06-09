@@ -1336,17 +1336,13 @@ remote_check_control_panels() {
 #---------------------------------------------------------------------------------------------------------
 
 2_filling_information_cPanel_for_transfer_in_HestiaCP() {
-    echo -e "${YELLOW}В розробці: ...${RESET}"
-    echo 
     read -p "Введіть URL та порт для входу (напр. https://panel.server-xxxx.net:2083): " CPANEL_HOST
     read -p "Введіть користувача (напр. user00000): " CPANEL_USER
     read -p "Введіть пароль користувача (напр. user00000): " CPANEL_PASSWORD
     echo
 
     LOGIN_RESPONSE=$(curl -sk -c - -d "user=$CPANEL_USER&pass=$CPANEL_PASSWORD" "$CPANEL_HOST/login/")
-
     CPANEL_SESSION=$(echo "$LOGIN_RESPONSE" | grep -oP '/cpsess[0-9]+' | head -n 1)
-
     CPSESSION_VALUE=$(echo "$LOGIN_RESPONSE" | grep 'cpsession' | awk '{print $NF}')
 
     if [[ -z "$CPANEL_SESSION" || -z "$CPSESSION_VALUE" ]]; then
@@ -1401,8 +1397,6 @@ remote_check_control_panels() {
     }')
 
     echo "Порівняння ресурсів cPanel | HestiaCP:"
-    echo
-
     COUNT=$(echo "$CPANEL_JSON" | jq '.data | length')
 
     for ((i = 0; i < COUNT; i++)); do
@@ -1466,7 +1460,12 @@ remote_check_control_panels() {
 
         printf " - %-25s: %-25s <- cPanel | HestiaCP -> %s\n" "$DESC" "$CPANEL_OUTPUT" "$HESTIA_OUTPUT"
     done
-
+    echo
+    read -p "Бажаєте продовжити? (y/n): " confirm
+    if ! [[ "$confirm" =~ ^[YyYyes]+$ ]]; then
+        print_color_message 255 255 0 "Операція скасована."
+        return 0
+    fi
     loop_migrate_cpanel_to_hestia "$CPANEL_USER"
 }
 
@@ -1483,65 +1482,134 @@ transfer_domains_cpanel_to_hestia() {
     curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=mkdir&path=%2Fhome%2F$CPANEL_USER&name=backup_${rand_head}_$(date +%F)" >/dev/null 2>&1
 
     for DOMAIN in $SUBDOMAINS; do
-        STATUS="домен: $DOMAIN"
-        echo -ne "$STATUS\r"
+        if add_web_domain "$USER_REMOTE_CONTROL_PANEL" "$DOMAIN"; then
+            local STATUS="домен: $DOMAIN"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
 
-        add_web_domain "$USER_REMOTE_CONTROL_PANEL" "$DOMAIN"
+            DIR=$(echo "$RESPONSE" | jq -r --arg dom "$DOMAIN" '.cpanelresult.data[] | select(.subdomain == $dom) | .dir')
 
-        DIR=$(echo "$RESPONSE" | jq -r --arg dom "$DOMAIN" '.cpanelresult.data[] | select(.subdomain == $dom) | .dir')
-        STATUS+=" | папку: $DIR"
-        echo -ne "$STATUS\r"
+            ARCHIVE_NAME="${DIR##*/}.zip"
+            ARCHIVE_PATH="$BACKUP_DIR/$ARCHIVE_NAME"
+            
+            # Кодуємо шляхи після символу "?" для URL (заміна '/' на %2F)
+            URL_ENCODED_DIR=$(echo "$DIR" | sed 's/\//%2F/g')
+            URL_ENCODED_ARCHIVE_PATH=$(echo "$ARCHIVE_PATH" | sed 's/\//%2F/g')
 
-        ARCHIVE_NAME="${DIR##*/}.zip"
-        ARCHIVE_PATH="$BACKUP_DIR/$ARCHIVE_NAME"
-        
-        # Кодуємо шляхи після символу "?" для URL (заміна '/' на %2F)
-        URL_ENCODED_DIR=$(echo "$DIR" | sed 's/\//%2F/g')
-        URL_ENCODED_ARCHIVE_PATH=$(echo "$ARCHIVE_PATH" | sed 's/\//%2F/g')
-        
-        STATUS+=" | архів $ARCHIVE_NAME"
-        echo -ne "$STATUS\r"
-        curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=compress&metadata=zip&sourcefiles=$URL_ENCODED_DIR&destfiles=$URL_ENCODED_ARCHIVE_PATH" >/dev/null 2>&1
-        
-        STATUS+=" - скачуємо"
-        echo -ne "$STATUS\r"
-        curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/download?skipencode=1&file=$URL_ENCODED_ARCHIVE_PATH" -o "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/$ARCHIVE_NAME" >/dev/null 2>&1
-        
-        STATUS+=" - видаляємо"
-        echo -ne "$STATUS\r"
-        curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=unlink&sourcefiles=$URL_ENCODED_ARCHIVE_PATH" >/dev/null 2>&1
-        
-        STATUS+=" | Готово |"
-        echo -ne "$STATUS\n"
+            STATUS+=" | створення архіву $ARCHIVE_NAME"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+            curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=compress&metadata=zip&sourcefiles=$URL_ENCODED_DIR&destfiles=$URL_ENCODED_ARCHIVE_PATH" >/dev/null 2>&1
+            
+            STATUS+=" - скачуємо"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+            curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/download?skipencode=1&file=$URL_ENCODED_ARCHIVE_PATH" -o "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/$ARCHIVE_NAME" >/dev/null 2>&1
+            
+            STATUS+=" - видаляємо у cPanel"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+            curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=unlink&sourcefiles=$URL_ENCODED_ARCHIVE_PATH" >/dev/null 2>&1
+
+            STATUS+=" - розпакування"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+            unzip "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/$ARCHIVE_NAME" -d "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN" >/dev/null 2>&1
+
+            STATUS+=" - видаляємо у HestiaCP"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+            rm -f "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/$ARCHIVE_NAME" >/dev/null 2>&1
+
+            if ! rmdir "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/public_html" 2>/dev/null; then
+                STATUS+=" - папка public_html не видалена, пропускаємо це завдання |"
+                echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n"
+                continue
+            fi
+
+            STATUS+=" | переміщення файлів в public_html"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+            mv "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/$DOMAIN" "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/public_html"
+
+            STATUS+=" - встановлення прав"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+            chown -R "$USER_REMOTE_CONTROL_PANEL:$USER_REMOTE_CONTROL_PANEL" "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/public_html"
+            chmod 755 "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/public_html"
+
+            STATUS+=" | Готово |"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n"
+        fi
     done
 }
 
 transfer_databases_cpanel_to_hestia() {
     local USER_REMOTE_CONTROL_PANEL="$1"
+    local LOCAL_USER_HOME_WEB_DIR="/home/$USER_REMOTE_CONTROL_PANEL/backup_db_$rand_head"
 
-    echo -e "\nОбробка баз даних:"
+    local DB_USER
+    local DB_PASSWORD
 
+    mkdir -p "$LOCAL_USER_HOME_WEB_DIR"
+    detect_mysql_server_type
+
+    if [[ ! -d "$LOCAL_USER_HOME_WEB_DIR" ]]; then
+        echo "Не вдалося створити директорію для резервних копій баз даних."
+        return 1
+    fi
+
+    echo -e "\nОбробка/завдання баз даних:"
     DB_LIST_JSON=$(curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/execute/Mysql/list_databases")
     DB_NAMES=$(echo "$DB_LIST_JSON" | jq -r '.data[].database')
 
+    2_switch_prefix_for_VestaCP_HestiaCP
     for DB_NAME in $DB_NAMES; do
-        STATUS="Скачуємо $DB_NAME"
-        echo -ne "$STATUS\r"
+        local DB_INFO=$(echo "$DB_LIST_JSON" | jq -r --arg DB "$DB_NAME" '.data[] | select(.database == $DB)')
 
-        BACKUP_URL="$CPANEL_HOST$CPANEL_SESSION/getsqlbackup/${DB_NAME}.sql.gz"
-        OUTPUT_FILE="${DB_NAME}_$(date +%F).sql.gz"
-
-        curl -sk -H "$AUTH_HEADER" "$BACKUP_URL" -o "$OUTPUT_FILE"
-
-        if [[ $? -eq 0 && -s "$OUTPUT_FILE" ]]; then
-            STATUS+=" | збережено як $OUTPUT_FILE |"
-            echo -ne "$STATUS\n"
+        if mysql -uroot -e "USE $DB_NAME;" 2>/dev/null; then
+            echo -e "база даних $DB_NAME вже існує, пропускаємо"
+            continue
         else
-            STATUS+=" | помилка при скачуванні $DB_NAME |"
-            echo -ne "$STATUS\n"
-            rm -f "$OUTPUT_FILE"
+            DB_USER=$(echo "$DB_INFO" | jq -r '.users[0]')
+            DB_PASSWORD=$(generate_random_password 25)
+
+            STATUS="Скачуємо $DB_NAME"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+
+            BACKUP_URL="$CPANEL_HOST$CPANEL_SESSION/getsqlbackup/${DB_NAME}.sql.gz"
+            OUTPUT_FILE="${DB_NAME}_$(date +%F).sql.gz"
+
+            curl -sk -H "$AUTH_HEADER" "$BACKUP_URL" -o "$LOCAL_USER_HOME_WEB_DIR/$OUTPUT_FILE"
+
+            if [[ $? -eq 0 && -s "$LOCAL_USER_HOME_WEB_DIR/$OUTPUT_FILE" ]]; then
+                STATUS+=" - збережено як $OUTPUT_FILE"
+                echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+            else
+                STATUS+=" - помилка при скачуванні $DB_NAME - видаляємо тимчасовий файл $OUTPUT_FILE |"
+                echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n"
+                rm -f "$LOCAL_USER_HOME_WEB_DIR/$OUTPUT_FILE"
+                continue
+            fi
+            STATUS+=" - створення у HestiaCP"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+
+            $CLI_dir/v-add-database "$USER_REMOTE_CONTROL_PANEL" "$DB_NAME" "$DB_USER" "$DB_PASSWORD"
+            STATUS+=" - імпортування"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+
+            gunzip -c "$LOCAL_USER_HOME_WEB_DIR/$OUTPUT_FILE" | mysql "$DB_NAME"
+
+            if [[ $? -eq 0 ]]; then
+                STATUS+=" - імпорт успішний"
+                echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+            else
+                STATUS+=" - помилка при імпорті"
+                echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
+            fi
+
+            STATUS+=" - видаляємо тимчасовий файл $OUTPUT_FILE |"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n"
+
+            rm -f "$LOCAL_USER_HOME_WEB_DIR/$OUTPUT_FILE" >/dev/null 2>&1
+
         fi
     done
+    rmdir "$LOCAL_USER_HOME_WEB_DIR"
+    2_switch_prefix_for_VestaCP_HestiaCP
+
 }
 
 loop_migrate_cpanel_to_hestia() {
