@@ -1,20 +1,5 @@
 #!/bin/bash -n
 # shellcheck disable=SC2148,SC2154
-# Функція для перевірки та встановлення пакетів
-
-# Функція для додавання результатів в змінні
-log_success() {
-    SUCCESSFUL_OPERATIONS+="$1"
-}
-
-log_failure() {
-    FAILED_OPERATIONS+="$1"
-}
-
-log_all() {
-    ALL_OPERATIONS+="$1"
-}
-
 # Функція для виведення результатів після виконання всіх операцій
 output_results() {
     echo -e "\nРезультати операцій:"

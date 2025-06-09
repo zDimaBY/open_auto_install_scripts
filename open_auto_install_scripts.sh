@@ -33,15 +33,15 @@ function select_language() {
     clear
     echo -e "${YELLOW}Select a language:${RESET}"
     echo "1. English"
-    echo "2. Українська"
-    echo "3. Русский"
+    echo "2. Русский"
+    echo "3. Українська"
 
     read -p "Select a language pack number (1/2/3): " lang_choice
 
     case $lang_choice in
     1) LANG_open_auto_install_scripts="en" ;;
-    3) LANG_open_auto_install_scripts="ru" ;;
-    2) LANG_open_auto_install_scripts="ua" ;;
+    2) LANG_open_auto_install_scripts="ru" ;;
+    3) LANG_open_auto_install_scripts="ua" ;;
     *)
         echo -e "${RED}Wrong choice. Set by default: 'en'.${RESET}"
         LANG_open_auto_install_scripts="en"

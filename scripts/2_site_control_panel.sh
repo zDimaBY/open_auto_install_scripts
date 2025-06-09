@@ -54,7 +54,7 @@ function 2_site_control_panel() {
         print_color_message 255 255 255 "3. Заміна IP-адреси з old на new $(print_color_message 255 99 71)"
         print_color_message 255 255 255 "4. Вимкнення/увімкнення префікса $(print_color_message 144 238 144 'admin_') у базах даних панелі керування"
         print_color_message 255 255 255 "5. Очистка $(print_color_message 144 238 144 'логів') $(print_color_message 255 99 71 '(test)')"
-        print_color_message 255 255 255 "6. Пренесення $(print_color_message 144 238 144 'сайтів') з сервера на сервер$(print_color_message 255 0 255 "${server_IPv4[0]}") $(print_color_message 255 99 71 '(test)')"
+        print_color_message 255 255 255 "6. Пренесення $(print_color_message 144 238 144 'сайтів') з сервера на сервер $(print_color_message 255 0 255 "${server_IPv4[0]}") $(print_color_message 255 99 71 '(test)')"
         print_color_message 255 255 255 "\n0. ${MSG_EXIT_SUBMENU}"
         print_color_message 255 255 255 "00. ${MSG_EXIT_SCRIPT}\n"
 
@@ -902,53 +902,47 @@ remote_ssh_command() {
 # Функція перевірки користувача
 check_or_create_user() {
     local LOCAL_USER="$1"
-    local LOCAL_CONTACT_MAIL="$2"
-    local LOCAL_USER_PACKAGE="$3"
-    local LOCAL_USER_NAME="$4"
+    local LOCAL_USER_PASSWORD="$2"
+    local LOCAL_CONTACT_MAIL="$3"
+    local LOCAL_USER_PACKAGE="$4"
+    local LOCAL_USER_NAME="$5"
 
     # Перевірка наявності користувача в системі HestiaCP
     if $CLI_dir/v-list-users | grep -qw "^$LOCAL_USER" 2>/dev/null; then
-        log_success "Користувач $(print_color_message 0 255 255 "$LOCAL_USER") вже існує в HestiaCP."
-        echo -e "$SUCCESSFUL_OPERATIONS"
+        echo -e "Користувач $(print_color_message 0 255 255 "$LOCAL_USER") вже існує в HestiaCP."
         return 0
     fi
 
     # Перевірка наявності користувача в системі
     if getent passwd "$LOCAL_USER" > /dev/null; then
-        log_failure "Системний користувач $LOCAL_USER вже існує. Неможливо створити користувача в HestiaCP."
-        echo -e "$FAILED_OPERATIONS"
+        echo -e "Системний користувач $LOCAL_USER вже існує. Неможливо створити користувача в HestiaCP."
         return 1
     fi
 
     # Додаткові перевірки для універсальної підтримки різних систем Linux
     if id "$LOCAL_USER" &> /dev/null; then
-        log_failure "Користувач $LOCAL_USER існує в системі (перевірено через id). Неможливо створити користувача в HestiaCP."
-        echo -e "$FAILED_OPERATIONS"
+        echo -e "Користувач $LOCAL_USER існує в системі (перевірено через id). Неможливо створити користувача в HestiaCP."
         return 1
     fi
 
     # Перевірка, чи існує група з таким ім'ям
     if getent group "$LOCAL_USER" > /dev/null; then
-        log_failure "Група $LOCAL_USER вже існує. Видаліть її командою: groupdel $LOCAL_USER або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
-        echo -e "$FAILED_OPERATIONS"
+        echo -e "Група $LOCAL_USER вже існує. Видаліть її командою: groupdel $LOCAL_USER або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
         return 1
     fi
 
     if grep -qw "^$LOCAL_USER:" /etc/group; then
-        log_failure "Група $LOCAL_USER знайдена у /etc/group. Видаліть її командою: groupdel $LOCAL_USER або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
-        echo -e "$FAILED_OPERATIONS"
+        echo -e "Група $LOCAL_USER знайдена у /etc/group. Видаліть її командою: groupdel $LOCAL_USER або виберіть інше ім'я користувача. Неможливо створити користувача в HestiaCP."
         return 1
     fi
 
     # Створення нового користувача через HestiaCP CLI
-    if $CLI_dir/v-add-user "$LOCAL_USER" "$(generate_random_part 16)" "$LOCAL_CONTACT_MAIL" "$LOCAL_USER_PACKAGE" "$LOCAL_USER_NAME"; then
-        log_success "Користувача $LOCAL_USER успішно створено в HestiaCP."
-        echo -e "$SUCCESSFUL_OPERATIONS"
+    if $CLI_dir/v-add-user "$LOCAL_USER" "$LOCAL_USER_PASSWORD" "$LOCAL_CONTACT_MAIL" "$LOCAL_USER_PACKAGE" "$LOCAL_USER_NAME"; then
+        echo -e "Користувача $LOCAL_USER успішно створено в HestiaCP."
         return 0
     else
-        log_failure "Помилка створення користувача $LOCAL_USER в HestiaCP. \n"
+        echo -e "Помилка створення користувача $LOCAL_USER в HestiaCP. \n"
         return 1
-        echo -e "$FAILED_OPERATIONS"
     fi
 }
 
@@ -957,35 +951,24 @@ add_web_domain() {
     local USER_REMOTE_CONTROL_PANEL="$1"
     local LOCAL_DOMAIN="$2"
 
-    # Перевірка наявності домену та змінної USER_REMOTE_CONTROL_PANEL
     if [[ -z "$LOCAL_DOMAIN" || -z "$USER_REMOTE_CONTROL_PANEL" ]]; then
-        log_all "$(print_color_message 255 0 0 "Помилка: Домен або користувач не вказані.")"
-        echo -e "$ALL_OPERATIONS"
+        echo -e "$(print_color_message 255 0 0 "Помилка: Домен або користувач не вказані.")"
         return 1
     fi
 
-    # Перевірка наявності CLI інструменту
     if ! command -v $CLI_dir/v-list-web-domains &>/dev/null; then
-        log_all "$(print_color_message 255 0 0 "Помилка: CLI інструмент HestiaCP не знайдено.")"
-        echo -e "$ALL_OPERATIONS"
+        echo -e "$(print_color_message 255 0 0 "Помилка: CLI інструмент HestiaCP не знайдено.")"
         return 1
     fi
 
-    # Перевірка наявності домену
     if $CLI_dir/v-list-web-domains $USER_REMOTE_CONTROL_PANEL | grep -E "^\s*$LOCAL_DOMAIN\s" &>/dev/null; then
-        log_all "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") вже існує, пропускаємо..."
-        echo -e "$ALL_OPERATIONS"
+        echo -e "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") вже існує, пропускаємо..."
         return 1
     fi
 
-
-    # Додаємо веб-домен
-    log_all "Обробка домену: $(print_color_message 0 255 255 "$LOCAL_DOMAIN") ... "
-    
-    # Додавання домену та видалення стандартних файлів
     if $CLI_dir/v-add-web-domain "$USER_REMOTE_CONTROL_PANEL" "$LOCAL_DOMAIN"; then
-        log_all "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно додано для користувача $(print_color_message 0 255 255 "$USER_REMOTE_CONTROL_PANEL"). "
-        # Видалення стандартних файлів
+        echo -e "Домен $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно додано для користувача $(print_color_message 0 255 255 "$USER_REMOTE_CONTROL_PANEL"). "
+
         local local_web_root="/home/$USER_REMOTE_CONTROL_PANEL/web/$LOCAL_DOMAIN/public_html"
         if [[ -d "$local_web_root" ]]; then
             rm -f "$local_web_root/index.html" &>/dev/null
@@ -993,8 +976,7 @@ add_web_domain() {
         fi
         return 0
     else
-        log_all "Не вдалося додати домен $LOCAL_DOMAIN для користувача $USER_REMOTE_CONTROL_PANEL."
-        echo -e "$ALL_OPERATIONS"
+        echo -e "Не вдалося додати домен $LOCAL_DOMAIN для користувача $USER_REMOTE_CONTROL_PANEL."
         return 1
     fi
 }
@@ -1008,8 +990,7 @@ install_ssl() {
 
     # Перевірка наявності домену та змінної USER_REMOTE_CONTROL_PANEL
     if [[ -z "$LOCAL_DOMAIN" || -z "$USER_REMOTE_CONTROL_PANEL" ]]; then
-        log_all "Помилка: Домен або користувач не вказані."
-        echo -e "$ALL_OPERATIONS"
+        echo -e "Помилка: Домен або користувач не вказані."
         return 1
     fi
 
@@ -1020,8 +1001,7 @@ install_ssl() {
     if ! openssl req -new -newkey rsa:4096 -sha256 -days 825 -nodes -x509 \
             -subj "/C=NL/ST=North Holland/L=Amsterdam/O=SecureNet Inc./CN=$LOCAL_DOMAIN" \
             -keyout "$ssl_dir/$LOCAL_DOMAIN.key" -out "$ssl_dir/$LOCAL_DOMAIN.crt" &>/dev/null; then
-        log_all "Помилка генерації SSL сертифікату для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
-        echo -e "$ALL_OPERATIONS"
+        echo -e "Помилка генерації SSL сертифікату для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
         return 1
     fi
 
@@ -1030,12 +1010,10 @@ install_ssl() {
     
     # Додавання SSL до домену
     if ! $CLI_dir/v-add-web-domain-ssl $USER_REMOTE_CONTROL_PANEL $LOCAL_DOMAIN $ssl_dir; then
-        log_all "Помилка додавання SSL до домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
-        echo -e "$ALL_OPERATIONS"
+        echo -e "Помилка додавання SSL до домену $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
         return 1
     fi
-    log_all "Самопідписаний SSL сертифікат успішно встановлено для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
-    echo -e "$ALL_OPERATIONS"
+    echo -e "Самопідписаний SSL сертифікат успішно встановлено для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
     return 0
 }
 
@@ -1048,11 +1026,9 @@ config_web_domain() {
     template_php_version=$(echo $template_web | jq -r '."'$LOCAL_DOMAIN'"."BACKEND"')
 
     if $CLI_dir/v-change-web-domain-backend-tpl $USER_REMOTE_CONTROL_PANEL $LOCAL_DOMAIN $template_php_version; then
-        log_all "Зміни backend для $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно застосовано."
-        echo -e "$ALL_OPERATIONS"
+        echo -e "Зміни backend для $(print_color_message 0 255 255 "$LOCAL_DOMAIN") успішно застосовано."
     else
-        log_all "Помилка зміни backend шаблону для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
-        echo -e "$ALL_OPERATIONS"
+        echo -e "Помилка зміни backend шаблону для $(print_color_message 0 255 255 "$LOCAL_DOMAIN")."
     fi
 }
 
@@ -1272,10 +1248,10 @@ loop_migrate_hestia_vesta() {
     local LOCAL_USER_PACKAGE=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$USER_REMOTE_CONTROL_PANEL" '.[$user].PACKAGE')
     local LOCAL_USER_NAME=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$USER_REMOTE_CONTROL_PANEL" '.[$user].NAME')
 
-    log_success "\n\nРозпочато перенесення для користувача: $(print_color_message 0 255 255 "$USER_REMOTE_CONTROL_PANEL"). Обробка... "
+    echo -e  "\n\nРозпочато перенесення для користувача: $(print_color_message 0 255 255 "$USER_REMOTE_CONTROL_PANEL"). Обробка... "
     
     # Виконуємо основні функції перенесення
-    if ! check_or_create_user "$USER_REMOTE_CONTROL_PANEL" "$LOCAL_CONTACT_MAIL" "$LOCAL_USER_PACKAGE" "$LOCAL_USER_NAME"; then
+    if ! check_or_create_user "$USER_REMOTE_CONTROL_PANEL" "$(generate_random_part 16)" "$LOCAL_CONTACT_MAIL" "$LOCAL_USER_PACKAGE" "$LOCAL_USER_NAME"; then
         return 1
     fi
     transfer_databases "$USER_REMOTE_CONTROL_PANEL"
@@ -1383,9 +1359,6 @@ remote_check_control_panels() {
     AUTH_HEADER="Cookie: cpsession=$CPSESSION_VALUE"
 
     CPANEL_JSON=$(curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/execute/ResourceUsage/get_usages")
-    echo "$CPANEL_JSON" | jq -r .
-
-    HESTIA_JSON=$(v-list-user-stats $HESTIA_USER json)
 
     DF_TOTAL=$(df / | awk 'NR==2 {print $2}')
     DF_USED=$(df / | awk 'NR==2 {print $3}')
@@ -1494,22 +1467,26 @@ remote_check_control_panels() {
         printf " - %-25s: %-25s <- cPanel | HestiaCP -> %s\n" "$DESC" "$CPANEL_OUTPUT" "$HESTIA_OUTPUT"
     done
 
-    echo -e "\nОбробка доменів:"
-    RESPONSE=$(curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=SubDomain&cpanel_jsonapi_func=listsubdomains")
+    loop_migrate_cpanel_to_hestia "$CPANEL_USER"
+}
 
-    # Отримуєм відповідь у форматі json
-    #echo "$RESPONSE" | jq -r .
+transfer_domains_cpanel_to_hestia() {
+    local USER_REMOTE_CONTROL_PANEL="$1"
+    local LOCAL_USER_HOME_WEB_DIR="/home/$USER_REMOTE_CONTROL_PANEL/web"
+
+    RESPONSE=$(curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=SubDomain&cpanel_jsonapi_func=listsubdomains")
 
     SUBDOMAINS=$(echo "$RESPONSE" | jq -r '.cpanelresult.data[].subdomain')
 
-    BACKUP_DIR="/home/$CPANEL_USER/backup"
+    BACKUP_DIR="/home/$CPANEL_USER/backup_${rand_head}_$(date +%F)"
 
-    curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=mkdir&path=%2Fhome%2F$CPANEL_USER&name=backup_${rand_head}" >/dev/null 2>&1
+    curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/json-api/cpanel?cpanel_jsonapi_user=$CPANEL_USER&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=mkdir&path=%2Fhome%2F$CPANEL_USER&name=backup_${rand_head}_$(date +%F)" >/dev/null 2>&1
 
-    # 1. Проходимо циклом по кожному піддомену
     for DOMAIN in $SUBDOMAINS; do
         STATUS="домен: $DOMAIN"
         echo -ne "$STATUS\r"
+
+        add_web_domain "$USER_REMOTE_CONTROL_PANEL" "$DOMAIN"
 
         DIR=$(echo "$RESPONSE" | jq -r --arg dom "$DOMAIN" '.cpanelresult.data[] | select(.subdomain == $dom) | .dir')
         STATUS+=" | папку: $DIR"
@@ -1518,8 +1495,7 @@ remote_check_control_panels() {
         ARCHIVE_NAME="${DIR##*/}.zip"
         ARCHIVE_PATH="$BACKUP_DIR/$ARCHIVE_NAME"
         
-        # Кодуємо шляхи для URL (заміна '/' на %2F)
-        # Простий варіант: замінюємо '/' на '%2F' (для cPanel API)
+        # Кодуємо шляхи після символу "?" для URL (заміна '/' на %2F)
         URL_ENCODED_DIR=$(echo "$DIR" | sed 's/\//%2F/g')
         URL_ENCODED_ARCHIVE_PATH=$(echo "$ARCHIVE_PATH" | sed 's/\//%2F/g')
         
@@ -1529,7 +1505,7 @@ remote_check_control_panels() {
         
         STATUS+=" - скачуємо"
         echo -ne "$STATUS\r"
-        curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/download?skipencode=1&file=$URL_ENCODED_ARCHIVE_PATH" -o "$ARCHIVE_NAME" >/dev/null 2>&1
+        curl -sk -H "$AUTH_HEADER" "$CPANEL_HOST$CPANEL_SESSION/download?skipencode=1&file=$URL_ENCODED_ARCHIVE_PATH" -o "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/$ARCHIVE_NAME" >/dev/null 2>&1
         
         STATUS+=" - видаляємо"
         echo -ne "$STATUS\r"
@@ -1538,6 +1514,10 @@ remote_check_control_panels() {
         STATUS+=" | Готово |"
         echo -ne "$STATUS\n"
     done
+}
+
+transfer_databases_cpanel_to_hestia() {
+    local USER_REMOTE_CONTROL_PANEL="$1"
 
     echo -e "\nОбробка баз даних:"
 
@@ -1562,6 +1542,23 @@ remote_check_control_panels() {
             rm -f "$OUTPUT_FILE"
         fi
     done
+}
+
+loop_migrate_cpanel_to_hestia() {
+    local USER_REMOTE_CONTROL_PANEL="$1"
+
+    local LOCAL_CONTACT_MAIL="example@example.tld"
+    local LOCAL_USER_PACKAGE="default"
+    local LOCAL_USER_NAME=$(echo "$LIST_USERS_JSON" | jq -r --arg user "$USER_REMOTE_CONTROL_PANEL" '.[$user].NAME')
+    
+    if ! check_or_create_user "$USER_REMOTE_CONTROL_PANEL" "$(generate_random_part 16)" "$LOCAL_CONTACT_MAIL" "$LOCAL_USER_PACKAGE" "$LOCAL_USER_NAME"; then
+        return 1
+    fi
+
+    transfer_domains_cpanel_to_hestia "$USER_REMOTE_CONTROL_PANEL"
+    transfer_databases_cpanel_to_hestia "$USER_REMOTE_CONTROL_PANEL"
+    #add_dns_domains "$USER_REMOTE_CONTROL_PANEL" "${server_IPv4[0]}" "ns1.example.tld" "ns2.example.tld"
+    echo -e "Обробка користувача: $(print_color_message 0 255 255 "$USER_REMOTE_CONTROL_PANEL") завершена$(print_color_message 255 0 0 "!!!")"
 }
 
 #---------------------------------------------------------------------------------------------------------
