@@ -1517,7 +1517,7 @@ transfer_domains_cpanel_to_hestia() {
 
             if ! rmdir "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/public_html" 2>/dev/null; then
                 STATUS+=" - папка public_html не видалена, пропускаємо це завдання |"
-                echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n"
+                echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n")"
                 continue
             fi
 
@@ -1531,7 +1531,7 @@ transfer_domains_cpanel_to_hestia() {
             chmod 755 "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/public_html"
 
             STATUS+=" | Готово |"
-            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n")"
         fi
     done
 }
@@ -1579,7 +1579,7 @@ transfer_databases_cpanel_to_hestia() {
                 echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS")\r"
             else
                 STATUS+=" - помилка при скачуванні $DB_NAME - видаляємо тимчасовий файл $OUTPUT_FILE |"
-                echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n"
+                echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n")"
                 rm -f "$LOCAL_USER_HOME_WEB_DIR/$OUTPUT_FILE"
                 continue
             fi
@@ -1601,7 +1601,7 @@ transfer_databases_cpanel_to_hestia() {
             fi
 
             STATUS+=" - видаляємо тимчасовий файл $OUTPUT_FILE |"
-            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n")"
 
             rm -f "$LOCAL_USER_HOME_WEB_DIR/$OUTPUT_FILE" >/dev/null 2>&1
 
