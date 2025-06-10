@@ -1531,7 +1531,7 @@ transfer_domains_cpanel_to_hestia() {
             chmod 755 "$LOCAL_USER_HOME_WEB_DIR/$DOMAIN/public_html"
 
             STATUS+=" | Готово |"
-            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n"
+            echo -ne "$(printf "%-${cols}.${cols}s" "$STATUS\n)"
         fi
     done
 }
